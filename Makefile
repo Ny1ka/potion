@@ -1,5 +1,5 @@
 # Common tasks. Run `make setup` once after cloning.
-.PHONY: setup scan test test-core test-core-dotnet potion-macos-project potion-macos run-potion-macos clean
+.PHONY: setup scan sync-spec test test-core test-core-dotnet potion-macos-project potion-macos run-potion-macos clean
 
 DERIVED := build/DerivedData
 POTION_MAC_APP := $(DERIVED)/Build/Products/Debug/Potion.app
@@ -13,9 +13,13 @@ setup:
 scan:
 	scripts/forbidden-scan.sh --tree
 
+sync-spec:
+	scripts/sync-spec.sh
+
 test: test-core test-core-dotnet
 
 test-core:
+	scripts/sync-spec.sh --check
 	swift test --package-path core/swift
 
 # The Windows app itself only builds on Windows (see CI); the shared .NET core builds anywhere.

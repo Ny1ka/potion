@@ -28,6 +28,8 @@ jobs:
       - uses: actions/checkout@v7
       - name: Scan tracked files
         run: scripts/forbidden-scan.sh --tree
+      - name: Swift copies of core/spec are in sync
+        run: scripts/sync-spec.sh --check
 
   macos:
     name: macOS build + tests

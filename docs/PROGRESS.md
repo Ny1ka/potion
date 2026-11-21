@@ -4,25 +4,30 @@ Read this first in any new session. Update it at every checkpoint.
 
 ## Status
 
-- **Current milestone:** M0 Scaffold
-- **Last completed chunk:** M0.2 `core/dotnet` + Potion Windows app + CI
-- **Next chunk:** M1.1 Format registry and content detection (`core/spec/formats.json`, both cores)
+- **Current milestone:** M1 Core: formats
+- **Last completed chunk:** M1.1 Format registry + content detection (both cores)
+- **Next chunk:** M1.2 Conversion matrix (`core/spec/matrix.json`, both cores)
+- **Progress to V1:** 8% (see weights below). First point where the owner can convert real files in an app:
+  Potion for macOS after M3.3 (convert sheet), at about 37%.
 
 ## Milestones
 
-| Milestone | Status |
-|---|---|
-| M0 Scaffold | Done |
-| M1 Core: formats | Not started |
-| M2 Core: conversion engines | Not started |
-| M3 Potion macOS UI | Not started |
-| M4 Potion Windows UI | Not started |
-| M5 Dropper core | Not started |
-| M6 Dropper macOS UI | Not started |
-| M7 Dropper Windows UI | Not started |
-| M7.5 Personal experimental module (private repo) | Not started |
-| M8 Legal and compliance pass | Not started |
-| M9 Packaging and V1 release | Not started |
+Weights estimate each milestone's share of the work to V1 (sum 100). Progress = finished milestones plus
+the finished share of the current one (by chunks). Report it at every checkpoint.
+
+| Milestone | Weight | Status |
+|---|---|---|
+| M0 Scaffold | 5 | Done |
+| M1 Core: formats | 5 | In progress (M1.1 done) |
+| M2 Core: conversion engines | 20 | Not started |
+| M3 Potion macOS UI | 15 | Not started |
+| M4 Potion Windows UI | 15 | Not started |
+| M5 Dropper core | 8 | Not started |
+| M6 Dropper macOS UI | 7 | Not started |
+| M7 Dropper Windows UI | 7 | Not started |
+| M7.5 Personal experimental module (private repo) | 3 | Not started |
+| M8 Legal and compliance pass | 5 | Not started |
+| M9 Packaging and V1 release | 10 | Not started |
 
 ### M0 chunks
 
@@ -32,9 +37,11 @@ Read this first in any new session. Update it at every checkpoint.
       and CI (`.github/workflows/ci.yml`): source scan, macOS and Windows build + tests, Release-app scans.
       (Merged the planned M0.3 into M0.2: the Windows app can only be verified by CI.)
 
-### M1 chunks (planned)
+### M1 chunks
 
-- [ ] M1.1 Format registry + content detection: `core/spec/formats.json`, shared test cases, Swift + C#
+- [x] M1.1 Format registry + content detection: `core/spec/formats.json` (48 formats, 72 rules),
+      `core/spec/tests/detection.json` (82 shared cases), Swift + C# implementations. Also checked by hand
+      against 42 real files generated with ffmpeg/sips/textutil (all correct in both cores)
 - [ ] M1.2 Conversion matrix: `core/spec/matrix.json` with limitation notes, Swift + C#, shared tests
 
 ## Decisions

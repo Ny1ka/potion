@@ -10,4 +10,9 @@
     <Version>0.1.0</Version>
   </PropertyGroup>
 
+  <!-- Shared spec, embedded straight from core/spec (no copy needed on .NET). -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\spec\formats.json" LogicalName="Potion.Core.formats.json" Link="Spec\formats.json" />
+  </ItemGroup>
+
 </Project>
