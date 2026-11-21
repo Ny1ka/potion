@@ -7,27 +7,22 @@ Read this first in any new session. Update it at every checkpoint.
 - **Current milestone:** M1 Core: formats
 - **Last completed chunk:** M1.1 Format registry + content detection (both cores)
 - **Next chunk:** M1.2 Conversion matrix (`core/spec/matrix.json`, both cores)
-- **Progress to V1:** 8% (see weights below). First point where the owner can convert real files in an app:
-  Potion for macOS after M3.3 (convert sheet), at about 37%.
 
 ## Milestones
 
-Weights estimate each milestone's share of the work to V1 (sum 100). Progress = finished milestones plus
-the finished share of the current one (by chunks). Report it at every checkpoint.
-
-| Milestone | Weight | Status |
-|---|---|---|
-| M0 Scaffold | 5 | Done |
-| M1 Core: formats | 5 | In progress (M1.1 done) |
-| M2 Core: conversion engines | 20 | Not started |
-| M3 Potion macOS UI | 15 | Not started |
-| M4 Potion Windows UI | 15 | Not started |
-| M5 Dropper core | 8 | Not started |
-| M6 Dropper macOS UI | 7 | Not started |
-| M7 Dropper Windows UI | 7 | Not started |
-| M7.5 Personal experimental module (private repo) | 3 | Not started |
-| M8 Legal and compliance pass | 5 | Not started |
-| M9 Packaging and V1 release | 10 | Not started |
+| Milestone | Status |
+|---|---|
+| M0 Scaffold | Done |
+| M1 Core: formats | In progress (M1.1 done) |
+| M2 Core: conversion engines | Not started |
+| M3 Potion macOS UI | Not started |
+| M4 Potion Windows UI | Not started |
+| M5 Dropper core | Not started |
+| M6 Dropper macOS UI | Not started |
+| M7 Dropper Windows UI | Not started |
+| M7.5 Personal experimental module (private repo) | Not started |
+| M8 Legal and compliance pass | Not started |
+| M9 Packaging and V1 release | Not started |
 
 ### M0 chunks
 
