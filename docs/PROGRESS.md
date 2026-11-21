@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M2 Core: conversion engines
-- **Last completed chunk:** M1.2 Conversion matrix (both cores). M1 complete.
-- **Next chunk:** M2.1 Audio conversion engine (macOS first), after the owner decides on FFmpeg (see below)
+- **Last completed chunk:** M2.0 LGPL FFmpeg build for macOS
+- **Next chunk:** M2.1 Audio conversion engine (macOS first)
 
 ## Milestones
 
@@ -14,7 +14,7 @@ Read this first in any new session. Update it at every checkpoint.
 |---|---|
 | M0 Scaffold | Done |
 | M1 Core: formats | Done |
-| M2 Core: conversion engines | Not started |
+| M2 Core: conversion engines | In progress (M2.0 done) |
 | M3 Potion macOS UI | Not started |
 | M4 Potion Windows UI | Not started |
 | M5 Dropper core | Not started |
@@ -48,12 +48,21 @@ Read this first in any new session. Update it at every checkpoint.
 - Dropper app scaffolds (`apps/dropper-*`) are created at the start of M5 rather than in M0, so M0–M4 stay
   focused on Potion.
 
+### M2 chunks
+
+- [x] M2.0 LGPL-only FFmpeg 9.1 build for macOS (`scripts/ffmpeg/`): universal `ffmpeg` + `ffprobe`, pinned
+      checksummed sources, license verification in CI, cached between runs
+- [ ] M2.1 Audio engine: FFmpeg process runner + progress/cancel, `transcodeAudio` + `extractAudio` (Swift)
+- [ ] M2.2 Video engine: `transcodeVideo`, `videoToGif`, `gifToVideo` (Swift)
+- [ ] M2.3 Image engine: ImageIO/Core Image, `convertImage`, `imageToPdf` (Swift)
+- [ ] M2.4 Documents: `convertDocument`, `documentToPdf` (engine choice below)
+- [ ] M2.5 PDF tools: merge, split, extract, reorder, compress, `pdfToImage`, `pdfToDocument` (PDFKit)
+- [ ] M2.6 Windows: FFmpeg build for Windows + the same engines in Potion.Core (C#), tested in CI
+
 ## Decisions coming up (from the final spec)
 
-- **M2.1/M2.2, FFmpeg:** Prompt 1 §6 lists formats AVFoundation and Media Foundation can't write (MKV, WEBM,
-  AVI, WMV, FLV, OGG, OPUS, WMA) and says users must never install dependencies themselves. Plan: OS
-  frameworks first; bundle an LGPL-only FFmpeg (no x264/x265; H.264/HEVC/AAC through the OS encoders via
-  `h264_videotoolbox` / `h264_mf`) for everything else. Confirm with the owner before adding it (spec 6.1.1).
+- **FFmpeg (decided 2026-11-21):** OS frameworks first; LGPL-only FFmpeg as separate programs for
+  everything else. See `scripts/ffmpeg/README.md` and `docs/LEGAL_REVIEW.md`.
 - **M2.4, document engine:** DOC/DOCX/ODT/RTF/EPUB ↔ PDF with layout fidelity. Options: LibreOffice headless
   as a separate process (MPL, large install: needs owner approval per 6.1.1), Pandoc as a separate executable
   (GPL; weaker layout fidelity), or OS-native paths only (macOS NSAttributedString/WebKit printing; limited

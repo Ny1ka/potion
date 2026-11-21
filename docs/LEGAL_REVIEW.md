@@ -9,6 +9,19 @@ are completed in M8/M9.
 | Date | Decision | Notes |
 |---|---|---|
 | 2026-11-21 | Project code is licensed under **MIT** (`/LICENSE`). | Compatible with LGPL FFmpeg linked dynamically or run as a separate process, OS frameworks, and GPL tools run as separate executables. AGPL libraries stay excluded. MIT grants no rights to the Potion name or logo; add a trademark note in M8. |
+| 2026-11-21 | Bundle an **LGPL-only FFmpeg 9.1** as separate `ffmpeg`/`ffprobe` programs (not linked into the apps). | Built from pinned, checksummed sources by `scripts/ffmpeg/`. No `--enable-gpl`/`--enable-nonfree`, no x264/x265/fdk-aac, no network support. `verify-license.sh` enforces this in CI. Statically includes LAME (LGPL) and Opus, libogg, libvorbis, libvpx (BSD). |
+| 2026-11-21 | Patent-encumbered encoding goes through the OS. | H.264/HEVC via VideoToolbox, AAC/ALAC via AudioToolbox on macOS (Media Foundation on Windows). FFmpeg's native AAC encoder is disabled. |
+
+## Codec and patent notes (for legal advice)
+
+| Codec in the FFmpeg build | Notes |
+|---|---|
+| H.264, HEVC, AAC **decoders** (FFmpeg's own) | Needed to read common files; FFmpeg's VideoToolbox path still uses its parsers. Encoding is done by the OS. **Ask a lawyer** whether shipping these decoders needs a license (Via LA / Access Advance pools). |
+| MPEG-1/MPEG-2 video, MP2 audio encoders | Core patents believed expired in most countries. Confirm. |
+| MPEG-4 Part 2 encoder (used for AVI/3GP outputs) | Most pool patents believed expired by 2024. Confirm. |
+| WMV2 / WMA2 encoders (FFmpeg's reverse-engineered implementations) | Microsoft codecs. **Ask a lawyer** about any remaining patents. |
+| MP3 (LAME), AC-3 | Patents expired (2017). |
+| VP8/VP9 (libvpx), Opus, Vorbis, FLAC | Distributed royalty-free; libvpx includes Google's patent grant (`libvpx-PATENTS`). |
 
 ## Open questions
 
@@ -19,6 +32,8 @@ are completed in M8/M9.
 
 ## Items for lawyer review before public release
 
+- Codec patent questions above (FFmpeg decoders for H.264/HEVC/AAC; WMV2/WMA2)
+- LGPL source offer for FFmpeg: plan is to attach the exact source archives and build scripts to each release
 - Terms of use / EULA (`legal/TERMS.md`, M8)
 - Privacy policy (`legal/PRIVACY.md`, M8)
 - Potion Dropper source policy (`docs/SOURCES.md`, M5)

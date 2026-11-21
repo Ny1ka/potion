@@ -36,10 +36,24 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v7
-      - name: Install XcodeGen
-        run: brew install xcodegen
-      - name: PotionCore tests
+      - name: Install build tools
+        run: brew install xcodegen nasm
+      # The LGPL FFmpeg build takes a while, so it is cached until scripts/ffmpeg/ changes.
+      - name: Restore FFmpeg build
+        id: ffmpeg-cache
+        uses: actions/cache@v6
+        with:
+          path: build/ffmpeg/macos
+          key: ffmpeg-macos-${{ hashFiles('scripts/ffmpeg/**') }}
+      - name: Build FFmpeg (LGPL, universal)
+        if: steps.ffmpeg-cache.outputs.cache-hit != 'true'
+        run: scripts/ffmpeg/build-macos.sh universal
+      - name: Verify FFmpeg license
+        run: scripts/ffmpeg/verify-license.sh build/ffmpeg/macos/bin
+      - name: PotionCore tests (including engine tests with the FFmpeg build)
         run: swift test --package-path core/swift
+        env:
+          POTION_REQUIRE_FFMPEG: "1"
       - name: Generate Xcode project
         run: cd apps/potion-macos && xcodegen generate --quiet
       - name: Build Potion (Debug)
