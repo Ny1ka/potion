@@ -6,7 +6,7 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 SRC=core/spec
 DST=core/swift/Sources/PotionCore/Resources
-FILES=(formats.json)
+FILES=(formats.json matrix.json)
 
 status=0
 mkdir -p "$DST"

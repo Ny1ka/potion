@@ -1,0 +1,57 @@
+{
+  "about": "Shared conformance cases for the conversion matrix. Both cores run every case. 'conversions' check one pair; 'outputs' check what is offered for one input; 'common' check what is offered for a batch of inputs.",
+  "conversions": [
+    { "name": "Spec: MP4 to MP3", "from": "mp4", "to": "mp3", "operation": "extractAudio", "notes": [] },
+    { "name": "Spec: MP4 to MOV", "from": "mp4", "to": "mov", "operation": "transcodeVideo", "notes": [] },
+    { "name": "Spec: DOCX to PDF", "from": "docx", "to": "pdf", "operation": "documentToPdf", "notes": [] },
+    { "name": "Spec: PNG to JPG", "from": "png", "to": "jpg", "operation": "convertImage", "notes": ["noTransparency"] },
+    { "name": "Spec: PDF to DOCX warns about layout", "from": "pdf", "to": "docx", "operation": "pdfToDocument", "notes": ["pdfToDocx"] },
+    { "name": "Spec: MP3 to PNG is not offered", "from": "mp3", "to": "png", "operation": null },
+
+    { "name": "Re-encode video in the same format", "from": "mp4", "to": "mp4", "operation": "transcodeVideo", "notes": [] },
+    { "name": "Video to animated GIF", "from": "mov", "to": "gif", "operation": "videoToGif", "notes": ["gifLimits"] },
+    { "name": "Video to lossless audio", "from": "mkv", "to": "flac", "operation": "extractAudio", "notes": [] },
+    { "name": "Lossy to lossless audio warns", "from": "mp3", "to": "flac", "operation": "transcodeAudio", "notes": ["lossyToLossless"] },
+    { "name": "Lossless to lossy audio", "from": "wav", "to": "mp3", "operation": "transcodeAudio", "notes": [] },
+    { "name": "ALAC to M4A", "from": "alac", "to": "m4a", "operation": "transcodeAudio", "notes": [] },
+    { "name": "Audio can't become video", "from": "mp3", "to": "mp4", "operation": null },
+
+    { "name": "JPG to PNG has no warning", "from": "jpg", "to": "png", "operation": "convertImage", "notes": [] },
+    { "name": "Resize or compress an image in the same format", "from": "png", "to": "png", "operation": "convertImage", "notes": [] },
+    { "name": "RAW to JPG", "from": "cr2", "to": "jpg", "operation": "convertImage", "notes": [] },
+    { "name": "RAW can't be written", "from": "dng", "to": "cr2", "operation": null },
+    { "name": "SVG to PNG", "from": "svg", "to": "png", "operation": "convertImage", "notes": [] },
+    { "name": "SVG to JPG warns about transparency", "from": "svg", "to": "jpg", "operation": "convertImage", "notes": ["noTransparency"] },
+    { "name": "Raster images can't become SVG", "from": "png", "to": "svg", "operation": null },
+    { "name": "Image to ICO", "from": "png", "to": "ico", "operation": "convertImage", "notes": ["icoSize"] },
+    { "name": "Image to PDF", "from": "heic", "to": "pdf", "operation": "imageToPdf", "notes": [] },
+    { "name": "Animated GIF to MP4", "from": "gif", "to": "mp4", "operation": "gifToVideo", "notes": ["gifToVideo"] },
+    { "name": "GIF to WMV is not offered", "from": "gif", "to": "wmv", "operation": null },
+
+    { "name": "DOCX to Markdown warns", "from": "docx", "to": "md", "operation": "convertDocument", "notes": ["markdownSimplifies"] },
+    { "name": "HTML to TXT keeps text only", "from": "html", "to": "txt", "operation": "convertDocument", "notes": ["textOnly"] },
+    { "name": "Markdown to HTML", "from": "md", "to": "html", "operation": "convertDocument", "notes": [] },
+    { "name": "Same document format isn't offered", "from": "docx", "to": "docx", "operation": null },
+    { "name": "PDF to TXT", "from": "pdf", "to": "txt", "operation": "pdfToDocument", "notes": ["textOnly"] },
+    { "name": "PDF to PNG makes one file per page", "from": "pdf", "to": "png", "operation": "pdfToImage", "notes": ["pagePerFile"] },
+    { "name": "PDF to SVG has two notes", "from": "pdf", "to": "svg", "operation": "pdfToImage", "notes": ["pagePerFile", "pdfToSvg"] },
+    { "name": "PDF to EPUB is not offered", "from": "pdf", "to": "epub", "operation": null },
+    { "name": "Documents can't become images", "from": "docx", "to": "png", "operation": null }
+  ],
+  "outputs": [
+    { "name": "MP4 offers video first", "from": "mp4", "first": "mp4", "includes": ["mov", "mkv", "webm", "gif", "mp3", "wav", "flac"], "excludes": ["png", "pdf", "svg", "docx"] },
+    { "name": "MP3 offers audio only", "from": "mp3", "first": "mp3", "includes": ["wav", "flac", "opus"], "excludes": ["mp4", "png", "gif", "pdf"] },
+    { "name": "GIF offers images first, then video", "from": "gif", "first": "png", "includes": ["mp4", "webm", "pdf", "gif"], "excludes": ["mp3", "wmv"] },
+    { "name": "PDF offers documents, then images", "from": "pdf", "first": "docx", "includes": ["txt", "html", "png", "jpg", "svg"], "excludes": ["pdf", "mp4", "epub"] },
+    { "name": "RAW offers images and PDF", "from": "nef", "first": "png", "includes": ["jpg", "heic", "pdf"], "excludes": ["nef", "dng", "svg"] }
+  ],
+  "common": [
+    { "name": "Two image types share image outputs", "from": ["png", "jpg"], "includes": ["webp", "heic", "pdf"], "excludes": ["mp4", "svg"] },
+    { "name": "Video and audio share audio outputs", "from": ["mp4", "mp3"], "includes": ["mp3", "wav", "flac"], "excludes": ["mov", "gif"] },
+    { "name": "Images and audio share nothing", "from": ["png", "mp3"], "includes": [], "excludes": ["png", "mp3", "pdf"], "empty": true },
+    { "name": "DOCX + PDF: files already in the target format are skipped", "from": ["docx", "pdf"], "includes": ["txt", "html", "docx", "pdf"], "excludes": ["png", "epub"] },
+    { "name": "A batch of MP4s can be re-encoded to MP4", "from": ["mp4", "mp4"], "includes": ["mp4", "mov", "mp3"], "excludes": ["png"] },
+    { "name": "A batch of DOCX files can't target DOCX", "from": ["docx", "docx"], "includes": ["pdf", "odt"], "excludes": ["docx"] },
+    { "name": "TXT and Markdown can target each other", "from": ["txt", "md"], "includes": ["txt", "md", "pdf", "html"], "excludes": ["png"] }
+  ]
+}

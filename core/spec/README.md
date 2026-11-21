@@ -7,7 +7,8 @@ cases, so macOS and Windows agree on what a file is and what it can become.
 |---|---|
 | `formats.json` | Every supported format (id, display name, category, extensions, MIME types) and the content-detection rules |
 | `tests/detection.json` | Conformance cases for detection. Both cores must pass all of them |
-| `matrix.json` | Allowed conversions per input format, with limitation notes (M1.2) |
+| `matrix.json` | Allowed conversions, the engine operation for each, and limitation notes shown before converting |
+| `tests/matrix.json` | Conformance cases for the matrix |
 | `presets.json` | Quality presets (M2) |
 
 The Swift package can't read files outside its own folder, so `core/swift/Sources/PotionCore/Resources/`
@@ -64,3 +65,28 @@ found format's `extensions`.
 | `{ "extension": ["…"] }` | The file's extension maps to one of these format ids |
 
 A condition that reads past the end of the header doesn't match.
+
+## matrix.json
+
+Only conversions the matrix lists are ever offered. It's written as **routes** instead of a 48 × 48 table.
+
+| Field | Meaning |
+|---|---|
+| `groups` | Named lists of format ids, referenced as `@name` |
+| `routes[].from`, `routes[].to` | Lists of references: a format id (`mp4`), a group (`@audioOut`) or every format in a category (`#video`) |
+| `routes[].operation` | What the engine does: `transcodeVideo`, `videoToGif`, `extractAudio`, `transcodeAudio`, `convertImage`, `imageToPdf`, `gifToVideo`, `convertDocument`, `documentToPdf`, `pdfToDocument`, `pdfToImage` |
+| `routes[].sameFormat` | `true` allows a format to convert to itself (re-encode, resize, compress). Default `false` |
+| `routes[].note` | Id of a limitation in `notes`, shown before converting |
+| `notes` | User-facing text for each note id (follows the design system's voice rules) |
+
+### Rules
+
+1. **Routes with an `operation` create conversions** for every `from` × `to` pair (skipping `from == to`
+   unless `sameFormat`). Two routes may not give the same pair different operations; loading fails.
+2. **Every route's `note` is attached** to the pairs it covers that step 1 created, in route order, without
+   duplicates. Routes with only a `note` annotate; they never create a conversion.
+3. **Outputs for one input** are listed with the input's own category first, then the rest, each in
+   `formats.json` order.
+4. **Outputs for a batch**: an output qualifies when every input either converts to it or is already in that
+   format (those files are skipped), and at least one input actually converts. Same ordering, using the first
+   input's category.

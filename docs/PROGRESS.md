@@ -4,16 +4,16 @@ Read this first in any new session. Update it at every checkpoint.
 
 ## Status
 
-- **Current milestone:** M1 Core: formats
-- **Last completed chunk:** M1.1 Format registry + content detection (both cores)
-- **Next chunk:** M1.2 Conversion matrix (`core/spec/matrix.json`, both cores)
+- **Current milestone:** M2 Core: conversion engines
+- **Last completed chunk:** M1.2 Conversion matrix (both cores). M1 complete.
+- **Next chunk:** M2.1 Audio conversion engine (macOS first), after the owner decides on FFmpeg (see below)
 
 ## Milestones
 
 | Milestone | Status |
 |---|---|
 | M0 Scaffold | Done |
-| M1 Core: formats | In progress (M1.1 done) |
+| M1 Core: formats | Done |
 | M2 Core: conversion engines | Not started |
 | M3 Potion macOS UI | Not started |
 | M4 Potion Windows UI | Not started |
@@ -37,7 +37,8 @@ Read this first in any new session. Update it at every checkpoint.
 - [x] M1.1 Format registry + content detection: `core/spec/formats.json` (48 formats, 72 rules),
       `core/spec/tests/detection.json` (82 shared cases), Swift + C# implementations. Also checked by hand
       against 42 real files generated with ffmpeg/sips/textutil (all correct in both cores)
-- [ ] M1.2 Conversion matrix: `core/spec/matrix.json` with limitation notes, Swift + C#, shared tests
+- [x] M1.2 Conversion matrix: `core/spec/matrix.json` (20 routes, 11 notes), `core/spec/tests/matrix.json`
+      (45 shared cases incl. every spec example), Swift + C#. Batches skip files already in the target format.
 
 ## Decisions
 

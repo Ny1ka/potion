@@ -13,6 +13,7 @@
   <!-- Shared spec, embedded straight from core/spec (no copy needed on .NET). -->
   <ItemGroup>
     <EmbeddedResource Include="..\..\spec\formats.json" LogicalName="Potion.Core.formats.json" Link="Spec\formats.json" />
+    <EmbeddedResource Include="..\..\spec\matrix.json" LogicalName="Potion.Core.matrix.json" Link="Spec\matrix.json" />
   </ItemGroup>
 
 </Project>

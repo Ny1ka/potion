@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "groups": {
+    "videoOut": ["mp4", "mov", "mkv", "avi", "webm", "wmv", "flv", "mpeg", "m4v", "3gp", "ts"],
+    "audioOut": ["mp3", "wav", "m4a", "alac", "aac", "flac", "ogg", "opus", "aiff", "wma"],
+    "imageOut": ["png", "jpg", "webp", "heic", "tiff", "bmp", "gif", "ico", "avif"],
+    "lossyAudio": ["mp3", "aac", "m4a", "ogg", "opus", "wma"],
+    "losslessAudio": ["wav", "flac", "aiff", "alac"],
+    "alphaImages": ["png", "webp", "gif", "heic", "tiff", "avif", "ico", "svg"],
+    "editableDocs": ["docx", "doc", "odt", "rtf", "txt", "html", "md", "epub"],
+    "docOut": ["docx", "doc", "odt", "rtf", "txt", "html", "md", "epub"]
+  },
+  "routes": [
+    { "from": ["#video"], "to": ["@videoOut"], "operation": "transcodeVideo", "sameFormat": true },
+    { "from": ["#video"], "to": ["gif"], "operation": "videoToGif", "note": "gifLimits" },
+    { "from": ["#video"], "to": ["@audioOut"], "operation": "extractAudio" },
+
+    { "from": ["#audio"], "to": ["@audioOut"], "operation": "transcodeAudio", "sameFormat": true },
+    { "from": ["@lossyAudio"], "to": ["@losslessAudio"], "note": "lossyToLossless" },
+
+    { "from": ["#image"], "to": ["@imageOut"], "operation": "convertImage", "sameFormat": true },
+    { "from": ["#image"], "to": ["pdf"], "operation": "imageToPdf" },
+    { "from": ["gif"], "to": ["mp4", "mov", "webm", "mkv", "m4v"], "operation": "gifToVideo", "note": "gifToVideo" },
+    { "from": ["@alphaImages"], "to": ["jpg", "bmp"], "note": "noTransparency" },
+    { "from": ["#image"], "to": ["ico"], "note": "icoSize" },
+
+    { "from": ["@editableDocs"], "to": ["@docOut"], "operation": "convertDocument" },
+    { "from": ["@editableDocs"], "to": ["pdf"], "operation": "documentToPdf" },
+    { "from": ["@editableDocs"], "to": ["txt"], "note": "textOnly" },
+    { "from": ["@editableDocs"], "to": ["md"], "note": "markdownSimplifies" },
+
+    { "from": ["pdf"], "to": ["docx", "txt", "html"], "operation": "pdfToDocument" },
+    { "from": ["pdf"], "to": ["docx"], "note": "pdfToDocx" },
+    { "from": ["pdf"], "to": ["html"], "note": "pdfToHtml" },
+    { "from": ["pdf"], "to": ["txt"], "note": "textOnly" },
+    { "from": ["pdf"], "to": ["png", "jpg", "svg"], "operation": "pdfToImage", "note": "pagePerFile" },
+    { "from": ["pdf"], "to": ["svg"], "note": "pdfToSvg" }
+  ],
+  "notes": {
+    "gifLimits": "GIFs have no sound and use at most 256 colors. They work best for short clips.",
+    "gifToVideo": "Only animated GIFs make a moving video. The video has no sound.",
+    "lossyToLossless": "Converting to a lossless format won't restore quality lost in the original.",
+    "noTransparency": "This format has no transparency. Transparent areas become white.",
+    "icoSize": "Icons are scaled to fit within 256 × 256 pixels.",
+    "textOnly": "Only the text is kept. Formatting, images and tables are removed.",
+    "markdownSimplifies": "Fonts, colors and page layout are lost. Headings, lists, links and tables are kept where possible.",
+    "pdfToDocx": "The layout may not match the original exactly. Columns, fonts and images can shift, and scanned pages become images.",
+    "pdfToHtml": "The page layout is approximated. Scanned pages become images.",
+    "pagePerFile": "Each page becomes a separate file.",
+    "pdfToSvg": "Text may be converted to shapes and stop being selectable."
+  }
+}
