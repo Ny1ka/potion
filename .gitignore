@@ -83,3 +83,6 @@ __pycache__/
 
 # ---- Claude Code local settings ----
 .claude/settings.local.json
+
+# Owner's full project prompt: kept locally, never committed (names excluded platforms)
+universal-file-converter-prompt-*.txt

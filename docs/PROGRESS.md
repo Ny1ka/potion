@@ -47,3 +47,9 @@ Read this first in any new session. Update it at every checkpoint.
 - No Windows machine locally: Windows builds are verified only in CI until the owner tests on a PC.
 - Local Xcode is 15.4; keep `projectFormat: xcode15_0` in `project.yml` files.
 - Open product decision for M3: App Sandbox on or off (see `docs/LEGAL_REVIEW.md` #2).
+- Design-system conflict (needs owner decision before M3.1): dark `borderStrong` (#3A3547) is tuned for the
+  brand background (#0E0C14), but `09-platforms.md` puts the drop zone on the system window background
+  (~#323232 in dark mode), where the dashed border is ~1.1:1 and effectively invisible. Light mode is fine.
+- The owner's full prompt (`universal-file-converter-prompt-*.txt`) is gitignored: it names excluded
+  platforms and must never be committed. It is also truncated in the same place as the paste.
+- Screenshots: Screen Recording is granted to VS Code, so Claude can capture app windows to check UI work.
