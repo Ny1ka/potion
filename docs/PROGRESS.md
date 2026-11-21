@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M2 Core: conversion engines
-- **Last completed chunk:** M2.0 LGPL FFmpeg build for macOS
-- **Next chunk:** M2.1 Audio conversion engine (macOS first)
+- **Last completed chunk:** M2.1 Audio engine (Swift)
+- **Next chunk:** M2.2 Video engine (Swift)
 
 ## Milestones
 
@@ -14,7 +14,7 @@ Read this first in any new session. Update it at every checkpoint.
 |---|---|
 | M0 Scaffold | Done |
 | M1 Core: formats | Done |
-| M2 Core: conversion engines | In progress (M2.0 done) |
+| M2 Core: conversion engines | In progress (M2.0–M2.1 done) |
 | M3 Potion macOS UI | Not started |
 | M4 Potion Windows UI | Not started |
 | M5 Dropper core | Not started |
@@ -52,7 +52,9 @@ Read this first in any new session. Update it at every checkpoint.
 
 - [x] M2.0 LGPL-only FFmpeg 9.1 build for macOS (`scripts/ffmpeg/`): universal `ffmpeg` + `ffprobe`, pinned
       checksummed sources, license verification in CI, cached between runs
-- [ ] M2.1 Audio engine: FFmpeg process runner + progress/cancel, `transcodeAudio` + `extractAudio` (Swift)
+- [x] M2.1 Audio engine (Swift): FFmpeg locator, process runner with progress and cancellation, ffprobe media
+      info, copy-protection check, verified save without overwriting, `core/spec/presets.json`,
+      `transcodeAudio` + `extractAudio`. 11 end-to-end tests with generated samples
 - [ ] M2.2 Video engine: `transcodeVideo`, `videoToGif`, `gifToVideo` (Swift)
 - [ ] M2.3 Image engine: ImageIO/Core Image, `convertImage`, `imageToPdf` (Swift)
 - [ ] M2.4 Documents: `convertDocument`, `documentToPdf` (engine choice below)
@@ -77,6 +79,10 @@ Read this first in any new session. Update it at every checkpoint.
 - Windows M0 window: the min-size uses `OverlappedPresenter.PreferredMinimumWidth/Height` (physical pixels,
   scaled by DPI); check it on a real PC in M4.1. The mono mark in the empty state is added in M4.1.
 - Local Xcode is 15.4; keep `projectFormat: xcode15_0` in `project.yml` files.
+- Engine tests need the FFmpeg build (`scripts/ffmpeg/build-macos.sh`); they skip locally without it and fail
+  in CI (`POTION_REQUIRE_FFMPEG=1`). The app doesn't bundle `ffmpeg`/`ffprobe` yet (M3: `Contents/Helpers`).
+- Copy-protection detection covers FairPlay/CENC sample entries and FFmpeg's DRM errors; protected WMA/WMV
+  needs a real protected sample to confirm (none can be generated). Revisit in M8.
 - Open product decision for M3: App Sandbox on or off (see `docs/LEGAL_REVIEW.md` #2).
 - Design-system conflict (needs owner decision before M3.1): dark `borderStrong` (#3A3547) is tuned for the
   brand background (#0E0C14), but `09-platforms.md` puts the drop zone on the system window background

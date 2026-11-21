@@ -13,7 +13,11 @@ let package = Package(
     targets: [
         .target(
             name: "PotionCore",
-            resources: [.copy("Resources/formats.json"), .copy("Resources/matrix.json")]
+            resources: [
+                .copy("Resources/formats.json"),
+                .copy("Resources/matrix.json"),
+                .copy("Resources/presets.json"),
+            ]
         ),
         .testTarget(name: "PotionCoreTests", dependencies: ["PotionCore"]),
     ]

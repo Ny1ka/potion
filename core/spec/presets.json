@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "audio": {
+    "presets": [
+      { "id": "high", "name": "High", "bitrateKbps": 320 },
+      { "id": "standard", "name": "Standard", "bitrateKbps": 192 },
+      { "id": "small", "name": "Small", "bitrateKbps": 128 }
+    ],
+    "defaultPreset": "standard",
+    "sampleRates": [22050, 32000, 44100, 48000, 88200, 96000],
+    "formats": {
+      "mp3":  { "muxer": "mp3",  "encoder": { "default": "libmp3lame" }, "bitrates": [96, 128, 160, 192, 256, 320], "sampleRates": [22050, 32000, 44100, 48000], "artwork": true },
+      "m4a":  { "muxer": "ipod", "encoder": { "macos": "aac_at", "windows": "aac_mf" }, "bitrates": [96, 128, 160, 192, 256, 320], "sampleRates": [22050, 32000, 44100, 48000], "artwork": true },
+      "aac":  { "muxer": "adts", "encoder": { "macos": "aac_at", "windows": "aac_mf" }, "bitrates": [96, 128, 160, 192, 256, 320], "sampleRates": [22050, 32000, 44100, 48000] },
+      "ogg":  { "muxer": "ogg",  "encoder": { "default": "libvorbis" }, "bitrates": [96, 128, 160, 192, 256, 320], "sampleRates": [22050, 32000, 44100, 48000] },
+      "opus": { "muxer": "opus", "encoder": { "default": "libopus" }, "bitrates": [64, 96, 128, 160, 192, 256], "sampleRates": [48000] },
+      "wma":  { "muxer": "asf",  "encoder": { "default": "wmav2" }, "bitrates": [96, 128, 160, 192], "sampleRates": [22050, 32000, 44100, 48000] },
+      "wav":  { "muxer": "wav",  "encoder": { "default": "pcm_s16le" }, "highBitDepthEncoder": "pcm_s24le", "lossless": true },
+      "aiff": { "muxer": "aiff", "encoder": { "default": "pcm_s16be" }, "highBitDepthEncoder": "pcm_s24be", "lossless": true },
+      "flac": { "muxer": "flac", "encoder": { "default": "flac" }, "lossless": true, "artwork": true },
+      "alac": { "muxer": "ipod", "encoder": { "default": "alac" }, "lossless": true, "artwork": true }
+    }
+  }
+}

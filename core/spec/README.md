@@ -9,7 +9,7 @@ cases, so macOS and Windows agree on what a file is and what it can become.
 | `tests/detection.json` | Conformance cases for detection. Both cores must pass all of them |
 | `matrix.json` | Allowed conversions, the engine operation for each, and limitation notes shown before converting |
 | `tests/matrix.json` | Conformance cases for the matrix |
-| `presets.json` | Quality presets (M2) |
+| `presets.json` | Audio quality presets and per-format encoder settings (video and image presets are added in M2.2/M2.3) |
 
 The Swift package can't read files outside its own folder, so `core/swift/Sources/PotionCore/Resources/`
 holds byte-for-byte copies. Run `make sync-spec` after editing anything here. A test in both cores fails if
@@ -90,3 +90,18 @@ Only conversions the matrix lists are ever offered. It's written as **routes** i
 4. **Outputs for a batch**: an output qualifies when every input either converts to it or is already in that
    format (those files are skipped), and at least one input actually converts. Same ordering, using the first
    input's category.
+
+## presets.json
+
+`audio.presets` are the quality choices shown to users (High 320 kbps, Standard 192 kbps, Small 128 kbps).
+`audio.formats.<id>` says how to write each audio output with FFmpeg:
+
+| Field | Meaning |
+|---|---|
+| `muxer` | FFmpeg output format (`-f`), e.g. `ipod` for M4A/ALAC, `adts` for raw AAC |
+| `encoder` | FFmpeg encoder per platform (`macos`, `windows`) with a `default` fallback. Patent-encumbered codecs use the OS encoder (`aac_at`, `aac_mf`) |
+| `highBitDepthEncoder` | Used instead when the source has more than 16 bits per sample (WAV, AIFF) |
+| `bitrates` | Allowed bitrates in kbps for lossy formats. A preset or requested bitrate snaps to the nearest one (ties go lower) |
+| `sampleRates` | Allowed output sample rates. The source rate is kept when allowed, otherwise snapped to the nearest |
+| `lossless` | No bitrate option |
+| `artwork` | The container can keep cover art (copied when converting audio, never taken from video frames) |

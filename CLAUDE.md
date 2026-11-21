@@ -38,7 +38,9 @@ Potion.slnx      Visual Studio solution for the Windows apps and the .NET core
   and only after checking its license (see "Legal" below).
 - Detect file types by content (magic bytes), with the extension as a fallback.
 - Offer only conversions the matrix marks as supported. Lossy document conversions declare their limits.
-- Engine wrappers that run external processes pass arguments as arrays, never through a shell.
+- Engine wrappers that run external processes pass arguments as arrays, never through a shell, with absolute
+  paths. FFmpeg (`scripts/ffmpeg/`, LGPL-only) runs as a separate process; keep `verify-license.sh` passing.
+- Converted files go to a hidden temp file, get verified, then move to a unique name. Never overwrite.
 
 ## UI rules (summary; design-system/CLAUDE.md is authoritative)
 
