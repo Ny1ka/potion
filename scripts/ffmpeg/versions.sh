@@ -27,3 +27,14 @@ VORBIS_SHA256=b33cc4934322bcbf6efcbacf49e3ca01aadbea4114ec9589d1b1e9d20f72954b
 VPX_VERSION=1.17.0
 VPX_URL="https://github.com/webmproject/libvpx/archive/refs/tags/v${VPX_VERSION}.tar.gz"
 VPX_SHA256=1020f184046187baa2985dbde38e0691f49c44088bca7a1842b0236c6081dc0a
+
+# libwebp (BSD-3-Clause): WebP image output. Checksum recorded 2026-11-21 from Google's release bucket.
+WEBP_VERSION=1.6.0
+WEBP_URL="https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-${WEBP_VERSION}.tar.gz"
+WEBP_SHA256=e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564
+
+# SVT-AV1 (BSD-3-Clause-Clear + AOMedia Patent License 1.0): AVIF output where the OS can't encode it.
+# Checksum recorded 2026-11-21 from the GitLab release archive.
+SVTAV1_VERSION=4.3.0
+SVTAV1_URL="https://gitlab.com/AOMediaCodec/SVT-AV1/-/archive/v${SVTAV1_VERSION}/SVT-AV1-v${SVTAV1_VERSION}.tar.gz"
+SVTAV1_SHA256=95ce8fc2381ba707e65ac8b9b2e165915bfbe9cd4d2f7b0f58d64ce31bd98f6d

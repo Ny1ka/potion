@@ -35,6 +35,12 @@ public enum OutputFiles {
         throw ConversionError.cannotWrite(folder: directory.lastPathComponent)
     }
 
+    /// Deletes a leftover temporary file. Never throws, so cleanup can't hide the real error.
+    static func removeIfPresent(_ url: URL, fileManager: FileManager = .default) {
+        guard fileManager.fileExists(atPath: url.path) else { return }
+        do { try fileManager.removeItem(at: url) } catch { /* best effort: a stray hidden file is harmless */ }
+    }
+
     /// Checks that the destination folder exists and is writable.
     static func checkWritable(_ directory: URL, fileManager: FileManager = .default) throws {
         var isDir: ObjCBool = false

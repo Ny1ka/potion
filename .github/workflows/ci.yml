@@ -37,7 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Install build tools
-        run: brew install xcodegen nasm
+        run: brew install xcodegen nasm cmake
       # The LGPL FFmpeg build takes a while, so it is cached until scripts/ffmpeg/ changes.
       - name: Restore FFmpeg build
         id: ffmpeg-cache

@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M2 Core: conversion engines
-- **Last completed chunk:** M2.2 Video engine (Swift)
-- **Next chunk:** M2.3 Image engine (Swift)
+- **Last completed chunk:** M2.3 Image engine (Swift)
+- **Next chunk:** M2.4 Documents (engine choice needed from the owner)
 
 ## Milestones
 
@@ -14,7 +14,7 @@ Read this first in any new session. Update it at every checkpoint.
 |---|---|
 | M0 Scaffold | Done |
 | M1 Core: formats | Done |
-| M2 Core: conversion engines | In progress (M2.0–M2.2 done) |
+| M2 Core: conversion engines | In progress (M2.0–M2.3 done) |
 | M3 Potion macOS UI | Not started |
 | M4 Potion Windows UI | Not started |
 | M5 Dropper core | Not started |
@@ -57,7 +57,9 @@ Read this first in any new session. Update it at every checkpoint.
       `transcodeAudio` + `extractAudio`. 11 end-to-end tests with generated samples
 - [x] M2.2 Video engine (Swift): `transcodeVideo` (all 11 containers, stream copy when possible, resolution,
       frame rate, codec, bitrate, aspect ratio, rotation-aware), `videoToGif` (palette), `gifToVideo`. 13 tests
-- [ ] M2.3 Image engine: ImageIO/Core Image, `convertImage`, `imageToPdf` (Swift)
+- [x] M2.3 Image engine (Swift): ImageIO decode (incl. RAW, upright via EXIF), SVG via AppKit, resize (fit,
+      percent, exact), rotate/flip, white background for JPG/BMP, metadata kept, ICO, WebP + AVIF fallback via
+      FFmpeg (libwebp, SVT-AV1 added to the build), images → PDF (single or combined). 12 tests
 - [ ] M2.4 Documents: `convertDocument`, `documentToPdf` (engine choice below)
 - [ ] M2.5 PDF tools: merge, split, extract, reorder, compress, `pdfToImage`, `pdfToDocument` (PDFKit)
 - [ ] M2.6 Windows: FFmpeg build for Windows + the same engines in Potion.Core (C#), tested in CI
@@ -66,10 +68,17 @@ Read this first in any new session. Update it at every checkpoint.
 
 - **FFmpeg (decided 2026-11-21):** OS frameworks first; LGPL-only FFmpeg as separate programs for
   everything else. See `scripts/ffmpeg/README.md` and `docs/LEGAL_REVIEW.md`.
-- **M2.4, document engine:** DOC/DOCX/ODT/RTF/EPUB ↔ PDF with layout fidelity. Options: LibreOffice headless
-  as a separate process (MPL, large install: needs owner approval per 6.1.1), Pandoc as a separate executable
-  (GPL; weaker layout fidelity), or OS-native paths only (macOS NSAttributedString/WebKit printing; limited
-  on Windows). Present the trade-off to the owner at M2.4.
+- **M2.4, document engine (OWNER DECISION NEEDED before starting M2.4):** DOC/DOCX/ODT/RTF/EPUB/HTML/MD/TXT
+  conversions and documents → PDF, with layout fidelity. Options presented to the owner on 2026-11-21:
+  1. **Native first (recommended to start):** macOS uses NSAttributedString (reads/writes TXT, RTF, HTML, DOC,
+     DOCX, ODT; reads Markdown) and paginates to PDF with Core Text; EPUB is built/read as zipped XHTML; PDF →
+     text/DOCX/HTML uses PDFKit's text. Windows uses the Open XML SDK (MIT) plus a small PDF writer. Small and
+     offline, but complex layouts (columns, floating images, headers/footers, tracked changes) are simplified.
+  2. **Bundle LibreOffice** (MPL, run as a separate process): best fidelity, but adds roughly 300–600 MB per
+     installer. Needs owner approval (spec 6.1.1).
+  3. **Native first + optional LibreOffice download** offered the first time a document needs higher fidelity
+     (allowed by Prompt 1 §7 "optional dependency updates"; still needs approval for the size and the network use).
+  Pandoc (GPL, separate executable) is a weaker fit: good for Markdown/HTML/DOCX/EPUB but no PDF without LaTeX.
 - **macOS architectures:** Release builds are universal (Apple Silicon + Intel) unless the owner drops Intel.
 
 ## Known issues / TODO
@@ -82,6 +91,9 @@ Read this first in any new session. Update it at every checkpoint.
 - Local Xcode is 15.4; keep `projectFormat: xcode15_0` in `project.yml` files.
 - Engine tests need the FFmpeg build (`scripts/ffmpeg/build-macos.sh`); they skip locally without it and fail
   in CI (`POTION_REQUIRE_FFMPEG=1`). The app doesn't bundle `ffmpeg`/`ffprobe` yet (M3: `Contents/Helpers`).
+- Images: animated GIF/WebP inputs convert their first frame only. SVG rendering relies on AppKit and
+  needs a recent macOS (it works on 26; check 13–15 before release, or fall back with a clear error). AVIF via
+  the FFmpeg fallback drops transparency.
 - Video: 10-bit/HDR sources are converted to 8-bit SDR without tone mapping (colors can look washed out).
   Subtitles are dropped. Revisit after M3.
 - Copy-protection detection covers FairPlay/CENC sample entries and FFmpeg's DRM errors; protected WMA/WMV

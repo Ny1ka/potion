@@ -9,7 +9,7 @@ cases, so macOS and Windows agree on what a file is and what it can become.
 | `tests/detection.json` | Conformance cases for detection. Both cores must pass all of them |
 | `matrix.json` | Allowed conversions, the engine operation for each, and limitation notes shown before converting |
 | `tests/matrix.json` | Conformance cases for the matrix |
-| `presets.json` | Audio and video quality presets, encoders and per-container settings (image presets in M2.3) |
+| `presets.json` | Audio, video and image quality presets, encoders and per-format settings |
 
 The Swift package can't read files outside its own folder, so `core/swift/Sources/PotionCore/Resources/`
 holds byte-for-byte copies. Run `make sync-spec` after editing anything here. A test in both cores fails if
@@ -118,3 +118,7 @@ Only conversions the matrix lists are ever offered. It's written as **routes** i
 
 Rules both engines follow: never upscale; only lower the frame rate; aspect ratios letterbox instead of
 stretching; copy audio whenever the container accepts it; use the display size of rotated (portrait) video.
+
+`image` describes image outputs: quality `presets` (0–1, for the `lossy` formats), which formats keep
+`transparency` (others are composited onto white), `icoMaxSize` (icons are square, use a standard size up to
+256 px, and are never enlarged), and `pdfDefaultDPI` (page size when an image has no DPI).

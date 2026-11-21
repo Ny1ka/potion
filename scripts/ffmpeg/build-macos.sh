@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Builds the LGPL-only FFmpeg that Potion ships on macOS: `ffmpeg` and `ffprobe` as standalone programs,
-# with LAME (MP3), Opus, Vorbis and libvpx (VP8/VP9) linked in statically, plus Apple's VideoToolbox and
+# with LAME (MP3), Opus, Vorbis, libvpx (VP8/VP9), libwebp and SVT-AV1 (AVIF) linked in statically, plus Apple's VideoToolbox and
 # AudioToolbox for H.264/HEVC/AAC. No GPL or non-free code, no network support.
 #
 # Usage: scripts/ffmpeg/build-macos.sh [arm64|x86_64|universal]   (default: universal)
 # Output: build/ffmpeg/macos/{bin/ffmpeg, bin/ffprobe, licenses/, BUILDINFO.txt}
-# Needs: Xcode command line tools, pkg-config, nasm (for x86_64).
+# Needs: Xcode command line tools, pkg-config, cmake, nasm (for x86_64).
 set -euo pipefail
 
 ROOT="$(git rev-parse --show-toplevel)"
@@ -80,6 +80,20 @@ build_arch() {
      --extra-cflags="-mmacosx-version-min=$MIN_MACOS" >/dev/null
    make -j"$JOBS" >/dev/null && make install >/dev/null)
 
+  log "[$arch] libwebp $WEBP_VERSION"
+  unpack "$(basename "$WEBP_URL")" "$srcs/webp"
+  (cd "$srcs/webp" && CFLAGS="$cflags" ./configure "${autoconf[@]}" --enable-libwebpmux \
+     --disable-gif --disable-jpeg --disable-png --disable-tiff --disable-sdl --disable-gl --disable-wic >/dev/null \
+   && make -j"$JOBS" >/dev/null && make install >/dev/null)
+
+  log "[$arch] SVT-AV1 $SVTAV1_VERSION"
+  unpack "$(basename "$SVTAV1_URL")" "$srcs/svtav1"
+  (cd "$srcs/svtav1"
+   cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DBUILD_APPS=OFF -DBUILD_TESTING=OFF \
+     -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_OSX_ARCHITECTURES="$arch" \
+     -DCMAKE_OSX_DEPLOYMENT_TARGET="$MIN_MACOS" -DCMAKE_SYSTEM_NAME=Darwin -DCMAKE_SYSTEM_PROCESSOR="$arch" >/dev/null
+   cmake --build build -j "$JOBS" >/dev/null && cmake --install build >/dev/null)
+
   log "[$arch] FFmpeg $FFMPEG_VERSION"
   unpack "$(basename "$FFMPEG_URL")" "$srcs/ffmpeg"
   local cross=(); [[ $arch != "$HOST_ARCH" ]] && cross=(--enable-cross-compile)
@@ -93,7 +107,7 @@ build_arch() {
      --disable-autodetect --disable-network --disable-ffplay --disable-doc --disable-debug \
      --enable-static --disable-shared --enable-pthreads \
      --enable-videotoolbox --enable-audiotoolbox --enable-zlib --enable-bzlib --enable-iconv \
-     --enable-libmp3lame --enable-libopus --enable-libvorbis --enable-libvpx \
+     --enable-libmp3lame --enable-libopus --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libsvtav1 \
      --disable-encoder=aac >/dev/null   # AAC is encoded by the OS (aac_at), per the codec-patent policy
    make -j"$JOBS" >/dev/null && make install >/dev/null)
 }
@@ -110,6 +124,8 @@ fetch lame "$LAME_URL" "$LAME_SHA256"
 fetch opus "$OPUS_URL" "$OPUS_SHA256"
 fetch ogg "$OGG_URL" "$OGG_SHA256"
 fetch vorbis "$VORBIS_URL" "$VORBIS_SHA256"
+fetch webp "$WEBP_URL" "$WEBP_SHA256"
+fetch svtav1 "$SVTAV1_URL" "$SVTAV1_SHA256"
 [[ -f "$WORK/src/libvpx-$VPX_VERSION.tar.gz" ]] || curl -sSfL --retry 3 -o "$WORK/src/libvpx-$VPX_VERSION.tar.gz" "$VPX_URL"
 echo "$VPX_SHA256  $WORK/src/libvpx-$VPX_VERSION.tar.gz" | shasum -a 256 -c --quiet -
 
@@ -132,6 +148,10 @@ cp "$src/ogg/COPYING" "$OUT/licenses/libogg-COPYING"
 cp "$src/vorbis/COPYING" "$OUT/licenses/libvorbis-COPYING"
 cp "$src/vpx/LICENSE" "$OUT/licenses/libvpx-LICENSE"
 cp "$src/vpx/PATENTS" "$OUT/licenses/libvpx-PATENTS"
+cp "$src/webp/COPYING" "$OUT/licenses/libwebp-COPYING"
+cp "$src/webp/PATENTS" "$OUT/licenses/libwebp-PATENTS"
+cp "$src/svtav1/LICENSE.md" "$OUT/licenses/SVT-AV1-LICENSE.md"
+cp "$src/svtav1/PATENTS.md" "$OUT/licenses/SVT-AV1-PATENTS.md"
 
 {
   echo "Potion FFmpeg build for macOS ($TARGET), built $(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -144,6 +164,8 @@ cp "$src/vpx/PATENTS" "$OUT/licenses/libvpx-PATENTS"
   echo "  libogg $OGG_VERSION     $OGG_SHA256  $OGG_URL"
   echo "  libvorbis $VORBIS_VERSION  $VORBIS_SHA256  $VORBIS_URL"
   echo "  libvpx $VPX_VERSION    $VPX_SHA256  $VPX_URL"
+  echo "  libwebp $WEBP_VERSION   $WEBP_SHA256  $WEBP_URL"
+  echo "  SVT-AV1 $SVTAV1_VERSION   $SVTAV1_SHA256  $SVTAV1_URL"
   echo
   "$OUT/bin/ffmpeg" -hide_banner -version
 } > "$OUT/BUILDINFO.txt"

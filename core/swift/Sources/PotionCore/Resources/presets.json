@@ -525,5 +525,42 @@
         "maxWidth": 320
       }
     }
+  },
+  "image": {
+    "presets": [
+      {
+        "id": "high",
+        "name": "High",
+        "quality": 0.92
+      },
+      {
+        "id": "standard",
+        "name": "Standard",
+        "quality": 0.82
+      },
+      {
+        "id": "small",
+        "name": "Small",
+        "quality": 0.6
+      }
+    ],
+    "defaultPreset": "standard",
+    "lossy": [
+      "jpg",
+      "heic",
+      "webp",
+      "avif"
+    ],
+    "transparency": [
+      "png",
+      "webp",
+      "heic",
+      "tiff",
+      "gif",
+      "ico",
+      "avif"
+    ],
+    "icoMaxSize": 256,
+    "pdfDefaultDPI": 72
   }
 }

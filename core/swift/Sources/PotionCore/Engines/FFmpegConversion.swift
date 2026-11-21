@@ -8,7 +8,7 @@ enum FFmpegConversion {
                     arguments: (URL) throws -> [String],
                     verify: (MediaInfo) -> Bool) async throws -> URL {
         let temporary = OutputFiles.temporaryURL(in: outputDirectory, fileExtension: outputExtension)
-        defer { try? FileManager.default.removeItem(at: temporary) }   // no-op once moved into place
+        defer { OutputFiles.removeIfPresent(temporary) }   // no-op once moved into place
 
         let args = try arguments(temporary)
         let result = try await ProcessRunner.run(tools.ffmpeg, args) { line in
