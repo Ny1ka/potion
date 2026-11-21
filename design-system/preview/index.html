@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Potion Design System 1.0.0</title>
+<link rel="stylesheet" href="../tokens/tokens.css">
+<style>
+body{margin:0;background:#0E0C14;color:#fff;font-family:var(--potion-font-ui);line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:56px 32px 96px}
+header{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:56px}
+header img{height:72px}
+header p{margin:0;color:#9A94A8}
+h2{font:700 32px/1.1 var(--potion-font-brand);letter-spacing:-0.03em;margin:72px 0 8px}
+h2+p{color:#9A94A8;margin:0 0 24px;max-width:720px}
+h3{font-size:14px;margin:0 0 12px}
+code{font-family:var(--potion-font-mono);font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.card-l{border-radius:12px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:12px;font-size:12px;color:#9A94A8;border:1px solid #2E2939}
+.card-l.d{background:#17141F} .card-l.l{background:#fff;color:#4D475A;border-color:#E4E1EA}
+.card-l img{height:120px}
+.lockups{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.lockups div{border-radius:12px;padding:40px;display:flex;align-items:center;justify-content:center}
+.lockups img{height:56px;max-width:100%}
+.cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.cat{background:#17141F;border:1px solid #2E2939;border-radius:12px;overflow:hidden}
+.cat .sw{height:96px;display:flex;align-items:center;justify-content:center}
+.cat .meta{padding:14px 16px;display:flex;flex-direction:column;gap:2px;font-size:12px;color:#B6B0C4}
+.cat .meta strong{color:#fff;font-size:14px}
+.neutrals{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px}
+.neutral{border-radius:12px;padding:20px} .neutral.dark{background:#17141F;border:1px solid #2E2939} .neutral.light{background:#fff;color:#17141F}
+.nrow{display:flex;gap:8px;margin-bottom:16px}
+.nsw{flex:1;height:84px;border-radius:8px;display:flex;align-items:flex-end;padding:6px;font-size:10px;border:1px solid rgba(128,128,128,.3)}
+.neutral.dark .nsw span{color:#fff} .neutral.light .nsw span{color:#17141F}
+table{width:100%;border-collapse:collapse;font-size:13px} th,td{text-align:left;padding:8px 10px;border-bottom:1px solid rgba(128,128,128,.25);vertical-align:middle}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#9A94A8}
+.typetable{background:#17141F;border:1px solid #2E2939;border-radius:12px;padding:8px 12px}
+.comps{display:grid;grid-template-columns:repeat(auto-fit,minmax(460px,1fr));gap:24px}
+.win{background:var(--potion-surface);color:var(--potion-textPrimary);border:1px solid var(--potion-border);border-radius:12px;padding:16px;box-shadow:var(--potion-shadow-popover)}
+.tile{display:inline-flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0}
+.fname{font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fmeta{font-size:11px;color:var(--potion-textSecondary)}
+.qhead{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;padding:0 4px 8px;border-bottom:1px solid var(--potion-border)}
+.qhead span{font-size:11px;color:var(--potion-textTertiary)}
+.qrow{display:flex;align-items:center;gap:12px;height:56px;padding:0 4px;border-bottom:1px solid var(--potion-border)}
+.qrow:last-child{border-bottom:0}
+.qmain{flex:1;min-width:0}
+.bar{height:4px;border-radius:2px;background:var(--potion-surfaceRaised);margin-top:5px;overflow:hidden} .bar i{display:block;height:100%;border-radius:2px}
+.arrow{color:var(--potion-textTertiary);display:inline-flex}
+.badge{font:600 10px var(--potion-font-mono);letter-spacing:.04em;padding:2px 6px;border-radius:4px;background:var(--potion-surfaceRaised);color:var(--potion-textSecondary)}
+.st{font-size:11px;color:var(--potion-textTertiary);width:56px;text-align:right}
+.ok{font-size:11px;color:var(--potion-success);display:inline-flex;align-items:center;gap:4px;width:56px;justify-content:flex-end}
+.sheet{max-width:460px;display:flex;flex-direction:column;gap:16px}
+.srow{display:flex;gap:12px;align-items:center}
+.field{display:flex;align-items:center;gap:12px;font-size:13px;padding-left:52px}
+.popup{display:inline-flex;align-items:center;justify-content:space-between;gap:8px;min-width:200px;padding:4px 8px;border-radius:6px;background:var(--potion-surfaceRaised);border:1px solid var(--potion-borderStrong);font-size:13px}
+.disclosure{font-size:13px;color:var(--potion-textSecondary);padding-left:52px}
+.sfoot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--potion-border);padding-top:14px;font-size:13px}
+.chk{display:flex;align-items:center;gap:8px} .box{width:14px;height:14px;border-radius:4px;border:1px solid var(--potion-borderStrong)}
+.btns{display:flex;gap:8px}
+.btn{display:inline-block;font-size:13px;padding:4px 14px;border-radius:6px;background:var(--potion-surfaceRaised);border:1px solid var(--potion-borderStrong)}
+.btn.primary{background:#0A84FF;border-color:#0A84FF;color:#fff}
+.dz{display:flex} .dzin{flex:1;min-height:220px;border:1.5px dashed var(--potion-borderStrong);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:13px}
+.dzmark{color:var(--potion-textTertiary);width:48px;height:48px;margin-bottom:6px} .dzmark svg{width:48px;height:48px}
+.dzin .btn{margin-top:10px}
+.dr{display:flex;flex-direction:column;gap:12px}
+.url{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 10px;border-radius:8px;border:1px solid var(--potion-borderStrong);background:var(--potion-surfaceSunken)}
+.url .ic{color:var(--potion-textTertiary);display:inline-flex} .url .ph{flex:1;font-size:13px;color:var(--potion-textTertiary)}
+.card{display:flex;gap:12px;align-items:center} .thumb{width:96px;height:54px;border-radius:6px;background:var(--potion-surfaceRaised)}
+.seg{display:inline-flex;padding:2px;border-radius:8px;background:var(--potion-surfaceRaised);gap:2px;align-self:flex-start}
+.seg span{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:4px 12px 4px 4px;border-radius:6px} .seg .on{background:var(--potion-surface);box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.icons{display:flex;gap:24px;align-items:flex-end;flex-wrap:wrap} .icons figure{margin:0;text-align:center;font-size:12px;color:#9A94A8}
+.icons img{display:block;margin:0 auto 8px}
+.glyphs{display:flex;gap:20px;flex-wrap:wrap;color:#B6B0C4;font-size:11px} .glyphs div{display:flex;flex-direction:column;align-items:center;gap:6px;width:64px}
+iframe{width:100%;height:520px;border:1px solid #2E2939;border-radius:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><img src="../logos/svg/potion-lockup-on-dark.svg" alt="Potion"><p>Design system 1.0.0 · 2026-11-21 · macOS + Windows</p></header>
+
+<h2>Logo</h2>
+<p>A circle cut into four bands (image, audio, video, docs) under a plain neck. Use the small variant at 32 px and below, mono where the OS tints icons.</p>
+<div class="grid">
+<div class="card-l d"><img src="../logos/svg/potion-mark.svg" alt="">potion-mark.svg</div>
+<div class="card-l l"><img src="../logos/svg/potion-mark-on-light.svg" alt="">potion-mark-on-light.svg</div>
+<div class="card-l d"><img src="../logos/svg/dropper-mark.svg" alt="">dropper-mark.svg</div>
+<div class="card-l l"><img src="../logos/svg/dropper-mark-on-light.svg" alt="">dropper-mark-on-light.svg</div>
+<div class="card-l d"><img src="../logos/svg/potion-mark-mono-white.svg" alt="">potion-mark-mono-white.svg</div>
+<div class="card-l l"><img src="../logos/svg/potion-mark-mono-black.svg" alt="">potion-mark-mono-black.svg</div>
+<div class="card-l d"><img src="../logos/svg/potion-mark-small.svg" alt="">potion-mark-small.svg (≤32 px)</div>
+<div class="card-l l"><img src="../logos/svg/dropper-mark-mono-small-black.svg" alt="">dropper-mark-mono-small-black.svg</div>
+</div>
+<h3 style="margin-top:24px">Lockups</h3>
+<div class="lockups">
+<div style="background:#17141F"><img src="../logos/svg/potion-lockup-on-dark.svg" alt="Potion"></div>
+<div style="background:#fff"><img src="../logos/svg/potion-lockup-on-light.svg" alt="Potion"></div>
+<div style="background:#17141F"><img src="../logos/svg/dropper-lockup-on-dark.svg" alt="Potion Dropper"></div>
+<div style="background:#fff"><img src="../logos/svg/dropper-lockup-on-light.svg" alt="Potion Dropper"></div>
+</div>
+
+<h2>App icons</h2>
+<p>macOS icons follow the 1024 grid (824 px rounded square, drop shadow). Windows icons are freestanding glyphs.</p>
+<div class="icons">
+<figure><img src="../macos/Potion/Assets.xcassets/AppIcon.appiconset/icon_256x256.png" width="256" height="256" alt="">Potion · macOS</figure>
+<figure><img src="../macos/PotionDropper/Assets.xcassets/AppIcon.appiconset/icon_128x128@2x.png" width="128" height="128" alt="">Dropper · macOS</figure>
+<figure><img src="../macos/Potion/Assets.xcassets/AppIcon.appiconset/icon_32x32.png" width="32" height="32" alt="">32</figure>
+<figure><img src="../macos/Potion/Assets.xcassets/AppIcon.appiconset/icon_16x16.png" width="16" height="16" alt="">16</figure>
+<figure style="background:#F3F3F3;padding:16px;border-radius:12px;color:#4A4A4A"><img src="../windows/Potion/Assets/Square44x44Logo.targetsize-256_altform-lightunplated.png" width="96" height="96" alt="">Windows · light</figure>
+<figure style="background:#202020;padding:16px;border-radius:12px"><img src="../windows/Potion/Assets/Square44x44Logo.targetsize-256_altform-unplated.png" width="96" height="96" alt="">Windows · dark</figure>
+<figure style="background:#202020;padding:16px;border-radius:12px"><img src="../windows/PotionDropper/Assets/Square44x44Logo.targetsize-256_altform-unplated.png" width="96" height="96" alt="">Dropper · dark</figure>
+</div>
+
+<h2>Category colors</h2>
+<p>The four band colors identify file types and nothing else. Always pair the color with a glyph and visible text. On light surfaces use the darker text variant.</p>
+<div class="cats"><div class="cat">
+  <div class="sw" style="background:#2DD4BF"><span style="color:#17141F"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#17141F" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="9.5" r="1.75"/><path d="M3.5 17 9 12l4 3.5 3-2.5 4.5 4"/></svg></span></div>
+  <div class="meta"><strong>Image</strong>
+  <span>fill <code>#2DD4BF</code></span>
+  <span>text on dark <code>#2DD4BF</code> · 9.76:1</span>
+  <span>text on light <code>#197C70</code> · 5.05:1</span>
+  <span>glyph on fill <code>#17141F</code> · 9.76:1</span></div>
+</div><div class="cat">
+  <div class="sw" style="background:#FF9F43"><span style="color:#17141F"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#17141F" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10.5v3"/></svg></span></div>
+  <div class="meta"><strong>Audio</strong>
+  <span>fill <code>#FF9F43</code></span>
+  <span>text on dark <code>#FF9F43</code> · 8.90:1</span>
+  <span>text on light <code>#B15600</code> · 5.00:1</span>
+  <span>glyph on fill <code>#17141F</code> · 8.90:1</span></div>
+</div><div class="cat">
+  <div class="sw" style="background:#FF4F7B"><span style="color:#17141F"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#17141F" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/></svg></span></div>
+  <div class="meta"><strong>Video</strong>
+  <span>fill <code>#FF4F7B</code></span>
+  <span>text on dark <code>#FF4F7B</code> · 5.76:1</span>
+  <span>text on light <code>#E00038</code> · 4.97:1</span>
+  <span>glyph on fill <code>#17141F</code> · 5.76:1</span></div>
+</div><div class="cat">
+  <div class="sw" style="background:#7C6CFF"><span style="color:#17141F"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#17141F" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 3v5h5M8.5 13h7M8.5 16.5H13"/></svg></span></div>
+  <div class="meta"><strong>Docs</strong>
+  <span>fill <code>#7C6CFF</code></span>
+  <span>text on dark <code>#7C6CFF</code> · 4.71:1</span>
+  <span>text on light <code>#6553FF</code> · 4.96:1</span>
+  <span>glyph on fill <code>#17141F</code> · 4.71:1</span></div>
+</div></div>
+
+<h2>Neutrals</h2>
+<p>For custom-drawn surfaces (drop zone, tiles, onboarding, About). Window chrome and standard controls use system colors.</p>
+<div class="neutrals"><div class="neutral dark"><h3>Dark</h3><div class="nrow"><div class="nsw" style="background:#0E0C14"><span>background<br><code>#0E0C14</code></span></div><div class="nsw" style="background:#17141F"><span>surface<br><code>#17141F</code></span></div><div class="nsw" style="background:#211D2B"><span>surfaceRaised<br><code>#211D2B</code></span></div><div class="nsw" style="background:#2E2939"><span>border<br><code>#2E2939</code></span></div><div class="nsw" style="background:#3A3547"><span>borderStrong<br><code>#3A3547</code></span></div></div><table><tr><th>Text / status</th><th>Hex</th><th>vs surface</th></tr><tr><td>textPrimary</td><td><code>#FFFFFF</code></td><td>18.16:1</td></tr><tr><td>textSecondary</td><td><code>#B6B0C4</code></td><td>8.65:1</td></tr><tr><td>textTertiary</td><td><code>#9A94A8</code></td><td>6.21:1</td></tr><tr><td>success</td><td><code>#3DD68C</code></td><td>9.68:1</td></tr><tr><td>warning</td><td><code>#FFC53D</code></td><td>11.51:1</td></tr><tr><td>error</td><td><code>#FF6B6B</code></td><td>6.54:1</td></tr></table></div><div class="neutral light"><h3>Light</h3><div class="nrow"><div class="nsw" style="background:#F7F6FA"><span>background<br><code>#F7F6FA</code></span></div><div class="nsw" style="background:#FFFFFF"><span>surface<br><code>#FFFFFF</code></span></div><div class="nsw" style="background:#EFEDF3"><span>surfaceRaised<br><code>#EFEDF3</code></span></div><div class="nsw" style="background:#E4E1EA"><span>border<br><code>#E4E1EA</code></span></div><div class="nsw" style="background:#C9C4D3"><span>borderStrong<br><code>#C9C4D3</code></span></div></div><table><tr><th>Text / status</th><th>Hex</th><th>vs surface</th></tr><tr><td>textPrimary</td><td><code>#17141F</code></td><td>18.16:1</td></tr><tr><td>textSecondary</td><td><code>#4D475A</code></td><td>8.88:1</td></tr><tr><td>textTertiary</td><td><code>#6B6577</code></td><td>5.60:1</td></tr><tr><td>success</td><td><code>#12804A</code></td><td>4.99:1</td></tr><tr><td>warning</td><td><code>#8F5F00</code></td><td>5.52:1</td></tr><tr><td>error</td><td><code>#C62A2F</code></td><td>5.57:1</td></tr></table></div></div>
+
+<h2>Typography</h2>
+<p>System UI font in the apps (SF Pro / Segoe UI Variable). Space Grotesk is reserved for the wordmark and brand moments.</p>
+<div class="typetable"><table><tr><th>Role</th><th>Sample</th><th>Size mac / win</th><th>macOS style</th><th>WinUI style</th></tr><tr><td><code>brandDisplay</code></td><td style="font-family:var(--potion-font-brand);font-weight:700;font-size:40px;letter-spacing:-0.03em;">potion</td><td>40 / 40</td><td>—</td><td>—</td></tr><tr><td><code>title</code></td><td style="font-family:var(--potion-font-ui);font-weight:600;font-size:17px;">Convert 4 files</td><td>17 / 20</td><td>.title3 (semibold)</td><td>SubtitleTextBlockStyle</td></tr><tr><td><code>sectionHeader</code></td><td style="font-family:var(--potion-font-ui);font-weight:600;font-size:13px;">Output</td><td>13 / 14</td><td>.headline</td><td>BodyStrongTextBlockStyle</td></tr><tr><td><code>body</code></td><td style="font-family:var(--potion-font-ui);font-weight:400;font-size:13px;">Converted files are saved next to the originals.</td><td>13 / 14</td><td>.body</td><td>BodyTextBlockStyle</td></tr><tr><td><code>secondary</code></td><td style="font-family:var(--potion-font-ui);font-weight:400;font-size:11px;">MOV · 48.2 MB</td><td>11 / 12</td><td>.subheadline</td><td>CaptionTextBlockStyle</td></tr><tr><td><code>caption</code></td><td style="font-family:var(--potion-font-ui);font-weight:400;font-size:10px;">Last converted 2 min ago</td><td>10 / 12</td><td>.caption</td><td>CaptionTextBlockStyle</td></tr><tr><td><code>formatBadge</code></td><td style="font-family:var(--potion-font-mono);font-weight:600;font-size:10px;letter-spacing:0.04em;text-transform:uppercase;">MP4</td><td>10 / 11</td><td>—</td><td>—</td></tr><tr><td><code>fileName</code></td><td style="font-family:var(--potion-font-ui);font-weight:500;font-size:13px;">Interview_final_v2_EXPORT.mov</td><td>13 / 14</td><td>—</td><td>—</td></tr></table></div>
+
+<h2>Glyphs</h2>
+<p>Custom 24 px stroke set in icons/category/. In the apps, prefer SF Symbols (macOS) and Segoe Fluent Icons (Windows); see docs/07-iconography.md.</p>
+<div class="glyphs"><div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="9.5" r="1.75"/><path d="M3.5 17 9 12l4 3.5 3-2.5 4.5 4"/></svg><span>image</span></div><div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10.5v3"/></svg><span>audio</span></div><div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/></svg><span>video</span></div><div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 3v5h5M8.5 13h7M8.5 16.5H13"/></svg><span>docs</span></div><div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg><span>link</span></div><div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>folder</span></div><div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></svg><span>download</span></div><div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5"/></svg><span>convert</span></div><div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>check</span></div><div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></svg><span>error</span></div></div>
+
+<h2>Components</h2>
+<p>Reference mockups in both themes. The blue primary button stands in for the system accent color.</p>
+<div class="comps">
+<div class="win dz" data-theme="dark"><div class="dzin">
+  <span class="dzmark"><svg viewBox="0 0 100 100" aria-hidden="true"><defs><clipPath id="dzm"><circle cx="50" cy="60" r="28"/></clipPath></defs><rect x="43" y="12" width="14" height="18" rx="3" fill="currentColor"/><g clip-path="url(#dzm)"><rect x="20" y="32" width="60" height="12.5" fill="currentColor"/><rect x="20" y="46.5" width="60" height="12.5" fill="currentColor"/><rect x="20" y="61" width="60" height="12.5" fill="currentColor"/><rect x="20" y="75.5" width="60" height="12.5" fill="currentColor"/></g></svg></span>
+  <strong>Drop files or folders</strong><span class="fmeta">Video, audio, images, documents and PDFs</span>
+  <span class="btn">Choose Files…</span></div></div><div class="win dz" data-theme="light"><div class="dzin">
+  <span class="dzmark"><svg viewBox="0 0 100 100" aria-hidden="true"><defs><clipPath id="dzm"><circle cx="50" cy="60" r="28"/></clipPath></defs><rect x="43" y="12" width="14" height="18" rx="3" fill="currentColor"/><g clip-path="url(#dzm)"><rect x="20" y="32" width="60" height="12.5" fill="currentColor"/><rect x="20" y="46.5" width="60" height="12.5" fill="currentColor"/><rect x="20" y="61" width="60" height="12.5" fill="currentColor"/><rect x="20" y="75.5" width="60" height="12.5" fill="currentColor"/></g></svg></span>
+  <strong>Drop files or folders</strong><span class="fmeta">Video, audio, images, documents and PDFs</span>
+  <span class="btn">Choose Files…</span></div></div>
+<div class="win sheet" data-theme="dark">
+  <div class="srow"><span class="tile" style="width:40px;height:40px;background:var(--potion-audio-tint);color:var(--potion-audio-text)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10.5v3"/></svg></span><div><div class="fname">Interview.opus</div><div class="fmeta">Audio · 2.1 MB</div></div></div>
+  <label class="field"><span>Convert to</span><span class="popup">MP3 <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span></label>
+  <div class="disclosure">› Advanced</div>
+  <div class="sfoot"><label class="chk"><span class="box"></span> Move original to Trash</label><span class="btns"><span class="btn">Cancel</span><span class="btn primary">Convert</span></span></div>
+</div><div class="win sheet" data-theme="light">
+  <div class="srow"><span class="tile" style="width:40px;height:40px;background:var(--potion-audio-tint);color:var(--potion-audio-text)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10.5v3"/></svg></span><div><div class="fname">Interview.opus</div><div class="fmeta">Audio · 2.1 MB</div></div></div>
+  <label class="field"><span>Convert to</span><span class="popup">MP3 <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span></label>
+  <div class="disclosure">› Advanced</div>
+  <div class="sfoot"><label class="chk"><span class="box"></span> Move original to Trash</label><span class="btns"><span class="btn">Cancel</span><span class="btn primary">Convert</span></span></div>
+</div>
+<div class="win" data-theme="dark"><div class="qhead"><strong>Queue</strong><span>4 files · 1 of 4 done</span></div><div class="qrow"><span class="tile" style="width:28px;height:28px;background:var(--potion-video-tint);color:var(--potion-video-text)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/></svg></span><div class="qmain"><div class="fname">Interview_final.mov</div><div class="fmeta">MOV · 48.2 MB</div><div class="bar"><i style="width:62%;background:var(--potion-video-fill)"></i></div></div><span class="arrow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5"/></svg></span><span class="badge">MP4</span><span class="st">62%</span></div><div class="qrow"><span class="tile" style="width:28px;height:28px;background:var(--potion-audio-tint);color:var(--potion-audio-text)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10.5v3"/></svg></span><div class="qmain"><div class="fname">voice-memo-0412.opus</div><div class="fmeta">OPUS · 2.1 MB</div></div><span class="arrow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5"/></svg></span><span class="badge">MP3</span><span class="ok"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg> Done</span></div><div class="qrow"><span class="tile" style="width:28px;height:28px;background:var(--potion-image-tint);color:var(--potion-image-text)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="9.5" r="1.75"/><path d="M3.5 17 9 12l4 3.5 3-2.5 4.5 4"/></svg></span><div class="qmain"><div class="fname">IMG_3148.HEIC</div><div class="fmeta">HEIC · 3.4 MB</div></div><span class="arrow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5"/></svg></span><span class="badge">JPG</span><span class="st">Waiting</span></div><div class="qrow"><span class="tile" style="width:28px;height:28px;background:var(--potion-docs-tint);color:var(--potion-docs-text)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 3v5h5M8.5 13h7M8.5 16.5H13"/></svg></span><div class="qmain"><div class="fname">Lab report draft.docx</div><div class="fmeta">DOCX · 820 KB</div></div><span class="arrow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5"/></svg></span><span class="badge">PDF</span><span class="st">Waiting</span></div></div><div class="win" data-theme="light"><div class="qhead"><strong>Queue</strong><span>4 files · 1 of 4 done</span></div><div class="qrow"><span class="tile" style="width:28px;height:28px;background:var(--potion-video-tint);color:var(--potion-video-text)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/></svg></span><div class="qmain"><div class="fname">Interview_final.mov</div><div class="fmeta">MOV · 48.2 MB</div><div class="bar"><i style="width:62%;background:var(--potion-video-fill)"></i></div></div><span class="arrow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5"/></svg></span><span class="badge">MP4</span><span class="st">62%</span></div><div class="qrow"><span class="tile" style="width:28px;height:28px;background:var(--potion-audio-tint);color:var(--potion-audio-text)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10.5v3"/></svg></span><div class="qmain"><div class="fname">voice-memo-0412.opus</div><div class="fmeta">OPUS · 2.1 MB</div></div><span class="arrow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5"/></svg></span><span class="badge">MP3</span><span class="ok"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg> Done</span></div><div class="qrow"><span class="tile" style="width:28px;height:28px;background:var(--potion-image-tint);color:var(--potion-image-text)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="9.5" r="1.75"/><path d="M3.5 17 9 12l4 3.5 3-2.5 4.5 4"/></svg></span><div class="qmain"><div class="fname">IMG_3148.HEIC</div><div class="fmeta">HEIC · 3.4 MB</div></div><span class="arrow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5"/></svg></span><span class="badge">JPG</span><span class="st">Waiting</span></div><div class="qrow"><span class="tile" style="width:28px;height:28px;background:var(--potion-docs-tint);color:var(--potion-docs-text)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 3v5h5M8.5 13h7M8.5 16.5H13"/></svg></span><div class="qmain"><div class="fname">Lab report draft.docx</div><div class="fmeta">DOCX · 820 KB</div></div><span class="arrow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5"/></svg></span><span class="badge">PDF</span><span class="st">Waiting</span></div></div>
+<div class="win dr" data-theme="dark">
+  <div class="url"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg></span><span class="ph">Paste a video link</span><span class="btn primary">Fetch</span></div>
+  <div class="card"><div class="thumb"></div><div><div class="fname">Media title appears here</div><div class="fmeta">12:48 · 1080p available</div></div></div>
+  <div class="seg"><span class="on"><span class="tile" style="width:20px;height:20px;background:var(--potion-video-tint);color:var(--potion-video-text)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/></svg></span> Video</span><span><span class="tile" style="width:20px;height:20px;background:var(--potion-audio-tint);color:var(--potion-audio-text)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10.5v3"/></svg></span> Audio</span></div>
+</div><div class="win dr" data-theme="light">
+  <div class="url"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg></span><span class="ph">Paste a video link</span><span class="btn primary">Fetch</span></div>
+  <div class="card"><div class="thumb"></div><div><div class="fname">Media title appears here</div><div class="fmeta">12:48 · 1080p available</div></div></div>
+  <div class="seg"><span class="on"><span class="tile" style="width:20px;height:20px;background:var(--potion-video-tint);color:var(--potion-video-text)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/></svg></span> Video</span><span><span class="tile" style="width:20px;height:20px;background:var(--potion-audio-tint);color:var(--potion-audio-text)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10.5v3"/></svg></span> Audio</span></div>
+</div>
+</div>
+
+<h2>Motion</h2>
+<p>Bands rise bottom to top, then the neck drops on. Use it in onboarding and the About window, not as a launch splash.</p>
+<iframe src="../splash/splash.html" title="Splash animation"></iframe>
+</div>
+</body>
+</html>

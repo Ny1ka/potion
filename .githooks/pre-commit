@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Enabled by scripts/setup.sh (git config core.hooksPath .githooks).
+set -euo pipefail
+root="$(git rev-parse --show-toplevel)"
+exec "$root/scripts/forbidden-scan.sh" --staged

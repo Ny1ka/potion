@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Potion splash animation (reference)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+@font-face{font-family:'Space Grotesk';font-weight:700;src:url('../fonts/SpaceGrotesk-Bold.woff2') format('woff2');}
+html,body{margin:0;height:100%;background:#0E0C14;color:#fff;font-family:-apple-system,'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif}
+.stage{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px}
+/* Timeline (ms, one pass = 1300): bands rise bottom->top at 0/150/300/450, each 420 long; neck drops 600-900 (overshoot); wordmark fades 750-1150. */
+.band{transform-box:fill-box;opacity:0;animation:rise 420ms cubic-bezier(.2,.8,.2,1) forwards}
+.b-docs{animation-delay:0ms} .b-video{animation-delay:150ms} .b-audio{animation-delay:300ms} .b-image{animation-delay:450ms}
+.neck{transform-box:fill-box;opacity:0;animation:drop 300ms cubic-bezier(.3,1.3,.5,1) 600ms forwards}
+.word{opacity:0;animation:fade 400ms cubic-bezier(.2,.8,.2,1) 750ms forwards}
+@keyframes rise{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
+@keyframes drop{from{transform:translateY(-12px);opacity:0}to{transform:none;opacity:1}}
+@keyframes fade{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.band,.neck,.word{animation:fadeonly 120ms linear forwards!important}@keyframes fadeonly{to{opacity:1}}}
+h1{margin:0;font:700 80px/0.9 'Space Grotesk',sans-serif;letter-spacing:-0.05em}
+p{margin:0;font-size:18px;color:#9A94A8}
+button{margin-top:24px;font:inherit;font-size:13px;color:#B6B0C4;background:transparent;border:1px solid #3A3547;border-radius:6px;padding:6px 12px;cursor:pointer}
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+<svg viewBox="0 0 100 100" width="220" height="220" role="img" aria-label="Potion">
+<defs><clipPath id="bulb"><circle cx="50" cy="60" r="28"/></clipPath></defs>
+<rect class="neck" x="43" y="12" width="14" height="18" rx="3" fill="#FFFFFF"/>
+<g clip-path="url(#bulb)">
+<rect class="band b-image" x="20" y="32" width="60" height="12.5" fill="#2DD4BF"/>
+<rect class="band b-audio" x="20" y="46.5" width="60" height="12.5" fill="#FF9F43"/>
+<rect class="band b-video" x="20" y="61" width="60" height="12.5" fill="#FF4F7B"/>
+<rect class="band b-docs" x="20" y="75.5" width="60" height="12.5" fill="#7C6CFF"/>
+</g>
+</svg>
+<h1 class="word">potion</h1>
+<p class="word">Any file in. The format you need out.</p>
+<button type="button" id="replay">Replay</button>
+</main>
+<script>
+function replay(){
+  const s=document.getElementById('stage'); const c=s.cloneNode(true); s.replaceWith(c);
+  c.querySelector('#replay').addEventListener('click',replay);
+}
+document.getElementById('replay').addEventListener('click',replay);
+</script>
+</body>
+</html>

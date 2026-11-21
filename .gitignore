@@ -1,0 +1,85 @@
+# ---- macOS ----
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ---- Xcode / Swift ----
+# Xcode projects are generated from apps/*/project.yml by XcodeGen.
+*.xcodeproj/
+*.xcworkspace/
+!*.xcodeproj/project.xcworkspace/
+xcuserdata/
+DerivedData/
+build/
+.build/
+.swiftpm/
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+Package.resolved.bak
+
+# ---- .NET / WinUI ----
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+ARM64/
+AppPackages/
+BundleArtifacts/
+*.user
+*.suo
+*.rsuser
+.vs/
+*.nupkg
+*.snupkg
+project.lock.json
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
+*.appinstaller
+
+# ---- Release outputs (never committed) ----
+dist/
+*.dmg
+*.pkg
+*.exe
+*.msi
+*.zip
+!design-system/**/*.zip
+
+# ---- Secrets and signing material (never committed) ----
+.env
+.env.*
+*.p12
+*.pfx
+*.cer
+*.certSigningRequest
+*.mobileprovision
+*.provisionprofile
+*.keychain
+*.keychain-db
+*.pem
+*.key
+AuthKey_*.p8
+notarytool-*.json
+
+# ---- Editors ----
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+
+# ---- Python (design-system build tool) ----
+__pycache__/
+*.pyc
+.venv/
+
+# ---- Claude Code local settings ----
+.claude/settings.local.json
