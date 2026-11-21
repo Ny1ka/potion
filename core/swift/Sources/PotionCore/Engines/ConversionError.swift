@@ -8,6 +8,7 @@ public enum ConversionError: Error, Equatable, Sendable, LocalizedError {
     case unreadable(fileName: String)
     case copyProtected
     case noAudio(fileName: String)
+    case noVideo(fileName: String)
     case cannotWrite(folder: String)
     case conversionFailed(fileName: String, detail: String)
     case verificationFailed(fileName: String)
@@ -24,6 +25,8 @@ public enum ConversionError: Error, Equatable, Sendable, LocalizedError {
             return "This file is copy-protected, so Potion can't convert it."
         case let .noAudio(name):
             return "“\(name)” has no audio to convert."
+        case let .noVideo(name):
+            return "“\(name)” has no video to convert."
         case let .cannotWrite(folder):
             return "Can't save to “\(folder)”. Check that the folder exists and that you can write to it."
         case let .conversionFailed(name, _):

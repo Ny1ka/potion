@@ -30,11 +30,11 @@ final class EngineUnitTests: XCTestCase {
     }
 
     func testProgressParsing() {
-        XCTAssertEqual(AudioEngine.progressFraction("out_time_us=2500000", duration: 10), 0.25)
-        XCTAssertEqual(AudioEngine.progressFraction("out_time_us=N/A", duration: 10), nil)
-        XCTAssertEqual(AudioEngine.progressFraction("out_time_us=99000000", duration: 10), 1)
-        XCTAssertEqual(AudioEngine.progressFraction("progress=end", duration: nil), 1)
-        XCTAssertNil(AudioEngine.progressFraction("bitrate=128kbits/s", duration: 10))
+        XCTAssertEqual(FFmpegConversion.progressFraction("out_time_us=2500000", duration: 10), 0.25)
+        XCTAssertEqual(FFmpegConversion.progressFraction("out_time_us=N/A", duration: 10), nil)
+        XCTAssertEqual(FFmpegConversion.progressFraction("out_time_us=99000000", duration: 10), 1)
+        XCTAssertEqual(FFmpegConversion.progressFraction("progress=end", duration: nil), 1)
+        XCTAssertNil(FFmpegConversion.progressFraction("bitrate=128kbits/s", duration: 10))
     }
 
     func testUniqueNamesFollowFinderStyle() throws {

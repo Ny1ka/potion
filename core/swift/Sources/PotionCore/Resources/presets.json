@@ -2,23 +2,528 @@
   "version": 1,
   "audio": {
     "presets": [
-      { "id": "high", "name": "High", "bitrateKbps": 320 },
-      { "id": "standard", "name": "Standard", "bitrateKbps": 192 },
-      { "id": "small", "name": "Small", "bitrateKbps": 128 }
+      {
+        "id": "high",
+        "name": "High",
+        "bitrateKbps": 320
+      },
+      {
+        "id": "standard",
+        "name": "Standard",
+        "bitrateKbps": 192
+      },
+      {
+        "id": "small",
+        "name": "Small",
+        "bitrateKbps": 128
+      }
     ],
     "defaultPreset": "standard",
-    "sampleRates": [22050, 32000, 44100, 48000, 88200, 96000],
+    "sampleRates": [
+      22050,
+      32000,
+      44100,
+      48000,
+      88200,
+      96000
+    ],
     "formats": {
-      "mp3":  { "muxer": "mp3",  "encoder": { "default": "libmp3lame" }, "bitrates": [96, 128, 160, 192, 256, 320], "sampleRates": [22050, 32000, 44100, 48000], "artwork": true },
-      "m4a":  { "muxer": "ipod", "encoder": { "macos": "aac_at", "windows": "aac_mf" }, "bitrates": [96, 128, 160, 192, 256, 320], "sampleRates": [22050, 32000, 44100, 48000], "artwork": true },
-      "aac":  { "muxer": "adts", "encoder": { "macos": "aac_at", "windows": "aac_mf" }, "bitrates": [96, 128, 160, 192, 256, 320], "sampleRates": [22050, 32000, 44100, 48000] },
-      "ogg":  { "muxer": "ogg",  "encoder": { "default": "libvorbis" }, "bitrates": [96, 128, 160, 192, 256, 320], "sampleRates": [22050, 32000, 44100, 48000] },
-      "opus": { "muxer": "opus", "encoder": { "default": "libopus" }, "bitrates": [64, 96, 128, 160, 192, 256], "sampleRates": [48000] },
-      "wma":  { "muxer": "asf",  "encoder": { "default": "wmav2" }, "bitrates": [96, 128, 160, 192], "sampleRates": [22050, 32000, 44100, 48000] },
-      "wav":  { "muxer": "wav",  "encoder": { "default": "pcm_s16le" }, "highBitDepthEncoder": "pcm_s24le", "lossless": true },
-      "aiff": { "muxer": "aiff", "encoder": { "default": "pcm_s16be" }, "highBitDepthEncoder": "pcm_s24be", "lossless": true },
-      "flac": { "muxer": "flac", "encoder": { "default": "flac" }, "lossless": true, "artwork": true },
-      "alac": { "muxer": "ipod", "encoder": { "default": "alac" }, "lossless": true, "artwork": true }
+      "mp3": {
+        "muxer": "mp3",
+        "encoder": {
+          "default": "libmp3lame"
+        },
+        "bitrates": [
+          96,
+          128,
+          160,
+          192,
+          256,
+          320
+        ],
+        "sampleRates": [
+          22050,
+          32000,
+          44100,
+          48000
+        ],
+        "artwork": true
+      },
+      "m4a": {
+        "muxer": "ipod",
+        "encoder": {
+          "macos": "aac_at",
+          "windows": "aac_mf"
+        },
+        "bitrates": [
+          96,
+          128,
+          160,
+          192,
+          256,
+          320
+        ],
+        "sampleRates": [
+          22050,
+          32000,
+          44100,
+          48000
+        ],
+        "artwork": true
+      },
+      "aac": {
+        "muxer": "adts",
+        "encoder": {
+          "macos": "aac_at",
+          "windows": "aac_mf"
+        },
+        "bitrates": [
+          96,
+          128,
+          160,
+          192,
+          256,
+          320
+        ],
+        "sampleRates": [
+          22050,
+          32000,
+          44100,
+          48000
+        ]
+      },
+      "ogg": {
+        "muxer": "ogg",
+        "encoder": {
+          "default": "libvorbis"
+        },
+        "bitrates": [
+          96,
+          128,
+          160,
+          192,
+          256,
+          320
+        ],
+        "sampleRates": [
+          22050,
+          32000,
+          44100,
+          48000
+        ]
+      },
+      "opus": {
+        "muxer": "opus",
+        "encoder": {
+          "default": "libopus"
+        },
+        "bitrates": [
+          64,
+          96,
+          128,
+          160,
+          192,
+          256
+        ],
+        "sampleRates": [
+          48000
+        ]
+      },
+      "wma": {
+        "muxer": "asf",
+        "encoder": {
+          "default": "wmav2"
+        },
+        "bitrates": [
+          96,
+          128,
+          160,
+          192
+        ],
+        "sampleRates": [
+          22050,
+          32000,
+          44100,
+          48000
+        ]
+      },
+      "wav": {
+        "muxer": "wav",
+        "encoder": {
+          "default": "pcm_s16le"
+        },
+        "highBitDepthEncoder": "pcm_s24le",
+        "lossless": true
+      },
+      "aiff": {
+        "muxer": "aiff",
+        "encoder": {
+          "default": "pcm_s16be"
+        },
+        "highBitDepthEncoder": "pcm_s24be",
+        "lossless": true
+      },
+      "flac": {
+        "muxer": "flac",
+        "encoder": {
+          "default": "flac"
+        },
+        "lossless": true,
+        "artwork": true
+      },
+      "alac": {
+        "muxer": "ipod",
+        "encoder": {
+          "default": "alac"
+        },
+        "lossless": true,
+        "artwork": true
+      }
+    }
+  },
+  "video": {
+    "presets": [
+      {
+        "id": "original",
+        "name": "Original quality"
+      },
+      {
+        "id": "high",
+        "name": "High",
+        "bitsPerPixel": 0.1
+      },
+      {
+        "id": "standard",
+        "name": "Standard",
+        "bitsPerPixel": 0.07
+      },
+      {
+        "id": "small",
+        "name": "Small",
+        "bitsPerPixel": 0.04
+      }
+    ],
+    "defaultPreset": "standard",
+    "resolutions": [
+      2160,
+      1440,
+      1080,
+      720,
+      480,
+      360
+    ],
+    "frameRates": [
+      24,
+      25,
+      30,
+      50,
+      60
+    ],
+    "aspectRatios": [
+      "16:9",
+      "9:16",
+      "1:1",
+      "4:3"
+    ],
+    "minBitrateKbps": 150,
+    "maxBitrateKbps": 60000,
+    "codecs": {
+      "h264": {
+        "encoder": {
+          "macos": "h264_videotoolbox",
+          "windows": "h264_mf"
+        },
+        "efficiency": 1.0
+      },
+      "hevc": {
+        "encoder": {
+          "macos": "hevc_videotoolbox",
+          "windows": "hevc_mf"
+        },
+        "efficiency": 0.6,
+        "tag": "hvc1"
+      },
+      "vp9": {
+        "encoder": {
+          "default": "libvpx-vp9"
+        },
+        "efficiency": 0.6
+      },
+      "vp8": {
+        "encoder": {
+          "default": "libvpx"
+        },
+        "efficiency": 1.0
+      },
+      "mpeg4": {
+        "encoder": {
+          "default": "mpeg4"
+        },
+        "efficiency": 1.5
+      },
+      "wmv2": {
+        "encoder": {
+          "default": "wmv2"
+        },
+        "efficiency": 1.6
+      },
+      "mpeg2video": {
+        "encoder": {
+          "default": "mpeg2video"
+        },
+        "efficiency": 1.6,
+        "standardFrameRates": true
+      },
+      "flv1": {
+        "encoder": {
+          "default": "flv"
+        },
+        "efficiency": 1.6
+      }
+    },
+    "audioCodecs": {
+      "aac": {
+        "encoder": {
+          "macos": "aac_at",
+          "windows": "aac_mf"
+        },
+        "bitrateKbps": 192
+      },
+      "mp3": {
+        "encoder": {
+          "default": "libmp3lame"
+        },
+        "bitrateKbps": 192
+      },
+      "opus": {
+        "encoder": {
+          "default": "libopus"
+        },
+        "bitrateKbps": 128
+      },
+      "wmav2": {
+        "encoder": {
+          "default": "wmav2"
+        },
+        "bitrateKbps": 128
+      },
+      "mp2": {
+        "encoder": {
+          "default": "mp2"
+        },
+        "bitrateKbps": 192
+      }
+    },
+    "formats": {
+      "mp4": {
+        "muxer": "mp4",
+        "videoCodecs": [
+          "h264",
+          "hevc"
+        ],
+        "audioCodec": "aac",
+        "copyVideo": [
+          "h264",
+          "hevc",
+          "mpeg4",
+          "av1"
+        ],
+        "copyAudio": [
+          "aac",
+          "mp3",
+          "ac3",
+          "alac"
+        ],
+        "faststart": true
+      },
+      "mov": {
+        "muxer": "mov",
+        "videoCodecs": [
+          "h264",
+          "hevc"
+        ],
+        "audioCodec": "aac",
+        "copyVideo": [
+          "h264",
+          "hevc",
+          "mpeg4",
+          "prores",
+          "mjpeg"
+        ],
+        "copyAudio": [
+          "aac",
+          "alac",
+          "mp3",
+          "pcm_s16le",
+          "pcm_s24le",
+          "pcm_s16be"
+        ],
+        "faststart": true
+      },
+      "m4v": {
+        "muxer": "mp4",
+        "videoCodecs": [
+          "h264",
+          "hevc"
+        ],
+        "audioCodec": "aac",
+        "copyVideo": [
+          "h264",
+          "hevc"
+        ],
+        "copyAudio": [
+          "aac"
+        ],
+        "faststart": true
+      },
+      "mkv": {
+        "muxer": "matroska",
+        "videoCodecs": [
+          "h264",
+          "hevc",
+          "vp9"
+        ],
+        "audioCodec": "aac",
+        "copyVideo": [
+          "*"
+        ],
+        "copyAudio": [
+          "*"
+        ]
+      },
+      "webm": {
+        "muxer": "webm",
+        "videoCodecs": [
+          "vp9",
+          "vp8"
+        ],
+        "audioCodec": "opus",
+        "copyVideo": [
+          "vp8",
+          "vp9",
+          "av1"
+        ],
+        "copyAudio": [
+          "opus",
+          "vorbis"
+        ]
+      },
+      "avi": {
+        "muxer": "avi",
+        "videoCodecs": [
+          "mpeg4"
+        ],
+        "audioCodec": "mp3",
+        "copyVideo": [
+          "mpeg4",
+          "mjpeg"
+        ],
+        "copyAudio": [
+          "mp3",
+          "ac3",
+          "pcm_s16le"
+        ]
+      },
+      "wmv": {
+        "muxer": "asf",
+        "videoCodecs": [
+          "wmv2"
+        ],
+        "audioCodec": "wmav2",
+        "copyVideo": [
+          "wmv1",
+          "wmv2",
+          "wmv3",
+          "vc1"
+        ],
+        "copyAudio": [
+          "wmav1",
+          "wmav2"
+        ]
+      },
+      "flv": {
+        "muxer": "flv",
+        "videoCodecs": [
+          "h264",
+          "flv1"
+        ],
+        "audioCodec": "aac",
+        "copyVideo": [
+          "h264",
+          "flv1"
+        ],
+        "copyAudio": [
+          "aac",
+          "mp3"
+        ]
+      },
+      "mpeg": {
+        "muxer": "vob",
+        "videoCodecs": [
+          "mpeg2video"
+        ],
+        "audioCodec": "mp2",
+        "copyVideo": [
+          "mpeg1video",
+          "mpeg2video"
+        ],
+        "copyAudio": [
+          "mp2",
+          "ac3"
+        ]
+      },
+      "3gp": {
+        "muxer": "3gp",
+        "videoCodecs": [
+          "h264"
+        ],
+        "audioCodec": "aac",
+        "copyVideo": [
+          "h264",
+          "h263",
+          "mpeg4"
+        ],
+        "copyAudio": [
+          "aac"
+        ]
+      },
+      "ts": {
+        "muxer": "mpegts",
+        "videoCodecs": [
+          "h264",
+          "hevc"
+        ],
+        "audioCodec": "aac",
+        "copyVideo": [
+          "h264",
+          "hevc",
+          "mpeg2video"
+        ],
+        "copyAudio": [
+          "aac",
+          "mp2",
+          "ac3",
+          "mp3"
+        ]
+      }
+    },
+    "gif": {
+      "original": {
+        "fps": 15,
+        "maxWidth": 800
+      },
+      "high": {
+        "fps": 15,
+        "maxWidth": 640
+      },
+      "standard": {
+        "fps": 12,
+        "maxWidth": 480
+      },
+      "small": {
+        "fps": 10,
+        "maxWidth": 320
+      }
     }
   }
 }

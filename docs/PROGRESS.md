@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M2 Core: conversion engines
-- **Last completed chunk:** M2.1 Audio engine (Swift)
-- **Next chunk:** M2.2 Video engine (Swift)
+- **Last completed chunk:** M2.2 Video engine (Swift)
+- **Next chunk:** M2.3 Image engine (Swift)
 
 ## Milestones
 
@@ -14,7 +14,7 @@ Read this first in any new session. Update it at every checkpoint.
 |---|---|
 | M0 Scaffold | Done |
 | M1 Core: formats | Done |
-| M2 Core: conversion engines | In progress (M2.0–M2.1 done) |
+| M2 Core: conversion engines | In progress (M2.0–M2.2 done) |
 | M3 Potion macOS UI | Not started |
 | M4 Potion Windows UI | Not started |
 | M5 Dropper core | Not started |
@@ -55,7 +55,8 @@ Read this first in any new session. Update it at every checkpoint.
 - [x] M2.1 Audio engine (Swift): FFmpeg locator, process runner with progress and cancellation, ffprobe media
       info, copy-protection check, verified save without overwriting, `core/spec/presets.json`,
       `transcodeAudio` + `extractAudio`. 11 end-to-end tests with generated samples
-- [ ] M2.2 Video engine: `transcodeVideo`, `videoToGif`, `gifToVideo` (Swift)
+- [x] M2.2 Video engine (Swift): `transcodeVideo` (all 11 containers, stream copy when possible, resolution,
+      frame rate, codec, bitrate, aspect ratio, rotation-aware), `videoToGif` (palette), `gifToVideo`. 13 tests
 - [ ] M2.3 Image engine: ImageIO/Core Image, `convertImage`, `imageToPdf` (Swift)
 - [ ] M2.4 Documents: `convertDocument`, `documentToPdf` (engine choice below)
 - [ ] M2.5 PDF tools: merge, split, extract, reorder, compress, `pdfToImage`, `pdfToDocument` (PDFKit)
@@ -81,6 +82,8 @@ Read this first in any new session. Update it at every checkpoint.
 - Local Xcode is 15.4; keep `projectFormat: xcode15_0` in `project.yml` files.
 - Engine tests need the FFmpeg build (`scripts/ffmpeg/build-macos.sh`); they skip locally without it and fail
   in CI (`POTION_REQUIRE_FFMPEG=1`). The app doesn't bundle `ffmpeg`/`ffprobe` yet (M3: `Contents/Helpers`).
+- Video: 10-bit/HDR sources are converted to 8-bit SDR without tone mapping (colors can look washed out).
+  Subtitles are dropped. Revisit after M3.
 - Copy-protection detection covers FairPlay/CENC sample entries and FFmpeg's DRM errors; protected WMA/WMV
   needs a real protected sample to confirm (none can be generated). Revisit in M8.
 - Open product decision for M3: App Sandbox on or off (see `docs/LEGAL_REVIEW.md` #2).

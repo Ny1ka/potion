@@ -13,8 +13,12 @@ public struct MediaInfo: Sendable, Equatable {
         /// Bits per sample for PCM/lossless audio, when known.
         public let bitsPerSample: Int?
         public let bitRate: Int?
+        /// Display width and height, after applying any rotation flag (portrait phone videos).
         public let width: Int?
         public let height: Int?
+        /// Average frames per second for video streams.
+        public let frameRate: Double?
+        public let pixelFormat: String?
         /// Cover art embedded as a video stream (MP3/M4A/FLAC artwork).
         public let isAttachedPicture: Bool
         public let duration: Double?
@@ -55,10 +59,18 @@ enum MediaProbe {
             || text.contains("encrypted") || text.contains("decryption key")
     }
 
+    /// "30000/1001" → 29.97. Nil for "0/0" or malformed values.
+    static func rate(_ fraction: String?) -> Double? {
+        guard let parts = fraction?.split(separator: "/"), parts.count == 2,
+              let n = Double(parts[0]), let d = Double(parts[1]), n > 0, d > 0 else { return nil }
+        return n / d
+    }
+
     static func parse(_ json: Data) throws -> MediaInfo {
         struct Root: Decodable { let format: Format?; let streams: [RawStream]? }
         struct Format: Decodable { let format_name: String?; let duration: String?; let bit_rate: String? }
         struct Disposition: Decodable { let attached_pic: Int? }
+        struct SideData: Decodable { let rotation: Double? }
         struct RawStream: Decodable {
             let index: Int
             let codec_type: String?
@@ -71,14 +83,24 @@ enum MediaProbe {
             let bit_rate: String?
             let width: Int?
             let height: Int?
+            let avg_frame_rate: String?
+            let r_frame_rate: String?
+            let pix_fmt: String?
             let duration: String?
             let disposition: Disposition?
+            let side_data_list: [SideData]?
+            let tags: [String: String]?
         }
         let root = try JSONDecoder().decode(Root.self, from: json)
         guard let format = root.format else { throw ConversionError.unreadable(fileName: "") }
         let streams = (root.streams ?? []).map { s -> MediaInfo.Stream in
             let rawBits = s.bits_per_raw_sample.flatMap(Int.init)
             let bits = [rawBits, s.bits_per_sample].compactMap { $0 }.first { $0 > 0 }
+            // Rotation comes from the display matrix (side data) or an older "rotate" tag.
+            let matrixRotation: Double? = s.side_data_list?.compactMap { $0.rotation }.first
+            let tagRotation: Double? = s.tags?["rotate"].flatMap { Double($0) }
+            let rotation: Double = matrixRotation ?? tagRotation ?? 0
+            let sideways: Bool = Int(abs(rotation).rounded()) % 180 == 90
             return MediaInfo.Stream(
                 index: s.index,
                 kind: MediaInfo.Stream.Kind(rawValue: s.codec_type ?? "") ?? .unknown,
@@ -88,8 +110,10 @@ enum MediaProbe {
                 channels: s.channels,
                 bitsPerSample: bits,
                 bitRate: s.bit_rate.flatMap(Int.init),
-                width: s.width,
-                height: s.height,
+                width: sideways ? s.height : s.width,
+                height: sideways ? s.width : s.height,
+                frameRate: rate(s.avg_frame_rate) ?? rate(s.r_frame_rate),
+                pixelFormat: s.pix_fmt,
                 isAttachedPicture: (s.disposition?.attached_pic ?? 0) == 1,
                 duration: s.duration.flatMap(Double.init))
         }

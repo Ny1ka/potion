@@ -46,31 +46,16 @@ public final class AudioEngine: Sendable {
         if info.isCopyProtected { throw ConversionError.copyProtected }
         guard !info.audioStreams.isEmpty else { throw ConversionError.noAudio(fileName: input.lastPathComponent) }
 
-        let temporary = OutputFiles.temporaryURL(in: outputDirectory, fileExtension: outputFormat.preferredExtension)
-        defer { try? FileManager.default.removeItem(at: temporary) }   // no-op once moved into place
-
-        let args = try arguments(input: input, info: info, output: temporary, outputFormat: outputFormat,
-                                 operation: conversion.operation, options: options)
-        let duration = info.audioStreams.first?.duration ?? info.duration
-        let result = try await ProcessRunner.run(tools.ffmpeg, args) { line in
-            if let fraction = Self.progressFraction(line, duration: duration) { progress(fraction) }
-        }
-        guard result.status == 0 else {
-            if MediaProbe.looksCopyProtected(result.stderr) { throw ConversionError.copyProtected }
-            throw ConversionError.conversionFailed(fileName: input.lastPathComponent, detail: result.stderr)
-        }
-
-        // Verify before saving: the output must be readable and contain audio.
-        guard let out = try? await MediaProbe.probe(temporary, tools: tools), !out.audioStreams.isEmpty,
-              (out.duration ?? out.audioStreams[0].duration ?? 0) > 0 else {
-            throw ConversionError.verificationFailed(fileName: input.lastPathComponent)
-        }
-
-        let saved = try OutputFiles.finalize(temporary, in: outputDirectory,
-                                             baseName: input.deletingPathExtension().lastPathComponent,
-                                             fileExtension: outputFormat.preferredExtension)
-        progress(1)
-        return saved
+        let source = info.audioStreams.first
+        return try await FFmpegConversion.run(
+            tools: tools, input: input, outputDirectory: outputDirectory,
+            outputExtension: outputFormat.preferredExtension, duration: source?.duration ?? info.duration,
+            progress: progress,
+            arguments: { temporary in
+                try arguments(input: input, info: info, output: temporary, outputFormat: outputFormat,
+                              operation: conversion.operation, options: options)
+            },
+            verify: { out in !out.audioStreams.isEmpty && FFmpegConversion.hasDuration(out, stream: out.audioStreams.first) })
     }
 
     /// FFmpeg arguments for one conversion. Paths are always absolute, so they can't be mistaken for options.
@@ -81,8 +66,7 @@ public final class AudioEngine: Sendable {
         }
         guard let source = info.audioStreams.first else { throw ConversionError.noAudio(fileName: input.lastPathComponent) }
 
-        var args = ["-hide_banner", "-nostdin", "-n", "-loglevel", "error", "-nostats", "-progress", "pipe:1",
-                    "-i", input.path, "-map", "0:\(source.index)"]
+        var args = FFmpegConversion.commonArguments(input: input) + ["-map", "0:\(source.index)"]
 
         // Keep cover art when converting audio to a format that can hold it. Video files never contribute frames.
         if operation == .transcodeAudio, settings.supportsArtwork, let picture = info.attachedPicture {
@@ -111,13 +95,5 @@ public final class AudioEngine: Sendable {
 
         args += ["-f", settings.muxer, output.path]
         return args
-    }
-
-    /// Parses FFmpeg `-progress` output ("out_time_us=…", "progress=end") into a 0…1 fraction.
-    static func progressFraction(_ line: String, duration: Double?) -> Double? {
-        if line == "progress=end" { return 1 }
-        guard line.hasPrefix("out_time_us="), let duration, duration > 0,
-              let micros = Double(line.dropFirst("out_time_us=".count)) else { return nil }
-        return min(max(micros / 1_000_000 / duration, 0), 1)
     }
 }

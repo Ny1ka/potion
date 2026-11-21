@@ -9,7 +9,7 @@ cases, so macOS and Windows agree on what a file is and what it can become.
 | `tests/detection.json` | Conformance cases for detection. Both cores must pass all of them |
 | `matrix.json` | Allowed conversions, the engine operation for each, and limitation notes shown before converting |
 | `tests/matrix.json` | Conformance cases for the matrix |
-| `presets.json` | Audio quality presets and per-format encoder settings (video and image presets are added in M2.2/M2.3) |
+| `presets.json` | Audio and video quality presets, encoders and per-container settings (image presets in M2.3) |
 
 The Swift package can't read files outside its own folder, so `core/swift/Sources/PotionCore/Resources/`
 holds byte-for-byte copies. Run `make sync-spec` after editing anything here. A test in both cores fails if
@@ -105,3 +105,16 @@ Only conversions the matrix lists are ever offered. It's written as **routes** i
 | `sampleRates` | Allowed output sample rates. The source rate is kept when allowed, otherwise snapped to the nearest |
 | `lossless` | No bitrate option |
 | `artwork` | The container can keep cover art (copied when converting audio, never taken from video frames) |
+
+`video` describes video outputs:
+
+| Field | Meaning |
+|---|---|
+| `presets` | Original quality (copy streams when nothing changes, otherwise match the source bitrate), High, Standard, Small (bits per pixel used to size the bitrate) |
+| `codecs.<id>` | Encoder per platform, `efficiency` (bitrate multiplier vs. H.264), container `tag`, `standardFrameRates` (MPEG-2) |
+| `audioCodecs.<id>` | Encoder and bitrate used when a container needs its audio re-encoded |
+| `formats.<id>` | `muxer`, offered `videoCodecs` (first is the default), `audioCodec`, source codecs that can be copied (`copyVideo`, `copyAudio`, `*` = any), `faststart` |
+| `gif.<preset>` | Frame rate and maximum width for video → GIF |
+
+Rules both engines follow: never upscale; only lower the frame rate; aspect ratios letterbox instead of
+stretching; copy audio whenever the container accepts it; use the display size of rotated (portrait) video.
