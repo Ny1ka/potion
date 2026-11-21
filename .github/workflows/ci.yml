@@ -1,0 +1,70 @@
+# Builds and tests all apps on every push and pull request, and scans sources and
+# built apps for content blocked by the source policy (CLAUDE.md › Source policy).
+# Job names are stable on purpose: branch rulesets reference them as required checks.
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+
+jobs:
+  scan:
+    name: Source scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Scan tracked files
+        run: scripts/forbidden-scan.sh --tree
+
+  macos:
+    name: macOS build + tests
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: PotionCore tests
+        run: swift test --package-path core/swift
+      - name: Generate Xcode project
+        run: cd apps/potion-macos && xcodegen generate --quiet
+      - name: Build Potion (Debug)
+        run: >
+          xcodebuild -project apps/potion-macos/Potion.xcodeproj -scheme Potion
+          -configuration Debug -derivedDataPath build/DerivedData -quiet build
+      - name: Build Potion (Release)
+        run: >
+          xcodebuild -project apps/potion-macos/Potion.xcodeproj -scheme Potion
+          -configuration Release -derivedDataPath build/DerivedData -quiet build
+      - name: Scan Release app
+        run: scripts/forbidden-scan.sh --artifact build/DerivedData/Build/Products/Release/Potion.app
+
+  windows:
+    name: Windows build + tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - name: Potion.Core tests
+        run: dotnet test core/dotnet/Potion.Core.Tests
+      - name: Build Potion (Debug)
+        run: dotnet build apps/potion-windows/Potion/Potion.csproj -c Debug -p:Platform=x64
+      - name: Build Potion (Release)
+        run: dotnet build apps/potion-windows/Potion/Potion.csproj -c Release -p:Platform=x64
+      - name: Scan Release app
+        shell: bash
+        run: scripts/forbidden-scan.sh --artifact apps/potion-windows/Potion/bin/x64/Release

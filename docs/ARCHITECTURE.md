@@ -30,7 +30,9 @@ binding layers and harder debugging, while the OS-framework engines would still 
 
 - macOS apps: XcodeGen (`apps/*/project.yml`), so project files are reviewable text and the generated
   `.xcodeproj` isn't committed. `projectFormat: xcode15_0` keeps it readable by Xcode 15.4.
-- Windows apps: SDK-style `.csproj` for WinUI 3 / Windows App SDK (M0.2), built with `dotnet` or MSBuild.
+- Windows apps: SDK-style `.csproj` for WinUI 3 / Windows App SDK 2.x on .NET 10 (LTS), in `Potion.slnx`.
+  `Potion.Core` targets plain `net10.0` so its tests run on macOS too; Windows-only engine code goes in the
+  app or a separate `net10.0-windows` project.
 
 ## Identifiers
 

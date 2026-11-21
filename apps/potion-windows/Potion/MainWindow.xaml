@@ -1,0 +1,40 @@
+<Window
+    x:Class="Potion.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Potion">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Custom title bar (design-system/docs/09-platforms.md): small mark + app name. -->
+        <Grid x:Name="AppTitleBar" Height="48" Grid.Row="0">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="{StaticResource PotionSpace3}"
+                        Margin="16,0,0,0">
+                <Image Source="ms-appx:///Assets/Square44x44Logo.targetsize-16.png" Width="16" Height="16"
+                       AutomationProperties.AccessibilityView="Raw" />
+                <TextBlock Text="Potion" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Empty-state drop zone (design-system/docs/06-components.md). Dropping arrives in M4.1. -->
+        <Grid x:Name="ContentRoot" Grid.Row="1">
+            <Rectangle x:Name="DropZoneBorder"
+                       RadiusX="12" RadiusY="12"
+                       Stroke="{ThemeResource PotionBorderStrongBrush}"
+                       StrokeThickness="1.5"
+                       StrokeDashArray="4,2.67" />
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+                <TextBlock Text="Drop files or folders" HorizontalAlignment="Center"
+                           Style="{StaticResource BodyStrongTextBlockStyle}"
+                           Foreground="{ThemeResource PotionTextPrimaryBrush}" />
+                <TextBlock Text="Video, audio, images, documents and PDFs" HorizontalAlignment="Center"
+                           Style="{StaticResource CaptionTextBlockStyle}"
+                           Foreground="{ThemeResource PotionTextSecondaryBrush}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

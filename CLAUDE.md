@@ -18,11 +18,13 @@ design-system/   Potion design system v1.0.0. Read design-system/CLAUDE.md befor
 core/spec/       Shared data for both platforms: format signatures, conversion matrix, presets,
                  and conformance test cases that both cores must pass.
 core/swift/      PotionCore Swift package (macOS apps). `make test-core`
-core/dotnet/     Potion.Core .NET library (Windows apps). Added in M0.2.
+core/dotnet/     Potion.Core .NET 10 library (Windows apps), platform-neutral. `make test-core-dotnet`
 apps/            The four app projects.
 docs/            PROGRESS.md, SPEC.md, ARCHITECTURE.md, LEGAL_REVIEW.md, SOURCES.md
 legal/           THIRD_PARTY_NOTICES.md, PRIVACY.md, TERMS.md (M8). Project license: /LICENSE (MIT).
 scripts/         setup.sh, forbidden-scan.sh
+.github/         CI workflow (job names are stable: rulesets will reference them)
+Potion.slnx      Visual Studio solution for the Windows apps and the .NET core
 .githooks/       pre-commit (enabled by `make setup`)
 ```
 

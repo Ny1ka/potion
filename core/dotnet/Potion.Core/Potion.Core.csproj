@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Shared processing logic for the Windows apps (Potion and Potion Dropper).
+       Platform-neutral on purpose (plain net10.0) so it builds and tests on any OS.
+       Windows-only engine wrappers live behind interfaces implemented in the apps or a
+       separate net10.0-windows project. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Potion.Core</RootNamespace>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+</Project>

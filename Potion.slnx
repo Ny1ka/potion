@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/apps/" />
+  <Folder Name="/apps/potion-windows/">
+    <Project Path="apps/potion-windows/Potion/Potion.csproj" />
+  </Folder>
+  <Folder Name="/core/" />
+  <Folder Name="/core/dotnet/">
+    <Project Path="core/dotnet/Potion.Core.Tests/Potion.Core.Tests.csproj" />
+    <Project Path="core/dotnet/Potion.Core/Potion.Core.csproj" />
+  </Folder>
+</Solution>
