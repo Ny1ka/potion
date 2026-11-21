@@ -14,7 +14,7 @@
 set -euo pipefail
 
 # Terms are written with character classes so this file never matches itself.
-TERMS='you[t]ube|yout[u]\.be|y[t][-_]dlp'
+TERMS='you[t]ube|yout[u]\.be|y[t][-_]dlp|tik[t]ok|insta[g]ram'
 # Any path with a directory named exactly "experimental" or "Adapters" (any case).
 # Public Dropper source code uses "SourceAdapters" instead.
 PATHS='(^|/)(experimenta[l]|adapter[s])(/|$)'

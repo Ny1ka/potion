@@ -86,3 +86,4 @@ __pycache__/
 
 # Owner's full project prompt: kept locally, never committed (names excluded platforms)
 universal-file-converter-prompt-*.txt
+universal-converter-*prompt*.md
