@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M2.7 Windows engines, then M4 Potion Windows UI (M3 Potion macOS UI is done)
-- **Last completed chunk:** M2.7d-1 Platform availability in the shared spec
-- **Next chunk:** M2.7d-2 Windows document model and readers
+- **Last completed chunk:** M2.7d-2a Windows document model + TXT/Markdown/HTML/EPUB readers
+- **Next chunk:** M2.7d-2b DOCX, ODT and RTF readers (C#)
 
 ## Milestones
 
@@ -96,8 +96,12 @@ Read this first in any new session. Update it at every checkpoint.
   - M2.7d Documents and PDF on Windows (owner chose permissive libraries, 2026-11-21):
     - [x] M2.7d-1 `platforms` in formats.json (DOC is macOS-only); both matrices are built per platform; shared
           cases can name a platform (5 new cases)
-    - [ ] M2.7d-2 Document model + readers: TXT, Markdown (Markdig), HTML (HtmlAgilityPack), DOCX (Open XML SDK),
-          RTF, ODT, EPUB
+    - [x] M2.7d-2a `Potion.Core.Documents`: format-neutral `Document` model (headings, paragraphs with alignment and
+          quotes, lists, tables, code, rules, page breaks, styled text runs with links, images) and readers for TXT
+          (UTF-8/UTF-16/Windows-1252), HTML (HtmlAgilityPack; nothing fetched, only data: and local images),
+          Markdown (Markdig → HTML, like macOS) and EPUB (spine order, images from the book, DRM check). 7 tests,
+          run on every platform
+    - [ ] M2.7d-2b DOCX (Open XML SDK), ODT and RTF readers
     - [ ] M2.7d-3 Writers for the same formats + document → PDF (PDFsharp/MigraDoc)
     - [ ] M2.7d-4 PDF tools and conversions (PDFsharp, PdfPig for text, Windows.Data.Pdf for images), images → PDF
 
