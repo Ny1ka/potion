@@ -4,9 +4,9 @@ Read this first in any new session. Update it at every checkpoint.
 
 ## Status
 
-- **Current milestone:** M7.5 Personal module loading point (M2–M7 done: engines, Potion and Potion Dropper on both platforms)
-- **Last completed chunk:** M7.2 Dropper Windows: Settings, history, notifications, taskbar, dropped links
-- **Next chunk:** M7.5 Generic, Debug-only external adapter loading point (both apps)
+- **Current milestone:** M8 Legal and compliance pass (M2–M7.5 done)
+- **Last completed chunk:** M7.5 Debug-only external source loading point (both apps)
+- **Next chunk:** M8.1 THIRD_PARTY_NOTICES from the shipped dependencies, license audit
 
 ## Milestones
 
@@ -20,7 +20,7 @@ Read this first in any new session. Update it at every checkpoint.
 | M5 Dropper core | Done |
 | M6 Dropper macOS UI | Done (Share extension deferred to M9, see M6.3) |
 | M7 Dropper Windows UI | Done (share target deferred to M9) |
-| M7.5 Personal experimental module (private repo) | Not started |
+| M7.5 Personal experimental module (private repo) | Done (public part: the Debug-only loading point) |
 | M8 Legal and compliance pass | Not started |
 | M9 Packaging and V1 release | Not started |
 
@@ -57,6 +57,17 @@ Read this first in any new session. Update it at every checkpoint.
 - Checkpoints: Claude commits and pushes, then waits for "continue".
 - Dropper app scaffolds (`apps/dropper-*`) are created at the start of M5 rather than in M0, so M0–M4 stay
   focused on Potion.
+
+### M7.5
+
+- [x] Generic, Debug-only external source loading point in both cores and both Dropper apps (`#if DEBUG`): source
+      folders outside the repo with `source.json` + a program run as a separate process (JSON-line protocol; its
+      file must be inside the download folder, then the usual content check, duration limit and conversion); links a
+      source handles are queued without Fetch; window title badge "PERSONAL BUILD: EXPERIMENTAL SOURCES ENABLED" and
+      the acknowledgment's extra line (asked again) when a source is loaded. Release builds contain none of it
+      (checked locally on the macOS Release app and the Release `Potion.Core.dll`); `forbidden-scan.sh --artifact`
+      now fails on loader symbols. 3 tests per core with a script standing in for an external program. Everything
+      else is handled outside this repository
 
 ### M7 chunks
 

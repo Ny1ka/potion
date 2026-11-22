@@ -84,6 +84,10 @@ public enum DropError: Error, Sendable {
     case download(DownloadError, resume: ResumeState?)
     case tooLong(minutes: Int, limit: Int)
     case conversion(ConversionError)
+    #if DEBUG
+    /// An external source (Debug builds only) failed; its own message.
+    case external(String)
+    #endif
 
     /// The text shown for this error.
     public func message(_ registry: SourceRegistry = .shared) -> String {
@@ -93,6 +97,9 @@ public enum DropError: Error, Sendable {
             registry.message(id: "tooLong").replacingOccurrences(of: "{minutes}", with: "\(minutes)")
                 .replacingOccurrences(of: "{limit}", with: "\(limit)")
         case .conversion(let error): error.message(product: "Potion Dropper")
+        #if DEBUG
+        case .external(let message): message
+        #endif
         }
     }
 }
@@ -115,6 +122,9 @@ public final class DropJobRunner: Sendable {
     private let converter: any MediaConverting
     private let registry: SourceRegistry
     private let today: @Sendable () -> String
+    #if DEBUG
+    private let externalSources: [any ExternalSourceAdapter]
+    #endif
 
     public init(downloader: Downloader, converter: any MediaConverting, registry: SourceRegistry = .shared,
                 today: @escaping @Sendable () -> String = DropJobRunner.localDate) {
@@ -122,7 +132,43 @@ public final class DropJobRunner: Sendable {
         self.converter = converter
         self.registry = registry
         self.today = today
+        #if DEBUG
+        externalSources = []
+        #endif
     }
+
+    #if DEBUG
+    /// Debug builds only: links an external source handles are downloaded by it instead of the Downloader.
+    public init(downloader: Downloader, converter: any MediaConverting, externalSources: [any ExternalSourceAdapter],
+                registry: SourceRegistry = .shared, today: @escaping @Sendable () -> String = DropJobRunner.localDate) {
+        self.downloader = downloader
+        self.converter = converter
+        self.registry = registry
+        self.today = today
+        self.externalSources = externalSources
+    }
+
+    private func externalDownload(_ source: any ExternalSourceAdapter, link: DropLink, work: URL,
+                                  stage: @escaping @Sendable (DropStage) -> Void) async throws -> DownloadResult {
+        stage(.downloading(DownloadProgress(bytes: 0, total: nil, bytesPerSecond: 0)))
+        let result: ExternalDownload
+        do {
+            result = try await source.download(link, into: work) { _ in }
+        } catch let error as ExternalSourceError {
+            throw DropError.external(error.message)
+        } catch {
+            throw DropError.download(.interrupted, resume: nil)
+        }
+        let detection = (try? registry.formats.detect(fileAt: result.file))?.format
+        guard let format = detection, format.category == .audio || format.category == .video else {
+            throw DropError.download(.link(.notMedia), resume: nil)
+        }
+        let size = (try? result.file.resourceValues(forKeys: [.fileSizeKey]).fileSize).map(Int64.init) ?? 0
+        let name = result.title.flatMap { DownloadRules.sanitize($0, maxLength: registry.download.maxFileNameLength) }
+            .map { "\($0).\(format.preferredExtension)" } ?? result.file.lastPathComponent
+        return DownloadResult(file: result.file, formatID: format.id, fileName: name, bytes: size, finalLink: link)
+    }
+    #endif
 
     @Sendable public static func localDate() -> String {
         let formatter = DateFormatter()
@@ -141,14 +187,25 @@ public final class DropJobRunner: Sendable {
         var keepWork = false
         defer { if !keepWork { try? fm.removeItem(at: work) } }
 
-        let download: DownloadResult
-        do {
-            download = try await downloader.download(link, into: work, maxBytes: options.maxBytes, resume: resume,
+        func fromNetwork() async throws -> DownloadResult {
+            do {
+                return try await downloader.download(link, into: work, maxBytes: options.maxBytes, resume: resume,
                                                      progress: { stage(.downloading($0)) })
-        } catch let failure as DownloadFailure {
-            keepWork = failure.resume != nil
-            throw DropError.download(failure.error, resume: failure.resume)
+            } catch let failure as DownloadFailure {
+                keepWork = failure.resume != nil
+                throw DropError.download(failure.error, resume: failure.resume)
+            }
         }
+        let download: DownloadResult
+        #if DEBUG
+        if let external = externalSources.first(where: { $0.handles(link) }) {
+            download = try await externalDownload(external, link: link, work: work, stage: stage)
+        } else {
+            download = try await fromNetwork()
+        }
+        #else
+        download = try await fromNetwork()
+        #endif
 
         guard let source = registry.formats.format(id: download.formatID) else { throw DropError.download(.link(.notMedia), resume: nil) }
         let target = options.outputFormatID.flatMap { registry.formats.format(id: $0) } ?? source

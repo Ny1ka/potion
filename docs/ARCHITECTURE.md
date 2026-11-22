@@ -57,6 +57,16 @@ Markdown rendered to HTML) before the system HTML reader sees it (`HTMLResources
   `HttpClientTransport` (Windows), both without cookies, credentials, caches or automatic redirects.
   FFmpeg is built without network support and only ever sees local files.
 
+## External sources (Debug builds only)
+
+`ExternalSources` / `ExternalSources.cs` in both cores, inside `#if DEBUG`: a generic extension point that loads source
+folders from outside the repository (`~/Library/Application Support/Potion Dropper/External Sources`,
+`%LOCALAPPDATA%\Potion Dropper\External Sources`). Each folder has a `source.json` (id, name, hosts, executable,
+arguments) and a program that Dropper runs as a separate process (an argument list, never a shell) with
+`download <link> <output folder>`; it reports JSON lines (`progress`, `title`, `file`). The downloaded file then goes
+through the same content check, duration limit and conversion as any other download. Release builds compile none of
+this, and `scripts/forbidden-scan.sh --artifact` fails if it's present in a Release artifact.
+
 ## Project generation
 
 - macOS apps: XcodeGen (`apps/*/project.yml`), so project files are reviewable text and the generated

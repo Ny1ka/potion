@@ -29,7 +29,7 @@ test-core-dotnet:
 	$(DOTNET) test core/dotnet/Potion.Core.Tests
 	$(DOTNET) build core/dotnet/Potion.Core.Windows.Tests -v quiet
 	@# Every bundled .NET dependency must be free of terms the source policy blocks (Markdig wasn't, 2026-11-22).
-	scripts/forbidden-scan.sh --artifact core/dotnet/Potion.Core.Windows.Tests/bin/Debug
+	scripts/forbidden-scan.sh --dependencies core/dotnet/Potion.Core.Windows.Tests/bin/Debug
 
 potion-macos-project:
 	cd apps/potion-macos && xcodegen generate --quiet

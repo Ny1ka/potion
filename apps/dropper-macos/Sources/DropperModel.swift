@@ -40,6 +40,26 @@ final class DropperModel: ObservableObject {
     private let downloader: Downloader
     private var fetchTask: Task<Void, Never>?
     private var queueWatch: AnyCancellable?
+    #if DEBUG
+    /// Debug builds only: sources added outside this repository (see PotionCore's ExternalSources).
+    private let externalSources: [any ExternalSourceAdapter]
+    #endif
+
+    /// True in a personal build that loaded an external source (Debug builds only).
+    var hasExternalSources: Bool {
+        #if DEBUG
+        !externalSources.isEmpty
+        #else
+        false
+        #endif
+    }
+
+    var windowTitle: String {
+        #if DEBUG
+        if hasExternalSources { return "Potion Dropper · PERSONAL BUILD: EXPERIMENTAL SOURCES ENABLED" }
+        #endif
+        return "Potion Dropper"
+    }
 
     var outputFolder: URL { DropperSettings.outputFolder }
     var maxBytes: Int64 { DropperSettings.maxBytes }
@@ -47,7 +67,13 @@ final class DropperModel: ObservableObject {
     init() {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.0.0"
         let downloader = Downloader(transport: URLSessionTransport(), appVersion: version)
+        #if DEBUG
+        let external = ExternalSources.load()
+        externalSources = external
+        let runner = DropJobRunner(downloader: downloader, converter: ConversionService.withBundledTools(), externalSources: external)
+        #else
         let runner = DropJobRunner(downloader: downloader, converter: ConversionService.withBundledTools())
+        #endif
         self.downloader = downloader
         queue = DropQueue(maxParallel: DropperSettings.maxParallel) { link, folder, options, resume, stage in
             try await runner.run(link, into: folder, options: options, resume: resume, stage: stage)
@@ -79,7 +105,11 @@ final class DropperModel: ObservableObject {
             return
         }
         fetchTask?.cancel()
-        if list.links.count > 1 {
+        var handledElsewhere = false
+        #if DEBUG
+        handledElsewhere = externalSources.contains { $0.handles(link) }
+        #endif
+        if list.links.count > 1 || handledElsewhere {
             fetch = .batch(list.links)
             if mode == .audio, batchFormatID == nil { batchFormatID = "mp3" }
             return

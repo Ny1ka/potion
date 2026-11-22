@@ -27,7 +27,7 @@
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="{StaticResource PotionSpace3}" Margin="16,0,0,0">
                 <Image Source="ms-appx:///Assets/Square44x44Logo.targetsize-16.png" Width="16" Height="16"
                        AutomationProperties.AccessibilityView="Raw" />
-                <TextBlock Text="Potion Dropper" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center" />
+                <TextBlock x:Name="TitleText" Text="Potion Dropper" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center" />
             </StackPanel>
         </Grid>
 

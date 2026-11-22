@@ -27,6 +27,23 @@ public sealed partial class MainWindow : Window
     private readonly DropperSettings _settings = DropperSettings.Default;
     private bool _isActive = true;
     private bool _closeConfirmed;
+#if DEBUG
+    /// <summary>Debug builds only: sources added outside this repository (see Potion.Core's ExternalSources).</summary>
+    private readonly IReadOnlyList<IExternalSourceAdapter> _external = ExternalSources.Load();
+#endif
+
+    /// <summary>True in a personal build that loaded an external source (Debug builds only).</summary>
+    private bool HasExternalSources
+    {
+        get
+        {
+#if DEBUG
+            return _external.Count > 0;
+#else
+            return false;
+#endif
+        }
+    }
 
     public DropQueue Queue { get; }
 
@@ -43,7 +60,12 @@ public sealed partial class MainWindow : Window
         _downloader = new Downloader(new HttpClientTransport(), version);
         FFmpegTools? tools = null;
         try { tools = FFmpegTools.Locate(); } catch (ConversionException) { }
-        var runner = new DropJobRunner(_downloader, new FFmpegMediaConverter(tools));
+        var runner = new DropJobRunner(_downloader, new FFmpegMediaConverter(tools))
+        {
+#if DEBUG
+            ExternalSources = _external,
+#endif
+        };
         Queue = new DropQueue((link, folder, options, resume, stage, token) => runner.RunAsync(link, folder, options, resume, stage, token),
             _settings.MaxParallel);
         _history = new DropHistory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Potion Dropper", "history.json"));
@@ -68,6 +90,12 @@ public sealed partial class MainWindow : Window
         AppWindow.Closing += AppWindow_Closing;
         RefreshSavesTo();
         UpdateQueueHeader();
+#if DEBUG
+        if (HasExternalSources)
+        {
+            Title = TitleText.Text = "Potion Dropper · PERSONAL BUILD: EXPERIMENTAL SOURCES ENABLED";
+        }
+#endif
     }
 
     private IntPtr Hwnd => WinRT.Interop.WindowNative.GetWindowHandle(this);
@@ -130,8 +158,19 @@ public sealed partial class MainWindow : Window
     private async void Root_Loaded(object sender, RoutedEventArgs e)
     {
         LinkBox.Focus(FocusState.Programmatic);
-        if (_settings.AcknowledgedVersion >= Acknowledgment.Version) return;
-        if (await Acknowledgment.ShowAsync(Root.XamlRoot)) _settings.AcknowledgedVersion = Acknowledgment.Version;
+        var personal = HasExternalSources;
+        var accepted = _settings.AcknowledgedVersion >= Acknowledgment.Version;
+#if DEBUG
+        if (personal) accepted &= _settings.Store.GetInt(Acknowledgment.PersonalKey, 0) >= Acknowledgment.Version;
+#endif
+        if (accepted) return;
+        if (await Acknowledgment.ShowAsync(Root.XamlRoot, personal))
+        {
+            _settings.AcknowledgedVersion = Acknowledgment.Version;
+#if DEBUG
+            if (personal) _settings.Store.Set(Acknowledgment.PersonalKey, Acknowledgment.Version);
+#endif
+        }
         else Application.Current.Exit();
     }
 
@@ -191,7 +230,11 @@ public sealed partial class MainWindow : Window
             ShowError(_registry.Message(error ?? list.Problems.FirstOrDefault()?.Error ?? LinkError.NotALink));
             return;
         }
-        if (list.Links.Count > 1)
+        var handledElsewhere = false;
+#if DEBUG
+        handledElsewhere = _external.Any(s => s.Handles(list.Links[0]));
+#endif
+        if (list.Links.Count > 1 || handledElsewhere)
         {
             _batch = list.Links;
             ShowCard(CardState.Batch);
@@ -261,7 +304,7 @@ public sealed partial class MainWindow : Window
             CardTile.Background = (Brush)Ui.Resource("PotionSurfaceRaisedBrush");
             CardGlyph.Glyph = "";   // Link
             CardGlyph.Foreground = (Brush)Ui.Resource("PotionTextTertiaryBrush");
-            CardTitle.Text = $"{_batch.Count} links";
+            CardTitle.Text = _batch.Count == 1 ? "1 link" : $"{_batch.Count} links";
             CardMeta.Text = "Each link is checked when its download starts.";
             DownloadButton.Content = "Download all";
             VideoMode.IsEnabled = AudioMode.IsEnabled = true;
@@ -424,8 +467,12 @@ internal static class Acknowledgment
 {
     public const int Version = 1;
     public const string SettingsKey = "acknowledgedSourcePolicyVersion";
+#if DEBUG
+    /// <summary>Personal builds with external sources ask again, with the extra line (spec Part 6.6.11).</summary>
+    public const string PersonalKey = "acknowledgedPersonalSourcesVersion";
+#endif
 
-    public static async Task<bool> ShowAsync(XamlRoot root)
+    public static async Task<bool> ShowAsync(XamlRoot root, bool personal)
     {
         var check = new CheckBox { Content = "I understand", Margin = new Thickness(0, 12, 0, 0) };
         var dialog = new ContentDialog
@@ -449,6 +496,14 @@ internal static class Acknowledgment
             DefaultButton = ContentDialogButton.Primary,
             IsPrimaryButtonEnabled = false,
         };
+#if DEBUG
+        if (personal && dialog.Content is StackPanel panel)
+            panel.Children.Insert(1, new TextBlock
+            {
+                Text = "Experimental, personal build. Downloading from this site may violate its Terms of Service.",
+                TextWrapping = TextWrapping.Wrap, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Margin = new Thickness(0, 12, 0, 0),
+            });
+#endif
         check.Checked += (_, _) => dialog.IsPrimaryButtonEnabled = true;
         check.Unchecked += (_, _) => dialog.IsPrimaryButtonEnabled = false;
         return await dialog.ShowAsync() == ContentDialogResult.Primary;

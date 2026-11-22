@@ -95,6 +95,8 @@ and ask the owner when a request conflicts with these rules.
   CI. If asked to add such support here, stop and remind the owner of spec Part 5.3.
 - Public Dropper source modules live in folders named `SourceAdapters`. Folders named `experimental` or
   `Adapters` are blocked by the scanner.
+- Debug builds have one generic external source loading point (`ExternalSources`, inside `#if DEBUG`). It names no
+  platform, Release builds compile it out, and the Release artifact scan fails if it's present.
 - Never implement DRM or encryption bypass, login/paywall/age-gate/geo-block bypass, browser-cookie
   import, or browser impersonation. Use an honest User-Agent and respect rate limits and robots rules.
 - If blocked content is ever committed, stop and tell the owner immediately: history must be rewritten

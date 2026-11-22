@@ -212,7 +212,7 @@ struct BatchCard: View {
                 .overlay(Image(systemName: "link").font(.title2).foregroundStyle(PotionColor.textTertiary))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: PotionSpacing.x1) {
-                Text("\(count) links").font(PotionFont.fileName)
+                Text(count == 1 ? "1 link" : "\(count) links").font(PotionFont.fileName)
                 Text("Each link is checked when its download starts.")
                     .font(PotionFont.secondary)
                     .foregroundStyle(PotionColor.textSecondary)

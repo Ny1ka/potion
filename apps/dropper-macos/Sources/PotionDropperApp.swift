@@ -47,11 +47,19 @@ struct DropperCommands: Commands {
 /// The window content, behind the first-run acknowledgment until it's accepted.
 struct MainWindow: View {
     @EnvironmentObject private var model: DropperModel
-    @State private var acknowledging = !AcknowledgmentView.isAccepted
+    @State private var acknowledging = false
     @State private var dropTargeted = false
 
     var body: some View {
         ContentView()
+            .navigationTitle(model.windowTitle)
+            .onAppear {
+                #if DEBUG
+                acknowledging = !AcknowledgmentView.isAccepted(personal: model.hasExternalSources)
+                #else
+                acknowledging = !AcknowledgmentView.isAccepted
+                #endif
+            }
             // A link dragged from a browser or another app is fetched like a pasted one.
             .onDrop(of: [.url, .plainText], isTargeted: $dropTargeted) { providers in
                 guard let provider = providers.first else { return false }
@@ -77,7 +85,7 @@ struct MainWindow: View {
                 }
             }
             .sheet(isPresented: $acknowledging) {
-                AcknowledgmentView { acknowledging = false }
+                AcknowledgmentView(personal: model.hasExternalSources) { acknowledging = false }
             }
     }
 }

@@ -111,7 +111,7 @@ public sealed class DropException : Exception
     public ConversionException? Conversion { get; }
     public int Minutes { get; }
     public int Limit { get; }
-    public bool TooLong => Download is null && Conversion is null;
+    public bool TooLong => Download is null && Conversion is null && Minutes >= 0;
 
     private DropException(string message, DownloadError? download = null, ResumeState? resume = null, ConversionException? conversion = null,
         int minutes = 0, int limit = 0) : base(message)
@@ -121,6 +121,11 @@ public sealed class DropException : Exception
 
     public static DropException FromDownload(DownloadError error, ResumeState? resume, SourceRegistry registry) =>
         new(registry.Message(error), download: error, resume: resume);
+
+#if DEBUG
+    /// <summary>An external source (Debug builds only) failed; its own message.</summary>
+    public static DropException External(string message) => new(message, minutes: -1);
+#endif
 
     public static DropException FromConversion(ConversionException error) => new(error.MessageFor("Potion Dropper"), conversion: error);
 
@@ -140,6 +145,26 @@ public sealed record DropOutcome(IReadOnlyList<string> Files, string SourceForma
 public sealed class DropJobRunner(Downloader downloader, IMediaConverter converter, SourceRegistry? registry = null, Func<string>? today = null)
 {
     private readonly SourceRegistry _registry = registry ?? SourceRegistry.Shared;
+#if DEBUG
+    /// <summary>Debug builds only: links an external source handles are downloaded by it instead of the Downloader.</summary>
+    public IReadOnlyList<IExternalSourceAdapter> ExternalSources { get; init; } = [];
+
+    private async Task<DownloadResult> ExternalDownloadAsync(IExternalSourceAdapter source, DropLink link, string work, Action<DropStage>? stage,
+        CancellationToken token)
+    {
+        stage?.Invoke(new DropStage(DropStageKind.Downloading, new DownloadProgress(0, null, 0)));
+        ExternalDownload result;
+        try { result = await source.DownloadAsync(link, work, null, token).ConfigureAwait(false); }
+        catch (ExternalSourceException e) { throw DropException.External(e.Message); }
+        catch (OperationCanceledException) { throw DropException.FromDownload(DownloadError.Interrupted, null, _registry); }
+        var format = _registry.Formats.Detect(result.File).Format;
+        if (format is null || format.Category is not (FormatCategory.Audio or FormatCategory.Video))
+            throw DropException.FromDownload(DownloadError.From(LinkError.NotMedia), null, _registry);
+        var name = result.Title is { } title && DownloadRules.Sanitize(title, _registry.Download.MaxFileNameLength) is { } clean
+            ? $"{clean}.{format.PreferredExtension}" : Path.GetFileName(result.File);
+        return new DownloadResult(result.File, format.Id, name, new FileInfo(result.File).Length, link);
+    }
+#endif
     private readonly Func<string> _today = today ?? (() => DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
 
     private sealed class InlineProgress<T>(Action<T> report) : IProgress<T>
@@ -164,6 +189,11 @@ public sealed class DropJobRunner(Downloader downloader, IMediaConverter convert
         try
         {
             DownloadResult download;
+#if DEBUG
+            if (ExternalSources.FirstOrDefault(s => s.Handles(link)) is { } external)
+                download = await ExternalDownloadAsync(external, link, work, stage, cancellationToken).ConfigureAwait(false);
+            else
+#endif
             try
             {
                 download = await downloader.DownloadAsync(link, work, options.MaxBytes ?? _registry.Download.DefaultMaxBytes, resume,

@@ -8,7 +8,10 @@
 # Usage:
 #   scripts/forbidden-scan.sh --staged          scan files staged for commit
 #   scripts/forbidden-scan.sh --tree            scan every tracked file in the working tree
-#   scripts/forbidden-scan.sh --artifact PATH   scan a built app bundle / folder, binaries included
+#   scripts/forbidden-scan.sh --artifact PATH   scan a built app bundle / folder, binaries included (also fails
+#                                                if the Debug-only external source loader is present)
+#   scripts/forbidden-scan.sh --dependencies PATH  scan a Debug build's dependencies (blocked terms only; Debug builds
+#                                                contain the external source loader on purpose)
 #
 # Exit code 0 = clean, 1 = something was found.
 set -euo pipefail
@@ -18,6 +21,9 @@ TERMS='you[t]ube|yout[u]\.be|y[t][-_]dlp|tik[t]ok|insta[g]ram'
 # Any path with a directory named exactly "experimental" or "Adapters" (any case).
 # Public Dropper source code uses "SourceAdapters" instead.
 PATHS='(^|/)(experimenta[l]|adapter[s])(/|$)'
+# The Debug-only external source loader (spec Part 6.6.2) must be compiled out of every Release artifact.
+# Written with character classes so this file never matches itself in a binary scan.
+LOADER='External[S]ourceAdapter|Process[S]ourceAdapter|External[S]ourceException|EXPERIMENTAL [S]OURCES ENABLED|External [S]ources'
 # Files allowed to state, in plain words, that a platform is unsupported.
 ALLOW_FILES=("docs/SOURCES.md")
 
@@ -53,13 +59,14 @@ case "$mode" in
       if grep -aiqE "$TERMS" -- "$f"; then report "$f: contains a blocked term"; fi
     done < <(git ls-files -z)
     ;;
-  --artifact)
-    target="${2:?--artifact needs a path}"
+  --artifact|--dependencies)
+    target="${2:?$mode needs a path}"
     [[ -e "$target" ]] || { echo "No such path: $target" >&2; exit 2; }
     while IFS= read -r -d '' f; do
       rel="${f#"$target"/}"
       check_path "$rel"
       if grep -aiqE "$TERMS" -- "$f"; then report "$rel: contains a blocked term"; fi
+      if [[ "$mode" == "--artifact" ]] && grep -aqE "$LOADER" -- "$f"; then report "$rel: contains the Debug-only external source loader"; fi
     done < <(find "$target" -type f -print0)
     ;;
   *)
