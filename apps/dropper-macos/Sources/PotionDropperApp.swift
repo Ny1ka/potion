@@ -17,7 +17,19 @@ struct PotionDropperApp: App {
         }
         .defaultSize(width: PotionSize.windowDefault.width, height: PotionSize.windowDefault.height)
         .windowToolbarStyle(.unifiedCompact)
-        .commands { DropperCommands() }
+        .commands {
+            DropperCommands()
+            LegalCommands(productName: "Potion Dropper")
+        }
+
+        Window("About Potion Dropper", id: "about") {
+            AboutView(info: .dropper)
+        }
+        .windowResizability(.contentSize)
+
+        WindowGroup(for: LegalDocument.self) { $document in
+            if let document { LegalDocumentView(document: document) }
+        }
 
         Settings {
             SettingsView()
@@ -37,6 +49,8 @@ struct DropperCommands: Commands {
     @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
+        // One main window; legal documents open from About and Help, so no File › New Window.
+        CommandGroup(replacing: .newItem) {}
         CommandGroup(after: .sidebar) {
             Button("Download History") { openWindow(id: "history") }
                 .keyboardShortcut("y", modifiers: .command)
@@ -134,4 +148,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             completionHandler()
         }
     }
+}
+
+extension AboutInfo {
+    static let dropper = AboutInfo(
+        productName: "Potion Dropper",
+        privacyLine: "Potion Dropper downloads only the links you give it and converts them on this computer. Nothing is uploaded.",
+        note: "Only download media you own, media licensed for download (such as Creative Commons or public domain), or media the website's terms allow you to download. You're responsible for what you download and how you use it.")
 }

@@ -42,6 +42,11 @@
             <AppBarButton Label="Settings" Click="Settings_Click" ToolTipService.ToolTip="Settings">
                 <AppBarButton.Icon><FontIcon Glyph="&#xE713;" /></AppBarButton.Icon>
             </AppBarButton>
+            <CommandBar.SecondaryCommands>
+                <AppBarButton Label="About Potion" Click="About_Click" />
+                <AppBarButton Label="Terms of use" Click="Terms_Click" />
+                <AppBarButton Label="Privacy policy" Click="Privacy_Click" />
+            </CommandBar.SecondaryCommands>
         </CommandBar>
 
         <!-- Batch-level messages (06-components.md, "Errors"). -->

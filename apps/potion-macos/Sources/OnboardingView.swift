@@ -91,10 +91,16 @@ struct OnboardingView: View {
                 .font(PotionFont.title)
                 .foregroundStyle(PotionColor.textPrimary)
                 .multilineTextAlignment(.center)
+            Text(AboutInfo.potionNote)   // spec Part 6.2, word for word
+                .font(PotionFont.secondary)
+                .foregroundStyle(PotionColor.textSecondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
             Text("In Finder, select files, Control-click and choose Services › Convert with Potion.")
                 .font(PotionFont.secondary)
                 .foregroundStyle(PotionColor.textSecondary)
                 .multilineTextAlignment(.center)
+            AgreementLine()
         }
     }
 }

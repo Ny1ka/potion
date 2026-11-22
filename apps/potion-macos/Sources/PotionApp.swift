@@ -19,6 +19,16 @@ struct PotionApp: App {
             CommandGroup(replacing: .newItem) {
                 QueueCommands(queue: delegate.queue)
             }
+            LegalCommands(productName: "Potion")
+        }
+
+        Window("About Potion", id: "about") {
+            AboutView(info: .potion)
+        }
+        .windowResizability(.contentSize)
+
+        WindowGroup(for: LegalDocument.self) { $document in
+            if let document { LegalDocumentView(document: document) }
         }
 
         Settings {
@@ -100,4 +110,10 @@ struct QueueCommands: View {
             .keyboardShortcut("r", modifiers: [.command, .shift])
             .disabled(queue.selection.isEmpty)
     }
+}
+
+extension AboutInfo {
+    /// Spec Part 6.2: the one-time onboarding note, also in About.
+    static let potionNote = "Potion converts files on this computer. Nothing is uploaded. Converting a file doesn't change who owns it: only convert files you have the right to use. Potion doesn't remove copy protection."
+    static let potion = AboutInfo(productName: "Potion", privacyLine: potionNote)
 }

@@ -104,6 +104,14 @@ public sealed partial class MainWindow : Window
     private void RefreshSavesTo() => SavesTo.Text = $"Saves to {Path.GetFileName(OutputFolder.TrimEnd(Path.DirectorySeparatorChar))}";
 
     private void History_Click(object sender, RoutedEventArgs e) => HistoryWindow.ShowFor(_history);
+
+    // About and legal documents (spec Part 6.4)
+    private void About_Click(object sender, RoutedEventArgs e) => PotionShared.AboutWindow.ShowFor("Potion Dropper",
+        "Potion Dropper downloads only the links you give it and converts them on this computer. Nothing is uploaded.",
+        "Only download media you own, media licensed for download (such as Creative Commons or public domain), or media the website's terms allow you to download. You're responsible for what you download and how you use it.",
+        "Assets/PotionDropper.ico");
+    private void Terms_Click(object sender, RoutedEventArgs e) => PotionShared.Legal.Show(PotionShared.LegalDocument.Terms);
+    private void Privacy_Click(object sender, RoutedEventArgs e) => PotionShared.Legal.Show(PotionShared.LegalDocument.Privacy);
     private void Settings_Click(object sender, RoutedEventArgs e) => SettingsWindow.ShowFor(_settings, Queue, _history);
 
     /// <summary>Asks before closing while downloads are running (they wouldn't be saved).</summary>
@@ -489,6 +497,7 @@ internal static class Acknowledgment
                         TextWrapping = TextWrapping.Wrap,
                     },
                     check,
+                    PotionShared.Legal.AgreementLine(),
                 },
             },
             PrimaryButtonText = "Continue",

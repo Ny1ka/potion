@@ -35,6 +35,7 @@ struct AcknowledgmentView: View {
             #endif
             Toggle("I understand", isOn: $understood)
                 .toggleStyle(.checkbox)
+            AgreementLine()
             HStack {
                 Spacer()
                 Button("Quit") { NSApp.terminate(nil) }

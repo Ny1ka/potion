@@ -4,9 +4,9 @@ Read this first in any new session. Update it at every checkpoint.
 
 ## Status
 
-- **Current milestone:** M8 Legal and compliance pass (M2–M7.5 done)
-- **Last completed chunk:** M8.2 Privacy policy, Terms of use, legal/LICENSE
-- **Next chunk:** M8.3 About windows in all four apps (legal files bundled), Terms and Privacy at first launch
+- **Current milestone:** M9 Packaging and V1 release (M2–M8 done)
+- **Last completed chunk:** M8.3 About windows, bundled legal files, Terms at first launch
+- **Next chunk:** M9.1 Release workflow plan (versioning, DMG and Windows installer, signing secrets setup with the owner)
 
 ## Milestones
 
@@ -21,7 +21,7 @@ Read this first in any new session. Update it at every checkpoint.
 | M6 Dropper macOS UI | Done (Share extension deferred to M9, see M6.3) |
 | M7 Dropper Windows UI | Done (share target deferred to M9) |
 | M7.5 Personal experimental module (private repo) | Done (public part: the Debug-only loading point) |
-| M8 Legal and compliance pass | In progress |
+| M8 Legal and compliance pass | Done (lawyer review items in LEGAL_REVIEW) |
 | M9 Packaging and V1 release | Not started |
 
 ### M0 chunks
@@ -73,8 +73,17 @@ Read this first in any new session. Update it at every checkpoint.
       `legal/TERMS.md` (responsibility for files and downloads, no warranty, limitation of liability, third-party
       components with protection for their licensors as the Windows App SDK license requires, trademarks, takedown
       requests, changes), contact nyikabusiness@gmail.com, `legal/LICENSE` (copy of `/LICENSE`, checked in CI)
-- [ ] M8.3 About windows (version, copyright, privacy line, Terms, Privacy, Acknowledgements, FFmpeg/LGPL
-      attribution) in all four apps, with the legal files bundled; Terms at first launch
+- [x] M8.3 About windows in all four apps (shared code in `apps/shared/macos/Legal.swift` and
+      `apps/shared/windows/Legal.cs`): mark at 96, product name in the brand face at 28, version, copyright, privacy
+      line (Potion: the spec Part 6.2 note; Dropper: its privacy line plus the download note), Terms / Privacy /
+      Acknowledgements opening in-app viewers (plain text, so license texts stay exact; the 1 MB of notices scrolls
+      fine), FFmpeg/LGPL attribution with a link to the sources and build scripts, source code and contact. The
+      legal files are bundled from `legal/` (macOS resources; a `Legal` folder on Windows). macOS: About replaces the
+      app-menu item, Help lists the documents. Windows: About, Terms and Privacy in the command bar's overflow menu.
+      Terms at first launch: Potion macOS onboarding now has the spec Part 6.2 note word for word plus "By
+      continuing, you agree to the Terms of Use and Privacy Policy"; Potion Windows gets a one-time first-run dialog
+      with the same; both Dropper acknowledgments add the agreement line. The About window shows the static mark (the
+      splash animation in 06-components.md is left for later polish)
 
 ### M7.5
 

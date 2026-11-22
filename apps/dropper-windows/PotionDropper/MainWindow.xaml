@@ -43,6 +43,11 @@
             <AppBarButton Label="Settings" Click="Settings_Click" ToolTipService.ToolTip="Settings">
                 <AppBarButton.Icon><FontIcon Glyph="&#xE713;" /></AppBarButton.Icon>
             </AppBarButton>
+            <CommandBar.SecondaryCommands>
+                <AppBarButton Label="About Potion Dropper" Click="About_Click" />
+                <AppBarButton Label="Terms of use" Click="Terms_Click" />
+                <AppBarButton Label="Privacy policy" Click="Privacy_Click" />
+            </CommandBar.SecondaryCommands>
         </CommandBar>
 
         <StackPanel Grid.Row="2" Margin="24,0,24,16" Spacing="{StaticResource PotionSpace4}">

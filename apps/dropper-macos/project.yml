@@ -43,6 +43,21 @@ targets:
       - path: ../../design-system/fonts/SpaceGrotesk-Medium.ttf
         group: DesignSystem
         buildPhase: resources
+      # Shared About window and legal documents, plus the documents themselves (bundled, shown in the app).
+      - path: ../shared/macos
+        group: Shared
+      - path: ../../legal/TERMS.md
+        group: Legal
+        buildPhase: resources
+      - path: ../../legal/PRIVACY.md
+        group: Legal
+        buildPhase: resources
+      - path: ../../legal/THIRD_PARTY_NOTICES.md
+        group: Legal
+        buildPhase: resources
+      - path: ../../LICENSE
+        group: Legal
+        buildPhase: resources
     dependencies:
       - package: PotionCore
     postBuildScripts:

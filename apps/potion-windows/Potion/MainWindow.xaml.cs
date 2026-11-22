@@ -36,6 +36,7 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        Root.Loaded += async (_, _) => await ShowFirstRunNoticeAsync();
 
         SystemBackdrop = new MicaBackdrop();
         ExtendsContentIntoTitleBar = true;
@@ -185,6 +186,35 @@ public sealed partial class MainWindow : Window
     private void ShowCompletion_Click(object sender, RoutedEventArgs e)
     {
         if (Queue.CompletionOutputs.FirstOrDefault(File.Exists) is { } first) ShowInFolder(first);
+    }
+
+    // About and legal documents (spec Part 6.4)
+
+    /// <summary>Spec Part 6.2: the one-time first-run note, also in About.</summary>
+    private const string PotionNote = "Potion converts files on this computer. Nothing is uploaded. Converting a file doesn't change who owns it: only convert files you have the right to use. Potion doesn't remove copy protection.";
+
+    private void About_Click(object sender, RoutedEventArgs e) => PotionShared.AboutWindow.ShowFor("Potion", PotionNote, null, "Assets/Potion.ico");
+    private void Terms_Click(object sender, RoutedEventArgs e) => PotionShared.Legal.Show(PotionShared.LegalDocument.Terms);
+    private void Privacy_Click(object sender, RoutedEventArgs e) => PotionShared.Legal.Show(PotionShared.LegalDocument.Privacy);
+
+    /// <summary>First launch: the spec Part 6.2 note with the Terms of use and Privacy policy.</summary>
+    private async Task ShowFirstRunNoticeAsync()
+    {
+        const string key = "firstRunNoticeVersion";
+        if (Queue.Settings.GetInt(key, 0) >= 1) return;
+        var dialog = new ContentDialog
+        {
+            XamlRoot = Root.XamlRoot,
+            Title = "Welcome to Potion",
+            Content = new StackPanel
+            {
+                Children = { new TextBlock { Text = PotionNote, TextWrapping = TextWrapping.Wrap }, PotionShared.Legal.AgreementLine() },
+            },
+            PrimaryButtonText = "Continue",
+            DefaultButton = ContentDialogButton.Primary,
+        };
+        await dialog.ShowAsync();
+        Queue.Settings.Set(key, 1);
     }
 
     /// <summary>Asks before closing in the middle of a batch (files that haven't finished won't be saved).</summary>
