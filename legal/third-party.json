@@ -1,0 +1,405 @@
+{
+  "version": 1,
+  "about": "Everything the four apps ship that isn't this project's own code. legal/THIRD_PARTY_NOTICES.md is generated from this file by scripts/legal/notices.py (never edit it by hand). License texts are in legal/licenses, copied unmodified from each component's source archive, package or repository at the shipped version.",
+  "apps": {
+    "potion-macos": "Potion for macOS",
+    "potion-windows": "Potion for Windows",
+    "dropper-macos": "Potion Dropper for macOS",
+    "dropper-windows": "Potion Dropper for Windows"
+  },
+  "components": [
+    {
+      "name": "FFmpeg",
+      "version": "9.1",
+      "license": "LGPL-2.1-or-later",
+      "copyright": "Copyright (c) 2000-2026 the FFmpeg developers",
+      "source": "https://ffmpeg.org/releases/ffmpeg-9.1.tar.xz",
+      "use": "The separate ffmpeg and ffprobe programs (Contents/Helpers on macOS, the ffmpeg folder on Windows). Not linked into the apps. Built LGPL-only (no --enable-gpl, no --enable-nonfree) by scripts/ffmpeg/ in this repository, which pins and checksums every source archive; the same sources and scripts are attached to each release.",
+      "apps": [
+        "potion-macos",
+        "potion-windows",
+        "dropper-macos",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "ffmpeg/FFmpeg-COPYING.LGPLv2.1",
+        "ffmpeg/FFmpeg-LICENSE.md"
+      ]
+    },
+    {
+      "name": "LAME",
+      "version": "3.100",
+      "license": "LGPL-2.0-or-later",
+      "source": "https://downloads.sourceforge.net/project/lame/lame/3.100/lame-3.100.tar.gz",
+      "use": "MP3 encoder, built into the FFmpeg programs.",
+      "apps": [
+        "potion-macos",
+        "potion-windows",
+        "dropper-macos",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "ffmpeg/LAME-COPYING"
+      ]
+    },
+    {
+      "name": "Opus",
+      "version": "1.6.1",
+      "license": "BSD-3-Clause",
+      "copyright": "Copyright 2001-2023 Xiph.Org, Skype Limited, Octasic, Jean-Marc Valin, Timothy B. Terriberry, CSIRO, Gregory Maxwell, Mark Borgerding, Erik de Castro Lopo, Mozilla, Amazon",
+      "source": "https://downloads.xiph.org/releases/opus/opus-1.6.1.tar.gz",
+      "use": "Opus audio codec, built into the FFmpeg programs.",
+      "apps": [
+        "potion-macos",
+        "potion-windows",
+        "dropper-macos",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "ffmpeg/Opus-COPYING"
+      ]
+    },
+    {
+      "name": "libogg",
+      "version": "1.3.6",
+      "license": "BSD-3-Clause",
+      "copyright": "Copyright (c) 2002, Xiph.org Foundation",
+      "source": "https://downloads.xiph.org/releases/ogg/libogg-1.3.6.tar.xz",
+      "use": "Ogg container, built into the FFmpeg programs.",
+      "apps": [
+        "potion-macos",
+        "potion-windows",
+        "dropper-macos",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "ffmpeg/libogg-COPYING"
+      ]
+    },
+    {
+      "name": "libvorbis",
+      "version": "1.3.7",
+      "license": "BSD-3-Clause",
+      "copyright": "Copyright (c) 2002-2020 Xiph.org Foundation",
+      "source": "https://downloads.xiph.org/releases/vorbis/libvorbis-1.3.7.tar.xz",
+      "use": "Vorbis audio codec, built into the FFmpeg programs.",
+      "apps": [
+        "potion-macos",
+        "potion-windows",
+        "dropper-macos",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "ffmpeg/libvorbis-COPYING"
+      ]
+    },
+    {
+      "name": "libvpx",
+      "version": "1.17.0",
+      "license": "BSD-3-Clause (with Google's patent grant)",
+      "copyright": "Copyright (c) 2010, The WebM Project authors. All rights reserved.",
+      "source": "https://github.com/webmproject/libvpx/archive/refs/tags/v1.17.0.tar.gz",
+      "use": "VP8/VP9 video codec, built into the FFmpeg programs.",
+      "apps": [
+        "potion-macos",
+        "potion-windows",
+        "dropper-macos",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "ffmpeg/libvpx-LICENSE",
+        "ffmpeg/libvpx-PATENTS"
+      ]
+    },
+    {
+      "name": "libwebp",
+      "version": "1.6.0",
+      "license": "BSD-3-Clause (with Google's patent grant)",
+      "copyright": "Copyright (c) 2010, Google Inc. All rights reserved.",
+      "source": "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.6.0.tar.gz",
+      "use": "WebP image codec, built into the FFmpeg programs.",
+      "apps": [
+        "potion-macos",
+        "potion-windows",
+        "dropper-macos",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "ffmpeg/libwebp-COPYING",
+        "ffmpeg/libwebp-PATENTS"
+      ]
+    },
+    {
+      "name": "SVT-AV1",
+      "version": "4.3.0",
+      "license": "BSD-3-Clause-Clear, AOMedia Patent License 1.0",
+      "copyright": "Copyright (c) 2021, Alliance for Open Media",
+      "source": "https://gitlab.com/AOMediaCodec/SVT-AV1/-/archive/v4.3.0/SVT-AV1-v4.3.0.tar.gz",
+      "use": "AV1 encoder (AVIF output), built into the FFmpeg programs.",
+      "apps": [
+        "potion-macos",
+        "potion-windows",
+        "dropper-macos",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "ffmpeg/SVT-AV1-LICENSE.md",
+        "ffmpeg/SVT-AV1-PATENTS.md"
+      ]
+    },
+    {
+      "name": "zlib",
+      "version": "1.3.1",
+      "license": "Zlib",
+      "copyright": "(C) 1995-2022 Jean-loup Gailly and Mark Adler",
+      "source": "https://zlib.net/fossils/zlib-1.3.1.tar.gz",
+      "use": "Compression, built into the Windows FFmpeg programs.",
+      "apps": [
+        "potion-windows",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "ffmpeg/zlib-LICENSE"
+      ]
+    },
+    {
+      "name": "MinGW-w64 runtime",
+      "version": "as shipped with the build toolchain",
+      "license": "ZPL-2.1 (with parts in the public domain or under BSD or LGPL, as marked)",
+      "copyright": "Copyright (c) 2009 - 2013 by the mingw-w64 project",
+      "source": "https://www.mingw-w64.org/",
+      "use": "C runtime startup code, linked statically into the Windows FFmpeg programs. libgcc is linked statically too, under the GCC Runtime Library Exception 3.1 (https://www.gnu.org/licenses/gcc-exception-3.1.html), which places no conditions on the programs.",
+      "apps": [
+        "potion-windows",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "toolchain/mingw-w64-COPYING"
+      ]
+    },
+    {
+      "name": "Space Grotesk",
+      "version": "as in design-system/fonts",
+      "license": "OFL-1.1",
+      "copyright": "Copyright 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk)",
+      "source": "https://github.com/floriankarsten/space-grotesk",
+      "use": "Brand typeface for the wordmark and brand moments (onboarding, About).",
+      "apps": [
+        "potion-macos",
+        "potion-windows",
+        "dropper-macos",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "../../design-system/fonts/OFL-SpaceGrotesk.txt"
+      ]
+    },
+    {
+      "name": ".NET runtime",
+      "version": "10",
+      "license": "MIT",
+      "copyright": "Copyright (c) .NET Foundation and Contributors",
+      "source": "https://github.com/dotnet/runtime",
+      "use": "The Windows apps are self-contained: the .NET runtime ships inside each app folder.",
+      "apps": [
+        "potion-windows",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "dotnet/dotnet-LICENSE.txt",
+        "dotnet/dotnet-THIRD-PARTY-NOTICES.txt"
+      ],
+      "runtimePacks": [
+        "Microsoft.NETCore.App.Runtime"
+      ]
+    },
+    {
+      "name": "Windows SDK projection for .NET (Microsoft.Windows.SDK.NET, WinRT.Runtime)",
+      "version": "10.0.19041",
+      "license": "Microsoft Windows SDK license terms (https://aka.ms/WinSDKLicenseURL)",
+      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "source": "https://aka.ms/WinSDKProjectURL",
+      "use": "Lets the Windows apps call Windows APIs. Shipped by every .NET app that targets Windows.",
+      "apps": [
+        "potion-windows",
+        "dropper-windows"
+      ],
+      "licenseFiles": [],
+      "runtimePacks": [
+        "Microsoft.Windows.SDK.NET.Ref"
+      ]
+    },
+    {
+      "name": "Windows App SDK",
+      "version": "2.7.0",
+      "license": "Microsoft Software License Terms, Windows App SDK (distributable code)",
+      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "source": "https://github.com/microsoft/windowsappsdk",
+      "use": "WinUI 3 and the app lifecycle, notifications and windowing APIs; self-contained, so its files ship in each app folder.",
+      "apps": [
+        "potion-windows",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "microsoft/WindowsAppSDK-license.txt",
+        "microsoft/WindowsAppSDK-ML-license.txt",
+        "microsoft/WindowsAppSDK-NOTICE.txt",
+        "microsoft/WindowsAppSDK-WinUI-NOTICE.txt"
+      ],
+      "packages": [
+        "Microsoft.WindowsAppSDK/2.7.0",
+        "Microsoft.WindowsAppSDK.AI/2.7.0",
+        "Microsoft.WindowsAppSDK.Base/2.7.0",
+        "Microsoft.WindowsAppSDK.DWrite/2.7.0",
+        "Microsoft.WindowsAppSDK.Foundation/2.7.0",
+        "Microsoft.WindowsAppSDK.InteractiveExperiences/2.7.0",
+        "Microsoft.WindowsAppSDK.ML/2.7.0",
+        "Microsoft.WindowsAppSDK.Runtime/2.7.0",
+        "Microsoft.WindowsAppSDK.Search/2.7.0",
+        "Microsoft.WindowsAppSDK.Widgets/2.7.0",
+        "Microsoft.WindowsAppSDK.WinUI/2.7.0"
+      ]
+    },
+    {
+      "name": "Microsoft Edge WebView2 SDK",
+      "version": "1.0.3719.77",
+      "license": "BSD-3-Clause-style (Microsoft)",
+      "copyright": "Copyright (C) Microsoft Corporation. All rights reserved.",
+      "source": "https://aka.ms/webview",
+      "use": "A dependency of WinUI 3 that ships with it. Potion and Potion Dropper don't show web content.",
+      "apps": [
+        "potion-windows",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "microsoft/WebView2-LICENSE.txt",
+        "microsoft/WebView2-NOTICE.txt"
+      ],
+      "packages": [
+        "Microsoft.Web.WebView2/1.0.3719.77"
+      ]
+    },
+    {
+      "name": "Windows ML runtime",
+      "version": "2.5.96",
+      "license": "Microsoft Software License Terms, Windows ML Runtime",
+      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "source": "https://github.com/microsoft/windowsml",
+      "use": "A dependency of the Windows App SDK that ships with it. Potion and Potion Dropper don't use machine learning.",
+      "apps": [
+        "potion-windows",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "microsoft/WindowsML-license.txt",
+        "microsoft/WindowsML-ThirdPartyNotices.txt"
+      ],
+      "packages": [
+        "Microsoft.Windows.AI.MachineLearning/2.5.96"
+      ]
+    },
+    {
+      "name": "Open XML SDK",
+      "version": "3.5.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) .NET Foundation and Contributors",
+      "source": "https://github.com/dotnet/Open-XML-SDK",
+      "use": "Reads and writes DOCX documents (Windows).",
+      "apps": [
+        "potion-windows",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "libraries/OpenXmlSdk-LICENSE.txt"
+      ],
+      "packages": [
+        "DocumentFormat.OpenXml/3.5.1",
+        "DocumentFormat.OpenXml.Framework/3.5.1"
+      ]
+    },
+    {
+      "name": "Html Agility Pack",
+      "version": "1.13.1",
+      "license": "MIT",
+      "copyright": "Copyright © ZZZ Projects Inc.",
+      "source": "https://github.com/zzzprojects/html-agility-pack",
+      "use": "Reads HTML and EPUB documents (Windows).",
+      "apps": [
+        "potion-windows",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "libraries/HtmlAgilityPack-LICENSE.txt"
+      ],
+      "packages": [
+        "HtmlAgilityPack/1.13.1"
+      ]
+    },
+    {
+      "name": "PdfPig",
+      "version": "0.1.16",
+      "license": "Apache-2.0",
+      "source": "https://github.com/UglyToad/PdfPig",
+      "use": "Reads PDF text for PDF to document conversions (Windows).",
+      "apps": [
+        "potion-windows",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "libraries/PdfPig-LICENSE.txt"
+      ],
+      "packages": [
+        "PdfPig/0.1.16"
+      ]
+    },
+    {
+      "name": "PDFsharp and MigraDoc",
+      "version": "6.2.4",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2001-2026 empira Software GmbH, Troisdorf (Cologne Area), Germany",
+      "source": "https://github.com/empira/PDFsharp",
+      "use": "Writes PDF files and edits PDF pages (Windows). Pinned to 6.2.4, the last MIT release.",
+      "apps": [
+        "potion-windows",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "libraries/PDFsharp-LICENSE.txt"
+      ],
+      "packages": [
+        "PDFsharp/6.2.4",
+        "PDFsharp-MigraDoc/6.2.4"
+      ]
+    },
+    {
+      "name": "Microsoft .NET libraries",
+      "version": "8.0–11.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) .NET Foundation and Contributors",
+      "source": "https://github.com/dotnet/runtime",
+      "use": "Support libraries used by the document engines and the Windows App SDK.",
+      "apps": [
+        "potion-windows",
+        "dropper-windows"
+      ],
+      "licenseFiles": [
+        "dotnet/dotnet-LICENSE.txt",
+        "dotnet/dotnet-extensions-8-THIRD-PARTY-NOTICES.txt",
+        "dotnet/dotnet-packages-11-THIRD-PARTY-NOTICES.txt",
+        "dotnet/dotnet-packages-9-THIRD-PARTY-NOTICES.txt"
+      ],
+      "packages": [
+        "Microsoft.Extensions.DependencyInjection.Abstractions/8.0.2",
+        "Microsoft.Extensions.Logging.Abstractions/8.0.3",
+        "System.Formats.Asn1/11.0.0",
+        "System.IO.Packaging/10.0.2",
+        "System.Numerics.Tensors/9.0.0",
+        "System.Security.Cryptography.Pkcs/11.0.0"
+      ]
+    }
+  ],
+  "buildOnlyPackages": [
+    "Microsoft.Windows.SDK.BuildTools",
+    "Microsoft.Windows.SDK.BuildTools.MSIX"
+  ]
+}

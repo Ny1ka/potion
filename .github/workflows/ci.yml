@@ -28,6 +28,10 @@ jobs:
       - uses: actions/checkout@v7
       - name: Scan tracked files
         run: scripts/forbidden-scan.sh --tree
+      - name: Third-party notices are complete and current
+        run: |
+          python3 scripts/legal/notices.py check
+          python3 scripts/legal/notices.py check-ffmpeg
       - name: Swift copies of core/spec are in sync
         run: scripts/sync-spec.sh --check
 
@@ -174,6 +178,9 @@ jobs:
       - name: Scan Potion Dropper Release app
         shell: bash
         run: scripts/forbidden-scan.sh --artifact apps/dropper-windows/PotionDropper/bin/x64/Release
+      - name: Every shipped .NET package is in the third-party notices
+        shell: bash
+        run: python scripts/legal/notices.py check-packages apps/potion-windows/Potion/bin/x64/Release/*/*/Potion.deps.json apps/dropper-windows/PotionDropper/bin/x64/Release/*/*/PotionDropper.deps.json
       # XAML compiler errors don't match the .NET problem matcher, so build errors are re-reported as annotations.
       - name: Report build errors
         if: failure()

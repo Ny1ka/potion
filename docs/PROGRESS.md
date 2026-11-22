@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M8 Legal and compliance pass (M2–M7.5 done)
-- **Last completed chunk:** M7.5 Debug-only external source loading point (both apps)
-- **Next chunk:** M8.1 THIRD_PARTY_NOTICES from the shipped dependencies, license audit
+- **Last completed chunk:** M8.1 Third-party notices and license audit
+- **Next chunk:** M8.2 PRIVACY.md, TERMS.md (incl. the Windows App SDK end-user terms) and the takedown contact
 
 ## Milestones
 
@@ -21,7 +21,7 @@ Read this first in any new session. Update it at every checkpoint.
 | M6 Dropper macOS UI | Done (Share extension deferred to M9, see M6.3) |
 | M7 Dropper Windows UI | Done (share target deferred to M9) |
 | M7.5 Personal experimental module (private repo) | Done (public part: the Debug-only loading point) |
-| M8 Legal and compliance pass | Not started |
+| M8 Legal and compliance pass | In progress |
 | M9 Packaging and V1 release | Not started |
 
 ### M0 chunks
@@ -57,6 +57,19 @@ Read this first in any new session. Update it at every checkpoint.
 - Checkpoints: Claude commits and pushes, then waits for "continue".
 - Dropper app scaffolds (`apps/dropper-*`) are created at the start of M5 rather than in M0, so M0–M4 stay
   focused on Potion.
+
+### M8 chunks
+
+- [x] M8.1 `legal/third-party.json` (21 components: FFmpeg and its 7 libraries, zlib and the MinGW-w64 runtime on
+      Windows, Space Grotesk, the .NET runtime, the Windows SDK projection, the Windows App SDK with WebView2 and the
+      Windows ML runtime, Open XML SDK, Html Agility Pack, PdfPig, PDFsharp/MigraDoc, Microsoft .NET libraries; which
+      apps ship each), license texts in `legal/licenses` (from source archives, packages and repositories at the
+      shipped tags; scanned clean), `scripts/legal/notices.py` generating `legal/THIRD_PARTY_NOTICES.md` and checking
+      it in CI (up to date; FFmpeg versions match `versions.sh`; every package a Windows Release build ships is
+      listed). License audit and new lawyer items in LEGAL_REVIEW
+- [ ] M8.2 `legal/PRIVACY.md`, `legal/TERMS.md`, `legal/LICENSE`, takedown contact
+- [ ] M8.3 About windows (version, copyright, privacy line, Terms, Privacy, Acknowledgements, FFmpeg/LGPL
+      attribution) in all four apps, with the legal files bundled; Terms at first launch
 
 ### M7.5
 

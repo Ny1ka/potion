@@ -19,6 +19,7 @@ are completed in M8/M9.
 | 2026-11-22 | Potion Dropper follows robots.txt (RFC 9309) for every download, although each one is a single file the user asked for, not crawling. | Spec Part 6.3.8. Product token `PotionDropper`; a site that disallows the path gets "This site asks apps not to download this file, so Potion Dropper won't." A robots.txt that fails with a server error blocks downloads from that site for the session (the RFC's rule for crawlers); a missing one (4xx) allows them. Every body is also checked by content before conversion, and 401/403 answers are reported, never retried with credentials. |
 | 2026-11-22 | Potion Dropper for macOS shows the first-run acknowledgment (spec Part 6.3.5, text word for word) before anything can be fetched or downloaded: "I understand" must be ticked to continue; the other choice quits. | Stored as a version number in the app's preferences, so a changed text asks again. Unsupported sites get the neutral message from `sources.json`. The Windows app gets the same in M7. |
 | 2026-11-22 | Personal experimental adapters are kept outside this repository. The public Dropper apps have only a generic external source loading point, compiled into Debug builds only. | Owner's decision and responsibility (spec Part 6.6). Release builds compile the loader out; the Release artifact scan fails if any loader symbol or the personal-build badge is found. A Debug build that loads an external source shows "PERSONAL BUILD: EXPERIMENTAL SOURCES ENABLED" in its title and asks for the acknowledgment again with an extra line. Personal builds are never published. |
+| 2026-11-22 | Third-party notices are generated from `legal/third-party.json` into `legal/THIRD_PARTY_NOTICES.md`, with every license text copied unmodified into `legal/licenses` from the component's own source archive, package or repository at the shipped version. | CI fails if the notices are out of date, if the FFmpeg component versions differ from `scripts/ffmpeg/versions.sh`, or if a Windows Release build ships a NuGet package or runtime pack the manifest doesn't list at that version. License audit result: no GPL code linked into the apps (FFmpeg and LAME are LGPL, run as separate programs); no AGPL; permissive licenses otherwise (MIT, BSD, Apache-2.0, Zlib, ZPL-2.1, OFL-1.1), plus Microsoft's redistributable license terms for the Windows App SDK, the Windows ML runtime and the Windows SDK projection. |
 | 2026-11-21 | Windows FFmpeg: same LGPL-only configuration, cross-compiled with MinGW-w64, plus zlib (zlib License) linked statically. | The MinGW-w64 runtime and libgcc are linked statically; their licenses (MinGW-w64 runtime: ZPL/public domain mix; libgcc: GPL with the GCC Runtime Library Exception) allow this for any program. List them in THIRD_PARTY_NOTICES (M8). |
 
 ## Codec and patent notes (for legal advice)
@@ -42,6 +43,16 @@ are completed in M8/M9.
 | 2 | App Sandbox for Potion (macOS): needed for the Mac App Store, but it limits "save next to the original" and "move original to Trash" unless the user grants folder access. | No (product decision) | Decided 2026-11-21: off for V1 (DMG). Revisit for the Mac App Store |
 
 ## Items for lawyer review before public release
+
+- Windows App SDK license, section 3(b): distributing its files requires (ii) that end users agree to terms that
+  protect the Windows App SDK and Microsoft at least as much as Microsoft's license, and (iii) that we indemnify
+  Microsoft against claims about our apps. `legal/TERMS.md` (M8.2) must cover (ii); (iii) is an obligation on the
+  publisher. Confirm both are acceptable.
+- The Windows App SDK metapackage also ships the Windows ML runtime (onnxruntime, DirectML) and the WebView2 SDK,
+  which the apps don't use. Plan: reference only the components the apps need in M9 (tested on a real PC), which
+  removes those files and their terms from the Windows apps.
+- The Windows SDK projection (`Microsoft.Windows.SDK.NET.dll`, `WinRT.Runtime.dll`) names its license by URL only
+  (https://aka.ms/WinSDKLicenseURL). It ships with every .NET Windows app; confirm no extra notice is needed.
 
 - Codec patent questions above (FFmpeg decoders for H.264/HEVC/AAC; WMV2/WMA2)
 - LGPL source offer for FFmpeg: plan is to attach the exact source archives and build scripts to each release

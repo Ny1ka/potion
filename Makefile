@@ -1,5 +1,5 @@
 # Common tasks. Run `make setup` once after cloning.
-.PHONY: setup scan sync-spec test test-core test-core-dotnet potion-macos-project potion-macos run-potion-macos dropper-macos-project dropper-macos run-dropper-macos clean
+.PHONY: setup scan sync-spec legal legal-check test test-core test-core-dotnet potion-macos-project potion-macos run-potion-macos dropper-macos-project dropper-macos run-dropper-macos clean
 
 DERIVED := build/DerivedData
 POTION_MAC_APP := $(DERIVED)/Build/Products/Debug/Potion.app
@@ -17,7 +17,15 @@ scan:
 sync-spec:
 	scripts/sync-spec.sh
 
-test: test-core test-core-dotnet
+test: legal-check test-core test-core-dotnet
+
+# Third-party notices (legal/THIRD_PARTY_NOTICES.md) are generated from legal/third-party.json.
+legal:
+	python3 scripts/legal/notices.py generate
+
+legal-check:
+	python3 scripts/legal/notices.py check
+	python3 scripts/legal/notices.py check-ffmpeg
 
 test-core:
 	scripts/sync-spec.sh --check
