@@ -44,7 +44,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: build/ffmpeg/macos
-          key: ffmpeg-macos-${{ hashFiles('scripts/ffmpeg/**') }}
+          key: ffmpeg-macos-${{ hashFiles('scripts/ffmpeg/versions.sh', 'scripts/ffmpeg/build-macos.sh', 'scripts/ffmpeg/verify-license.sh') }}
       - name: Build FFmpeg (LGPL, universal)
         if: steps.ffmpeg-cache.outputs.cache-hit != 'true'
         run: scripts/ffmpeg/build-macos.sh universal
@@ -67,14 +67,46 @@ jobs:
       - name: Scan Release app
         run: scripts/forbidden-scan.sh --artifact build/DerivedData/Build/Products/Release/Potion.app
 
+  # Cross-compiles the LGPL FFmpeg for Windows with MinGW-w64 (much faster than building on Windows) and
+  # caches it for the Windows job, which runs the full license check on the real .exe files.
+  ffmpeg-windows:
+    name: Windows FFmpeg build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Restore FFmpeg build
+        id: ffmpeg-cache
+        uses: actions/cache@v6
+        with:
+          path: build/ffmpeg/windows
+          key: ffmpeg-windows-${{ hashFiles('scripts/ffmpeg/versions.sh', 'scripts/ffmpeg/build-windows.sh', 'scripts/ffmpeg/verify-windows-build.sh') }}
+          enableCrossOsArchive: true
+      - name: Install MinGW-w64 and build tools
+        if: steps.ffmpeg-cache.outputs.cache-hit != 'true'
+        run: sudo apt-get update -q && sudo apt-get install -y -q mingw-w64 nasm cmake pkg-config
+      - name: Build FFmpeg (LGPL, x86_64)
+        if: steps.ffmpeg-cache.outputs.cache-hit != 'true'
+        run: scripts/ffmpeg/build-windows.sh
+
   windows:
     name: Windows build + tests
     runs-on: windows-latest
+    needs: ffmpeg-windows
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
+      - name: Restore FFmpeg build
+        uses: actions/cache/restore@v6
+        with:
+          path: build/ffmpeg/windows
+          key: ffmpeg-windows-${{ hashFiles('scripts/ffmpeg/versions.sh', 'scripts/ffmpeg/build-windows.sh', 'scripts/ffmpeg/verify-windows-build.sh') }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+      - name: Verify FFmpeg license (runs the .exe)
+        shell: bash
+        run: scripts/ffmpeg/verify-license.sh build/ffmpeg/windows/bin
       - name: Potion.Core tests
         run: dotnet test core/dotnet/Potion.Core.Tests
       - name: Build Potion (Debug)

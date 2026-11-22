@@ -1,4 +1,4 @@
-# Pinned sources for Potion's LGPL FFmpeg build. Sourced by build-macos.sh.
+# Pinned sources for Potion's LGPL FFmpeg build. Sourced by build-macos.sh and build-windows.sh.
 # Every archive is checked against its SHA-256 before use. Checksums were recorded on 2026-11-21 from the
 # official download sites over HTTPS; the Xiph ones match Xiph's published SHA256SUMS files.
 # Licenses: FFmpeg LGPL-2.1-or-later (built without --enable-gpl/--enable-nonfree), LAME LGPL-2.0-or-later,
@@ -38,3 +38,8 @@ WEBP_SHA256=e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564
 SVTAV1_VERSION=4.3.0
 SVTAV1_URL="https://gitlab.com/AOMediaCodec/SVT-AV1/-/archive/v${SVTAV1_VERSION}/SVT-AV1-v${SVTAV1_VERSION}.tar.gz"
 SVTAV1_SHA256=95ce8fc2381ba707e65ac8b9b2e165915bfbe9cd4d2f7b0f58d64ce31bd98f6d
+
+# Windows only (macOS uses the system zlib). zlib License.
+ZLIB_VERSION=1.3.1
+ZLIB_URL="https://zlib.net/fossils/zlib-${ZLIB_VERSION}.tar.gz"
+ZLIB_SHA256=9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23

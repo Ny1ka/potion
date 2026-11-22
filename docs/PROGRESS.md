@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M2.7 Windows engines, then M4 Potion Windows UI (M3 Potion macOS UI is done)
-- **Last completed chunk:** M3.5 Finder service and first-launch onboarding (macOS)
-- **Next chunk:** M2.7 Windows: FFmpeg build + engines in Potion.Core (C#)
+- **Last completed chunk:** M2.7a Windows FFmpeg build
+- **Next chunk:** M2.7b C# process runner, media probe, safe saving, audio and video engines
 
 ## Milestones
 
@@ -77,8 +77,16 @@ Read this first in any new session. Update it at every checkpoint.
       chosen DPI, rotation-aware, size-capped; SVG wraps the rendered page), `pdfToDocument` (DOCX/TXT/HTML
       from PDFKit's text, page breaks in DOCX, pages without text become pictures). Password-protected PDFs
       and permission-restricted ones get the copy-protected message where the permission is missing. 14 tests
-- [ ] M2.7 Windows: FFmpeg build for Windows + the same engines in Potion.Core (C#), tested in CI.
-      Moved to run right before M4 (owner, 2026-11-21) so the Mac app is testable sooner.
+- M2.7 Windows engines (moved to run right before M4, owner 2026-11-21), split into:
+  - [x] M2.7a LGPL FFmpeg for Windows: `scripts/ffmpeg/build-windows.sh` cross-compiles x86_64 `ffmpeg.exe` and
+        `ffprobe.exe` with MinGW-w64 (same libraries plus zlib; Media Foundation for H.264/HEVC/AAC; no capture
+        devices; static runtime, so only Windows system DLLs). `verify-windows-build.sh` checks it without running
+        it; CI's new "Windows FFmpeg build" job (Linux) caches it and the Windows job runs `verify-license.sh` on
+        the real .exe
+  - [ ] M2.7b C# `ProcessRunner`, `MediaProbe`, `OutputFiles`, presets, audio and video engines (platform-neutral;
+        tests run against the macOS FFmpeg locally and the Windows one in CI)
+  - [ ] M2.7c Images on Windows (WIC)
+  - [ ] M2.7d Documents and PDF on Windows (Open XML SDK, Windows.Data.Pdf)
 
 ### M3 chunks
 
