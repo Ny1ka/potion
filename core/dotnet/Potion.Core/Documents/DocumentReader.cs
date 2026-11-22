@@ -1,7 +1,6 @@
 using System.IO.Compression;
 using System.Text;
 using System.Xml;
-using Markdig;
 using Potion.Core.Engines;
 using Potion.Core.Formats;
 
@@ -66,11 +65,9 @@ public static class DocumentReader
         return document;
     }
 
-    private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
-
-    /// <summary>Markdown (CommonMark plus GitHub tables, strikethrough and task lists) via HTML, like the macOS reader.</summary>
+    /// <summary>Markdown (CommonMark plus GitHub tables and strikethrough) via HTML, like the macOS reader.</summary>
     public static Document ReadMarkdown(string markdown, string directory) =>
-        HtmlReader.Read(Markdown.ToHtml(markdown, Pipeline), HtmlReader.LocalImages(directory));
+        HtmlReader.Read(MarkdownRenderer.ToHtml(markdown), HtmlReader.LocalImages(directory));
 
     // EPUB
 

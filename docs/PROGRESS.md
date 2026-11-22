@@ -99,7 +99,7 @@ Read this first in any new session. Update it at every checkpoint.
     - [x] M2.7d-2a `Potion.Core.Documents`: format-neutral `Document` model (headings, paragraphs with alignment and
           quotes, lists, tables, code, rules, page breaks, styled text runs with links, images) and readers for TXT
           (UTF-8/UTF-16/Windows-1252), HTML (HtmlAgilityPack; nothing fetched, only data: and local images),
-          Markdown (Markdig → HTML, like macOS) and EPUB (spine order, images from the book, DRM check). 7 tests,
+          Markdown (our `MarkdownRenderer` → HTML, like macOS) and EPUB (spine order, images from the book, DRM check). 7 tests,
           run on every platform
     - [x] M2.7d-2b readers for DOCX (Open XML SDK 3.5.1: heading styles/outline levels, lists with numbering,
           tables, hyperlinks incl. HYPERLINK fields, images, run formatting, page setup; encrypted files →
@@ -158,8 +158,12 @@ Read this first in any new session. Update it at every checkpoint.
   Finder Service (Services › Convert with Potion). Add the Action Extension in M9 with Developer ID signing,
   then switch the onboarding text to "Quick Actions › Convert with Potion" (01-brand.md wording).
 - **Windows documents (decided 2026-11-21):** permissive libraries, all bundled and offline: Open XML SDK (MIT),
-  Markdig (BSD-2-Clause), HtmlAgilityPack (MIT), PDFsharp + MigraDoc (MIT), PdfPig (Apache-2.0); Windows.Data.Pdf
-  for rendering. Our own code for RTF, ODT, EPUB, TXT. Each goes into THIRD_PARTY_NOTICES (M8).
+  HtmlAgilityPack (MIT), PDFsharp + MigraDoc (MIT), PdfPig (Apache-2.0); Windows.Data.Pdf for rendering. Our own
+  code for Markdown, RTF, ODT, EPUB, TXT. Each goes into THIRD_PARTY_NOTICES (M8).
+  Markdig was tried and dropped (2026-11-22): its media-links extension embeds the names of video sites the source
+  policy blocks, and CI's release scan caught them in the Windows build. Only a package reference was ever
+  committed (no blocked strings in the repo or any published artifact). `MarkdownRenderer.cs` replaces it.
+  Every new dependency must pass `scripts/forbidden-scan.sh --artifact` on its DLLs before it's added.
 - **DOC on Windows (decided 2026-11-21):** macOS only for now (no free, reliable .doc reader/writer on Windows).
   formats.json marks it `"platforms": ["macos"]`; the Windows app never offers it. Revisit if a good library appears.
 - **macOS architectures:** Release builds are universal (Apple Silicon + Intel) unless the owner drops Intel.
