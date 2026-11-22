@@ -27,6 +27,8 @@ bin/
 obj/
 [Dd]ebug/
 [Rr]elease/
+# …but not the release scripts.
+!scripts/release/
 x64/
 x86/
 ARM64/
