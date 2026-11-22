@@ -209,7 +209,7 @@ public sealed partial class MainWindow : Window
         SetMode(_mode);
     }
 
-    private void Mode_Click(object sender, RoutedEventArgs e) => SetMode(sender == AudioMode ? DropMode.Audio : DropMode.Video);
+    private void Mode_Click(object sender, RoutedEventArgs e) => SetMode(ReferenceEquals(sender, AudioMode) ? DropMode.Audio : DropMode.Video);
 
     /// <summary>The two toggle buttons act as one segmented control; the format list follows the mode.</summary>
     private void SetMode(DropMode mode)
@@ -431,10 +431,11 @@ public static class Ui
     public static Brush FillBrush(FormatCategory c) => (Brush)Resource(Design(c).ResourcePrefix() + "FillBrush");
     public static string Glyph(FormatCategory c) => Design(c).Glyph();
 
-    public static Brush TintBrush(string? formatId, DropOptions options) => TintBrush(CategoryOf(formatId, options));
-    public static Brush TextBrush(string? formatId, DropOptions options) => TextBrush(CategoryOf(formatId, options));
-    public static Brush FillBrush(string? formatId, DropOptions options) => FillBrush(CategoryOf(formatId, options));
-    public static string Glyph(string? formatId, DropOptions options) => Glyph(CategoryOf(formatId, options));
+    // Row helpers for x:Bind function bindings (which can't pick between overloads, hence the distinct names).
+    public static Brush RowTint(string? formatId, DropOptions options) => TintBrush(CategoryOf(formatId, options));
+    public static Brush RowText(string? formatId, DropOptions options) => TextBrush(CategoryOf(formatId, options));
+    public static Brush RowFill(string? formatId, DropOptions options) => FillBrush(CategoryOf(formatId, options));
+    public static string RowGlyph(string? formatId, DropOptions options) => Glyph(CategoryOf(formatId, options));
 
     public static Brush StatusBrush(bool failed) => (Brush)Resource(failed ? "PotionErrorBrush" : "PotionTextSecondaryBrush");
     public static double Value(double? fraction) => fraction ?? 0;

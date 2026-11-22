@@ -151,10 +151,10 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Border Width="{StaticResource PotionCategoryTileSize}" Height="{StaticResource PotionCategoryTileSize}" CornerRadius="8"
-                                VerticalAlignment="Center" Background="{x:Bind local:Ui.TintBrush(FormatId, Options), Mode=OneWay}"
+                                VerticalAlignment="Center" Background="{x:Bind local:Ui.RowTint(FormatId, Options), Mode=OneWay}"
                                 AutomationProperties.AccessibilityView="Raw">
-                            <FontIcon Glyph="{x:Bind local:Ui.Glyph(FormatId, Options), Mode=OneWay}" FontSize="16"
-                                      Foreground="{x:Bind local:Ui.TextBrush(FormatId, Options), Mode=OneWay}" />
+                            <FontIcon Glyph="{x:Bind local:Ui.RowGlyph(FormatId, Options), Mode=OneWay}" FontSize="16"
+                                      Foreground="{x:Bind local:Ui.RowText(FormatId, Options), Mode=OneWay}" />
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                             <TextBlock Text="{x:Bind Title}" TextTrimming="CharacterEllipsis" Style="{StaticResource BodyStrongTextBlockStyle}"
@@ -164,18 +164,18 @@
                             <ProgressBar Margin="0,4,0,0" Maximum="1" Value="{x:Bind local:Ui.Value(Fraction), Mode=OneWay}"
                                          IsIndeterminate="{x:Bind local:Ui.Indeterminate(Fraction), Mode=OneWay}"
                                          Visibility="{x:Bind IsRunning, Mode=OneWay}"
-                                         Foreground="{x:Bind local:Ui.FillBrush(FormatId, Options), Mode=OneWay}" />
+                                         Foreground="{x:Bind local:Ui.RowFill(FormatId, Options), Mode=OneWay}" />
                         </StackPanel>
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                            <Button Click="RowStop_Click" Visibility="{x:Bind CanStop, Mode=OneWay}" Tag="{x:Bind}"
+                            <Button Click="RowStop_Click" Visibility="{x:Bind CanStop, Mode=OneWay}" Tag="{Binding}"
                                     AutomationProperties.Name="Stop" ToolTipService.ToolTip="Stop">
                                 <FontIcon Glyph="&#xE711;" FontSize="12" />
                             </Button>
-                            <Button Click="RowRetry_Click" Visibility="{x:Bind CanRetry, Mode=OneWay}" Tag="{x:Bind}"
+                            <Button Click="RowRetry_Click" Visibility="{x:Bind CanRetry, Mode=OneWay}" Tag="{Binding}"
                                     AutomationProperties.Name="Retry" ToolTipService.ToolTip="Retry">
                                 <FontIcon Glyph="&#xE72C;" FontSize="12" />
                             </Button>
-                            <Button Click="RowShow_Click" Visibility="{x:Bind IsDone, Mode=OneWay}" Tag="{x:Bind}"
+                            <Button Click="RowShow_Click" Visibility="{x:Bind IsDone, Mode=OneWay}" Tag="{Binding}"
                                     AutomationProperties.Name="Show in folder" ToolTipService.ToolTip="Show in folder">
                                 <FontIcon Glyph="&#xE838;" FontSize="12" />
                             </Button>

@@ -149,16 +149,37 @@ jobs:
             }
           }
       - name: Build Potion (Debug)
-        run: dotnet build apps/potion-windows/Potion/Potion.csproj -c Debug -p:Platform=x64
+        shell: bash
+        run: |
+          set -o pipefail
+          dotnet build apps/potion-windows/Potion/Potion.csproj -c Debug -p:Platform=x64 2>&1 | tee -a build-windows.log
       - name: Build Potion (Release)
-        run: dotnet build apps/potion-windows/Potion/Potion.csproj -c Release -p:Platform=x64
+        shell: bash
+        run: |
+          set -o pipefail
+          dotnet build apps/potion-windows/Potion/Potion.csproj -c Release -p:Platform=x64 2>&1 | tee -a build-windows.log
       - name: Scan Release app
         shell: bash
         run: scripts/forbidden-scan.sh --artifact apps/potion-windows/Potion/bin/x64/Release
       - name: Build Potion Dropper (Debug)
-        run: dotnet build apps/dropper-windows/PotionDropper/PotionDropper.csproj -c Debug -p:Platform=x64
+        shell: bash
+        run: |
+          set -o pipefail
+          dotnet build apps/dropper-windows/PotionDropper/PotionDropper.csproj -c Debug -p:Platform=x64 2>&1 | tee -a build-windows.log
       - name: Build Potion Dropper (Release)
-        run: dotnet build apps/dropper-windows/PotionDropper/PotionDropper.csproj -c Release -p:Platform=x64
+        shell: bash
+        run: |
+          set -o pipefail
+          dotnet build apps/dropper-windows/PotionDropper/PotionDropper.csproj -c Release -p:Platform=x64 2>&1 | tee -a build-windows.log
       - name: Scan Potion Dropper Release app
         shell: bash
         run: scripts/forbidden-scan.sh --artifact apps/dropper-windows/PotionDropper/bin/x64/Release
+      # XAML compiler errors don't match the .NET problem matcher, so build errors are re-reported as annotations.
+      - name: Report build errors
+        if: failure()
+        shell: bash
+        run: |
+          [ -f build-windows.log ] || exit 0
+          grep -E "error [A-Z]+[0-9]+|: error |XamlCompiler error" build-windows.log | sort -u | head -40 | while IFS= read -r line; do
+            echo "::error title=build::${line:0:900}"
+          done
