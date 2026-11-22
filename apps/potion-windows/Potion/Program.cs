@@ -24,10 +24,10 @@ public static class Program
             return 0;
         }
         main.Activated += (_, e) => App.ReceiveRedirect(e);
-        Application.Start(_ =>
+        Application.Start(callback =>
         {
             SynchronizationContext.SetSynchronizationContext(new DispatcherQueueSynchronizationContext(DispatcherQueue.GetForCurrentThread()));
-            _ = new App();
+            new App();   // kept alive by the XAML framework
         });
         return 0;
     }
