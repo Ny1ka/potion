@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import PotionCore
 import SwiftUI
 
@@ -18,30 +19,27 @@ final class DropperModel: ObservableObject {
         case fetching
         case failed(String)
         case ready(Media)
-    }
-
-    enum JobState: Equatable {
-        case idle
-        /// `fraction` is nil while the total isn't known.
-        case running(status: String, fraction: Double?, detail: String?)
-        case done([URL])
-        case failed(String)
+        /// Several links: they're queued with one choice of mode and format, without fetching each first.
+        case batch([DropLink])
     }
 
     @Published var text = ""
     @Published private(set) var fetch: FetchState = .idle
-    @Published private(set) var job: JobState = .idle
-    @Published var mode: DropMode = .video { didSet { if mode != oldValue { chooseDefaultFormat() } } }
+    /// Batch only: nil keeps each file's downloaded format.
+    @Published var batchFormatID: String?
+    @Published var mode: DropMode = .video {
+        didSet { if mode != oldValue { chooseDefaultFormat(); batchFormatID = nil } }
+    }
     @Published var formatID: String?
     @Published var videoPresetID = "original"
     @Published var audioPresetID = AudioPresets.shared.defaultPresetID
 
     let registry = SourceRegistry.shared
+    let queue: DropQueue
+    let history: DropHistory
     private let downloader: Downloader
-    private let runner: DropJobRunner
     private var fetchTask: Task<Void, Never>?
-    private var jobTask: Task<Void, Never>?
-    private var lastProgressUpdate = Date.distantPast
+    private var queueWatch: AnyCancellable?
 
     /// Where downloads are saved (Settings arrive in M6.3).
     var outputFolder: URL { FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)[0] }
@@ -49,12 +47,25 @@ final class DropperModel: ObservableObject {
 
     init() {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.0.0"
-        downloader = Downloader(transport: URLSessionTransport(), appVersion: version)
-        runner = DropJobRunner(downloader: downloader, converter: ConversionService.withBundledTools())
+        let downloader = Downloader(transport: URLSessionTransport(), appVersion: version)
+        let runner = DropJobRunner(downloader: downloader, converter: ConversionService.withBundledTools())
+        let folder = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)[0]
+        self.downloader = downloader
+        queue = DropQueue { link, options, resume, stage in
+            try await runner.run(link, into: folder, options: options, resume: resume, stage: stage)
+        }
+        let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        history = DropHistory(url: support.appendingPathComponent("Potion Dropper/history.json"))
+        queue.onItemFinished = { [weak self] item in self?.record(item) }
+        queue.onBatchFinished = { done, failed in Notifications.batchFinished(done: done, failed: failed) }
+        queueWatch = queue.$items.sink { items in
+            let remaining = items.filter { $0.status == .waiting || $0.isRunning }.count
+            NSApp?.dockTile.badgeLabel = remaining > 0 ? "\(remaining)" : nil   // 09-platforms.md
+        }
     }
 
     var media: Media? { if case .ready(let media) = fetch { media } else { nil } }
-    var isBusy: Bool { if case .running = job { true } else { false } }
+    var batchLinks: [DropLink] { if case .batch(let links) = fetch { links } else { [] } }
 
     // MARK: - Fetch
 
@@ -70,7 +81,11 @@ final class DropperModel: ObservableObject {
             return
         }
         fetchTask?.cancel()
-        job = .idle
+        if list.links.count > 1 {
+            fetch = .batch(list.links)
+            if mode == .audio, batchFormatID == nil { batchFormatID = "mp3" }
+            return
+        }
         fetch = .fetching
         fetchTask = Task { [downloader, maxBytes, registry] in
             do {
@@ -121,57 +136,56 @@ final class DropperModel: ObservableObject {
 
     // MARK: - Download
 
-    func download() {
-        guard let media, let formatID, !isBusy else { return }
-        var options = DropOptions(outputFormatID: formatID == media.source.id ? nil : formatID)
-        options.maxBytes = maxBytes
-        options.settings = ConversionSettings(audio: AudioOptions(presetID: audioPresetID), video: VideoOptions(presetID: videoPresetID))
-        job = .running(status: "Connecting…", fraction: nil, detail: nil)
-        let folder = outputFolder
-        jobTask = Task { [runner] in
-            do {
-                let outcome = try await runner.run(media.link, into: folder, options: options) { stage in
-                    Task { @MainActor [weak self] in self?.show(stage) }
-                }
-                job = .done(outcome.files)
-            } catch let error as DropError {
-                if case .download(.interrupted, _) = error, Task.isCancelled { job = .idle; return }
-                job = .failed(error.message(registry))
-            } catch {
-                job = .failed(registry.message(for: .interrupted))
-            }
-        }
+    /// Formats offered for a batch: every format of the mode's kind (nil = keep each file's downloaded format).
+    var batchFormats: [FileFormat] {
+        FormatRegistry.shared.formats.filter { $0.category == (mode == .video ? .video : .audio) && $0.isAvailable(on: ConversionMatrix.currentPlatform) }
     }
 
-    func stop() {
-        jobTask?.cancel()
+    private var settings: ConversionSettings {
+        ConversionSettings(audio: AudioOptions(presetID: audioPresetID), video: VideoOptions(presetID: videoPresetID))
+    }
+
+    /// Adds the fetched link (or every link of a batch) to the queue and clears the link bar for the next one.
+    func download() {
+        Notifications.requestPermissionIfNeeded()
+        if let media, let formatID {
+            var options = DropOptions(outputFormatID: formatID == media.source.id ? nil : formatID, settings: settings)
+            options.maxBytes = maxBytes
+            queue.add(media.link, options: options, title: media.preview.fileName, formatID: media.source.id)
+        } else if !batchLinks.isEmpty {
+            var options = DropOptions(outputFormatID: batchFormatID, settings: settings)
+            options.maxBytes = maxBytes
+            for link in batchLinks { queue.add(link, options: options) }
+        } else {
+            return
+        }
+        text = ""
+        fetch = .idle
     }
 
     func showInFinder(_ files: [URL]) {
-        NSWorkspace.shared.activateFileViewerSelecting(files)
+        let existing = files.filter { FileManager.default.fileExists(atPath: $0.path) }
+        if !existing.isEmpty { NSWorkspace.shared.activateFileViewerSelecting(existing) }
     }
 
-    private func show(_ stage: DropStage) {
-        guard isBusy else { return }
-        switch stage {
-        case .downloading(let progress):
-            // Progress arrives per network chunk; ten updates a second is plenty.
-            let now = Date()
-            if now.timeIntervalSince(lastProgressUpdate) < 0.1, progress.bytes != progress.total { return }
-            lastProgressUpdate = now
-            let fraction = progress.total.map { Double(progress.bytes) / Double(max($0, 1)) }
-            job = .running(status: "Downloading…", fraction: fraction, detail: Self.detail(progress))
-        case .inspecting:
-            job = .running(status: "Checking the file…", fraction: nil, detail: nil)
-        case .converting(let fraction):
-            job = .running(status: "Converting…", fraction: fraction, detail: nil)
-        case .saving:
-            job = .running(status: "Saving…", fraction: nil, detail: nil)
+    /// History keeps what the user can see and clear: finished and failed downloads (spec Part 6.1.4).
+    private func record(_ item: DropQueue.Item) {
+        let entry: DropHistory.Entry
+        switch item.status {
+        case .done(let files):
+            entry = .init(link: item.link.string, site: item.link.host, name: files.first?.lastPathComponent ?? item.title,
+                          files: files.map(\.path), formatID: item.formatID)
+        case .failed(let message):
+            entry = .init(link: item.link.string, site: item.link.host, name: item.title, error: message)
+        default:
+            return
         }
+        try? history.add(entry)
+        objectWillChange.send()
     }
 
     /// "12.3 MB of 48 MB · 2.1 MB/s · 17 s left"
-    static func detail(_ progress: DownloadProgress) -> String {
+    nonisolated static func detail(_ progress: DownloadProgress) -> String {
         let bytes = ByteCountFormatter.string(fromByteCount: progress.bytes, countStyle: .file)
         var parts = [progress.total.map { "\(bytes) of \(ByteCountFormatter.string(fromByteCount: $0, countStyle: .file))" } ?? bytes]
         if progress.bytesPerSecond > 0 {

@@ -1,29 +1,43 @@
 import PotionCore
 import SwiftUI
 
-/// The main window (05-layout.md, "Potion Dropper: main window"): link bar, media card with output options,
-/// and the current download. The queue and history arrive in M6.2.
+/// The main window (05-layout.md, "Potion Dropper: main window"): link bar, media card (or batch card) with output
+/// options, then the download queue.
 struct ContentView: View {
     @EnvironmentObject private var model: DropperModel
+    @EnvironmentObject private var queue: DropQueue
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        VStack(alignment: .leading, spacing: PotionSpacing.x4) {
-            LinkBar()
-            switch model.fetch {
-            case .idle, .failed:
-                EmptyView()
-            case .fetching:
-                MediaCardSkeleton()
-            case .ready(let media):
-                MediaCard(media: media)
-                OutputOptions()
-                DownloadBar()
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: PotionSpacing.x4) {
+                LinkBar()
+                switch model.fetch {
+                case .idle, .failed:
+                    EmptyView()
+                case .fetching:
+                    MediaCardSkeleton()
+                case .ready(let media):
+                    MediaCard(media: media)
+                    OutputOptions()
+                    DownloadButtonRow()
+                case .batch(let links):
+                    BatchCard(count: links.count)
+                    OutputOptions()
+                    DownloadButtonRow()
+                }
             }
-            Spacer(minLength: 0)
+            .padding(PotionSpacing.x6)
+
+            if !queue.items.isEmpty {
+                Divider()
+                QueueView()
+            } else {
+                Spacer(minLength: 0)
+            }
         }
-        .padding(PotionSpacing.x6)
         .background(PotionColor.background)
-        .animation(.easeInOut(duration: PotionMotion.base), value: model.fetch)
+        .animation(reduceMotion ? nil : .easeInOut(duration: PotionMotion.base), value: model.fetch)
     }
 }
 
@@ -147,29 +161,37 @@ struct OutputOptions: View {
             .pickerStyle(.segmented)
             .labelsHidden()
             .fixedSize()
-            .disabled(model.modes.count < 2 || model.isBusy)
+            .disabled(model.media != nil && model.modes.count < 2)
             .accessibilityLabel("Video or audio")
 
-            Picker("Format", selection: $model.formatID) {
-                ForEach(model.formats, id: \.id) { format in
-                    Text(format.id == model.media?.source.id ? "\(format.name) (as downloaded)" : format.name).tag(Optional(format.id))
+            if model.media != nil {
+                Picker("Format", selection: $model.formatID) {
+                    ForEach(model.formats, id: \.id) { format in
+                        Text(format.id == model.media?.source.id ? "\(format.name) (as downloaded)" : format.name).tag(Optional(format.id))
+                    }
                 }
+                .fixedSize()
+            } else {
+                Picker("Format", selection: $model.batchFormatID) {
+                    Text("As downloaded").tag(String?.none)
+                    Divider()
+                    ForEach(model.batchFormats, id: \.id) { format in Text(format.name).tag(Optional(format.id)) }
+                }
+                .fixedSize()
             }
-            .fixedSize()
-            .disabled(model.isBusy)
 
             if model.mode == .video {
                 Picker("Quality", selection: $model.videoPresetID) {
                     ForEach(VideoPresets.shared.presets) { preset in Text(preset.name).tag(preset.id) }
                 }
                 .fixedSize()
-                .disabled(model.keepsOriginal || model.isBusy)
+                .disabled(model.keepsOriginal)
             } else {
                 Picker("Bitrate", selection: $model.audioPresetID) {
                     ForEach(AudioPresets.shared.presets) { preset in Text("\(preset.name) (\(preset.bitrateKbps) kbps)").tag(preset.id) }
                 }
                 .fixedSize()
-                .disabled(model.keepsOriginal || model.isBusy)
+                .disabled(model.keepsOriginal)
             }
             Spacer(minLength: 0)
         }
@@ -178,57 +200,42 @@ struct OutputOptions: View {
 
 // MARK: - Download
 
-struct DownloadBar: View {
+/// Several links pasted at once: one choice of mode and format for all of them.
+struct BatchCard: View {
+    let count: Int
+
+    var body: some View {
+        HStack(spacing: PotionSpacing.x3) {
+            RoundedRectangle(cornerRadius: PotionRadius.sm)
+                .fill(PotionColor.surfaceRaised)
+                .frame(width: 96, height: 54)
+                .overlay(Image(systemName: "link").font(.title2).foregroundStyle(PotionColor.textTertiary))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: PotionSpacing.x1) {
+                Text("\(count) links").font(PotionFont.fileName)
+                Text("Each link is checked when its download starts.")
+                    .font(PotionFont.secondary)
+                    .foregroundStyle(PotionColor.textSecondary)
+            }
+            Spacer(minLength: 0)
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
+struct DownloadButtonRow: View {
     @EnvironmentObject private var model: DropperModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: PotionSpacing.x2) {
-            HStack(spacing: PotionSpacing.x3) {
-                Text("Saves to \(FileManager.default.displayName(atPath: model.outputFolder.path))")
-                    .font(PotionFont.secondary)
-                    .foregroundStyle(PotionColor.textSecondary)
-                Spacer()
-                if model.isBusy {
-                    Button("Stop") { model.stop() }
-                        .keyboardShortcut(.cancelAction)
-                } else {
-                    Button("Download") { model.download() }
-                        .buttonStyle(.borderedProminent)
-                        .keyboardShortcut(.return, modifiers: .command)
-                        .disabled(model.formatID == nil)
-                }
-            }
-
-            switch model.job {
-            case .idle:
-                EmptyView()
-            case .running(let status, let fraction, let detail):
-                VStack(alignment: .leading, spacing: PotionSpacing.x1) {
-                    if let fraction {
-                        ProgressView(value: fraction) { Text(status).font(PotionFont.secondary) }
-                    } else {
-                        ProgressView { Text(status).font(PotionFont.secondary) }.progressViewStyle(.linear)
-                    }
-                    if let detail {
-                        Text(detail).font(PotionFont.caption).foregroundStyle(PotionColor.textSecondary).monospacedDigit()
-                    }
-                }
-            case .done(let files):
-                HStack(spacing: PotionSpacing.x2) {
-                    Label(files.count == 1 ? "Saved “\(files[0].lastPathComponent)”" : "Saved \(files.count) files", systemImage: "checkmark.circle")
-                        .foregroundStyle(PotionColor.success)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                    Button("Show in Finder") { model.showInFinder(files) }
-                        .buttonStyle(.link)
-                }
+        HStack(spacing: PotionSpacing.x3) {
+            Text("Saves to \(FileManager.default.displayName(atPath: model.outputFolder.path))")
                 .font(PotionFont.secondary)
-            case .failed(let message):
-                Label(message, systemImage: "exclamationmark.circle")
-                    .font(PotionFont.secondary)
-                    .foregroundStyle(PotionColor.error)
-            }
+                .foregroundStyle(PotionColor.textSecondary)
+            Spacer()
+            Button(model.batchLinks.isEmpty ? "Download" : "Download All") { model.download() }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.return, modifiers: .command)
+                .disabled(model.media != nil && model.formatID == nil)
         }
-        .padding(.top, PotionSpacing.x2)
     }
 }

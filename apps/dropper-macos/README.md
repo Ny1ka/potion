@@ -8,8 +8,9 @@ make dropper-macos           # command-line Debug build
 make run-dropper-macos       # build and launch
 ```
 
-Status (M6.1): first-run acknowledgment, link bar, Fetch with the media card, Video/Audio output options and one
-download at a time into Downloads. The queue, history, notifications and Settings follow in M6.2–M6.3.
+Status (M6.2): first-run acknowledgment, link bar, Fetch with the media card, batches of links, Video/Audio output
+options, the download queue (Stop, Retry with resume, reorder), Download History (⌘Y), notifications and the Dock
+badge. Downloads go to Downloads; Settings and link hand-off follow in M6.3.
 
 ## What comes from where
 

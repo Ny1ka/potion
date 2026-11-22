@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M6 Dropper macOS UI (M2–M5 done: engines, Potion for macOS and Windows, Dropper core)
-- **Last completed chunk:** M6.1 Dropper macOS: acknowledgment, Fetch with media card, output options, download
-- **Next chunk:** M6.2 Dropper macOS: download queue (several links, progress, stop, retry/resume), history, notifications, Dock progress
+- **Last completed chunk:** M6.2 Dropper macOS: download queue, batches, history, notifications, Dock badge
+- **Next chunk:** M6.3 Dropper macOS: Settings, dropping links, Services hand-off
 
 ## Milestones
 
@@ -68,8 +68,16 @@ Read this first in any new session. Update it at every checkpoint.
       and border), media card (16:9 well with the category tile, name, format · size · "Direct link from <site>"),
       loading skeleton, Video/Audio segmented control, Format (with "as downloaded"), Quality / Bitrate, Download with
       progress, speed and time left, Stop, "Saved …" with Show in Finder; saves to Downloads
-- [ ] M6.2 Download queue: several links (paste or drop many), per-row progress, Stop, Retry (resumes when possible),
-      parallel limit, overall progress, history window with Clear, notifications, Dock progress
+- [x] M6.2 `DropQueue` in PotionCore (up to 4 at once, default 2; skips links already waiting or downloading; Stop
+      keeps a resumable partial file and Retry continues it; Remove deletes it; Clear Finished; reorder; overall
+      progress; per-item and per-batch callbacks; 7 tests). macOS: Download adds to the queue and clears the link bar;
+      several pasted links show a batch card ("15 links", one mode and format for all, "As downloaded" option,
+      Download All); queue list with category tile, name, status (bytes, speed, time left, converting %, saved name or
+      error), per-row progress in the category color, Stop / Retry / Show in Finder buttons, context menu with Remove,
+      drag to reorder; header with "2 of 5 · 40%", overall bar, Stop All, Clear Finished; Download History window
+      (⌘Y; finished and failed downloads, Show in Finder, Copy Link, Remove, Clear History with confirmation);
+      notifications when a batch ends in the background (permission asked at the first download); Dock badge with
+      downloads left; quitting mid-download asks first
 - [ ] M6.3 Settings (output folder, naming template, size and duration limits, downloads at once, keep original,
       history on/off), drag a link onto the window or Dock icon, Services / share-menu link hand-off, About with
       Terms and Privacy placeholders filled in M8
