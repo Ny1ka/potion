@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M2.7 Windows engines, then M4 Potion Windows UI (M3 Potion macOS UI is done)
-- **Last completed chunk:** M2.7b C# audio and video engines
-- **Next chunk:** M2.7c Images on Windows (WIC)
+- **Last completed chunk:** M2.7c Images on Windows (WIC)
+- **Next chunk:** M2.7d Documents and PDF on Windows
 
 ## Milestones
 
@@ -88,7 +88,11 @@ Read this first in any new session. Update it at every checkpoint.
         presets.json with per-platform encoders, `AudioEngine` and `VideoEngine` ported from Swift. 18 tests (8 unit,
         10 end-to-end; they use the macOS FFmpeg locally and the Windows build in CI; the Media Foundation test
         runs only where Media Foundation exists)
-  - [ ] M2.7c Images on Windows (WIC)
+  - [x] M2.7c Images on Windows: `Potion.Core.Windows` (net10.0-windows) with `WicImageEngine`: WIC decode (EXIF
+        orientation, sRGB) and encode (PNG, JPEG, BMP, GIF, TIFF, HEIC), FFmpeg for WebP/AVIF output and as a decode
+        fallback, ICO writer, and "install … from the Microsoft Store" messages when HEIF/AV1/WebP/RAW codecs are
+        missing. Pixel work (resize, rotate, flip, flatten, icon canvas) is platform-neutral in Potion.Core (6 tests
+        here); 6 WIC tests run in the Windows CI job. Images → PDF on Windows comes with M2.7d
   - [ ] M2.7d Documents and PDF on Windows (Open XML SDK, Windows.Data.Pdf)
 
 ### M3 chunks
@@ -159,6 +163,8 @@ Read this first in any new session. Update it at every checkpoint.
   Subtitles are dropped. Revisit after M3.
 - Copy-protection detection covers FairPlay/CENC sample entries and FFmpeg's DRM errors; protected WMA/WMV
   needs a real protected sample to confirm (none can be generated). Revisit in M8.
+- Windows images: SVG input isn't supported yet (macOS uses AppKit; Windows needs Direct2D's SVG renderer, M2.7d or
+  M4). Metadata (EXIF/GPS) isn't copied to outputs yet. Animated GIF/WebP use the first frame, as on macOS.
 - PDF: SVG output holds a picture of each page (no vector paths or selectable text). PDF → document keeps
   each line as its own paragraph (no reflowing into paragraphs or columns yet) and doesn't run OCR on scans.
   Merge/split drop the PDF outline (bookmarks) of the originals. Compression needs macOS 13.4.

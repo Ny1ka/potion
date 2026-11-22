@@ -7,5 +7,7 @@
   <Folder Name="/core/dotnet/">
     <Project Path="core/dotnet/Potion.Core.Tests/Potion.Core.Tests.csproj" />
     <Project Path="core/dotnet/Potion.Core/Potion.Core.csproj" />
+    <Project Path="core/dotnet/Potion.Core.Windows/Potion.Core.Windows.csproj" />
+    <Project Path="core/dotnet/Potion.Core.Windows.Tests/Potion.Core.Windows.Tests.csproj" />
   </Folder>
 </Solution>

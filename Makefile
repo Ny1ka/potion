@@ -22,9 +22,11 @@ test-core:
 	scripts/sync-spec.sh --check
 	swift test --package-path core/swift
 
-# The Windows app itself only builds on Windows (see CI); the shared .NET core builds anywhere.
+# The Windows app itself only builds on Windows (see CI); the shared .NET core builds anywhere. The Windows-only
+# engines (Potion.Core.Windows) compile here too, but their tests run only on Windows (CI).
 test-core-dotnet:
 	$(DOTNET) test core/dotnet/Potion.Core.Tests
+	$(DOTNET) build core/dotnet/Potion.Core.Windows.Tests -v quiet
 
 potion-macos-project:
 	cd apps/potion-macos && xcodegen generate --quiet
