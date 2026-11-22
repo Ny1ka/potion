@@ -5,7 +5,7 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M9 Packaging and V1 release: macOS beta first (M2–M8 done)
-- **Last completed chunk:** M9.2b README refresh with real screenshots and design-system graphics
+- **Last completed chunk:** M9.2d v0.9.1 prepared (Settings fix)
 - **Next chunk:** M9.2c polish from feedback (About splash animation; Windows after real-PC testing)
 
 ## Milestones
@@ -81,6 +81,8 @@ Read this first in any new session. Update it at every checkpoint.
       the way: Settings' default-format pickers showed blank when the remembered format was from another category
       (video → MP3); the lists now offer every format a file type can become, own category first (macOS and Windows);
       Settings remembers its tab
+- [x] M9.2d v0.9.1 prepared: version bumped everywhere, `docs/release-notes/v0.9.1.md` (the Settings fix); the owner
+      publishes it from the release workflow
 - [ ] M9.2c Polish from feedback (incl. the About splash animation)
 - [ ] M9.3 Windows: test both apps on a real PC, trim the Windows App SDK to the components the apps use, EXE
       installer (tool to be chosen and license-checked), Windows beta
