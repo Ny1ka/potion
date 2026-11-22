@@ -80,7 +80,7 @@ final class URLSessionTransportTests: XCTestCase {
         let url = server.url("/a.mp4")
         server.stop()
         do {
-            _ = try await URLSessionTransport(timeoutSeconds: 2).get(HTTPRequest(url: url, headers: headers))
+            _ = try await URLSessionTransport(timeoutSeconds: 15).get(HTTPRequest(url: url, headers: headers))
             XCTFail("expected a network error")
         } catch {
             XCTAssertEqual(error as? TransportError, .network)

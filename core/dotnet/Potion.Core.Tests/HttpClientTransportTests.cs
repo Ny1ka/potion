@@ -90,7 +90,8 @@ public sealed class HttpClientTransportTests
     {
         string url;
         using (var server = new LoopbackServer(_ => new())) url = server.Url("/a.mp4");
-        using var transport = new HttpClientTransport(timeoutSeconds: 2);
+        // Windows retries a refused connection for about 2 seconds, so the timeout must be longer than that.
+        using var transport = new HttpClientTransport(timeoutSeconds: 15);
         var e = await Assert.ThrowsAsync<TransportException>(() => transport.GetAsync(new TransportRequest(url, Headers), CancellationToken.None));
         Assert.False(e.TimedOut);
     }
