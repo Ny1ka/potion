@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M2 Core: conversion engines
-- **Last completed chunk:** M2.3 Image engine (Swift)
-- **Next chunk:** M2.4 Documents (engine choice needed from the owner)
+- **Last completed chunk:** M2.4 Documents I (Swift)
+- **Next chunk:** M2.5 Documents II: EPUB and a full DOCX writer (Swift)
 
 ## Milestones
 
@@ -14,7 +14,7 @@ Read this first in any new session. Update it at every checkpoint.
 |---|---|
 | M0 Scaffold | Done |
 | M1 Core: formats | Done |
-| M2 Core: conversion engines | In progress (M2.0–M2.3 done) |
+| M2 Core: conversion engines | In progress (M2.0–M2.4 done) |
 | M3 Potion macOS UI | Not started |
 | M4 Potion Windows UI | Not started |
 | M5 Dropper core | Not started |
@@ -60,25 +60,25 @@ Read this first in any new session. Update it at every checkpoint.
 - [x] M2.3 Image engine (Swift): ImageIO decode (incl. RAW, upright via EXIF), SVG via AppKit, resize (fit,
       percent, exact), rotate/flip, white background for JPG/BMP, metadata kept, ICO, WebP + AVIF fallback via
       FFmpeg (libwebp, SVT-AV1 added to the build), images → PDF (single or combined). 12 tests
-- [ ] M2.4 Documents: `convertDocument`, `documentToPdf` (engine choice below)
-- [ ] M2.5 PDF tools: merge, split, extract, reorder, compress, `pdfToImage`, `pdfToDocument` (PDFKit)
-- [ ] M2.6 Windows: FFmpeg build for Windows + the same engines in Potion.Core (C#), tested in CI
+- [x] M2.4 Documents I (Swift): `DocumentEngine` for `convertDocument` + `documentToPdf` with the macOS text
+      system. Reads TXT (UTF-8/UTF-16/Windows Latin 1), RTF, DOC, DOCX, ODT, HTML (remote resources removed
+      first, so nothing is fetched) and Markdown (Foundation parser → HTML). Writes RTF, DOC, ODT, DOCX (system
+      writer for now), self-contained HTML (images embedded), Markdown and TXT (headings, lists, tables kept)
+      and PDF (TextKit pages, the document's page size or Letter/A4 by region, searchable text, clickable
+      links, oversized images scaled to fit). Encrypted Word files → copy-protected message. 20 tests
+- [ ] M2.5 Documents II (Swift): small zip reader/writer, EPUB read + write, own DOCX writer (heading styles,
+      real hyperlinks, numbered/bulleted lists, tables, images, page setup), encrypted ODT and DRM-protected
+      EPUB detection
+- [ ] M2.6 PDF tools: merge, split, extract, reorder, compress, `pdfToImage`, `pdfToDocument` (PDFKit)
+- [ ] M2.7 Windows: FFmpeg build for Windows + the same engines in Potion.Core (C#), tested in CI
 
 ## Decisions coming up (from the final spec)
 
 - **FFmpeg (decided 2026-11-21):** OS frameworks first; LGPL-only FFmpeg as separate programs for
   everything else. See `scripts/ffmpeg/README.md` and `docs/LEGAL_REVIEW.md`.
-- **M2.4, document engine (OWNER DECISION NEEDED before starting M2.4):** DOC/DOCX/ODT/RTF/EPUB/HTML/MD/TXT
-  conversions and documents → PDF, with layout fidelity. Options presented to the owner on 2026-11-21:
-  1. **Native first (recommended to start):** macOS uses NSAttributedString (reads/writes TXT, RTF, HTML, DOC,
-     DOCX, ODT; reads Markdown) and paginates to PDF with Core Text; EPUB is built/read as zipped XHTML; PDF →
-     text/DOCX/HTML uses PDFKit's text. Windows uses the Open XML SDK (MIT) plus a small PDF writer. Small and
-     offline, but complex layouts (columns, floating images, headers/footers, tracked changes) are simplified.
-  2. **Bundle LibreOffice** (MPL, run as a separate process): best fidelity, but adds roughly 300–600 MB per
-     installer. Needs owner approval (spec 6.1.1).
-  3. **Native first + optional LibreOffice download** offered the first time a document needs higher fidelity
-     (allowed by Prompt 1 §7 "optional dependency updates"; still needs approval for the size and the network use).
-  Pandoc (GPL, separate executable) is a weaker fit: good for Markdown/HTML/DOCX/EPUB but no PDF without LaTeX.
+- **Document engine (decided 2026-11-21):** native first (option 1 of 3). macOS uses the system text
+  system; Windows will use the Open XML SDK (MIT) plus a small PDF writer. No LibreOffice; revisit only if
+  real-world fidelity is not good enough, and only with the owner's approval (spec 6.1.1).
 - **macOS architectures:** Release builds are universal (Apple Silicon + Intel) unless the owner drops Intel.
 
 ## Known issues / TODO
@@ -98,6 +98,11 @@ Read this first in any new session. Update it at every checkpoint.
   Subtitles are dropped. Revisit after M3.
 - Copy-protection detection covers FairPlay/CENC sample entries and FFmpeg's DRM errors; protected WMA/WMV
   needs a real protected sample to confirm (none can be generated). Revisit in M8.
+- Documents: the system DOCX writer drops images, real hyperlinks (kept as blue underlined text), list
+  numbering and tables (replaced by our own DOCX writer in M2.5). The system ODT, RTF and DOC writers also
+  drop images. Imported HTML/Markdown lists show numbers without a period ("3" not "3.") and block quotes
+  lose their indent in PDF/DOCX output. EPUB in/out arrives in M2.5 (the engine reports it as unsupported
+  until then). Headings in Word/ODT files without heading styles are guessed from big bold text.
 - Open product decision for M3: App Sandbox on or off (see `docs/LEGAL_REVIEW.md` #2).
 - Design-system conflict (needs owner decision before M3.1): dark `borderStrong` (#3A3547) is tuned for the
   brand background (#0E0C14), but `09-platforms.md` puts the drop zone on the system window background

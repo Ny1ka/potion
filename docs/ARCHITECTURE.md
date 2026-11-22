@@ -26,6 +26,20 @@ Foundation/WIC/Windows.Data.Pdf on Windows), and those are different on each pla
 Rejected: one Rust core with C bindings to Swift and C#. It shares more code, but adds a toolchain, two
 binding layers and harder debugging, while the OS-framework engines would still need per-platform code.
 
+## Conversion engines (macOS, `core/swift/Sources/PotionCore/Engines`)
+
+| Engine | Handles | Built on |
+|---|---|---|
+| `AudioEngine` | `transcodeAudio`, `extractAudio` | Bundled LGPL `ffmpeg`/`ffprobe` run as separate processes; AAC/ALAC via AudioToolbox |
+| `VideoEngine` | `transcodeVideo`, `videoToGif`, `gifToVideo` | Same FFmpeg; H.264/HEVC via VideoToolbox |
+| `ImageEngine` | `convertImage`, `imageToPdf` | ImageIO, AppKit (SVG), Core Graphics PDF; FFmpeg only for WebP and the AVIF fallback |
+| `DocumentEngine` | `convertDocument`, `documentToPdf` | The macOS text system (`NSAttributedString` readers/writers), TextKit pagination for PDF, Foundation's Markdown parser |
+
+Every engine checks the matrix first, writes to a hidden temporary file in the destination folder, verifies
+the result by opening it again, then moves it to a name that doesn't exist yet (`OutputFiles`). Documents
+are read without network access: remote images, stylesheets, frames and scripts are removed from HTML (and
+Markdown rendered to HTML) before the system HTML reader sees it (`HTMLResources`).
+
 ## Project generation
 
 - macOS apps: XcodeGen (`apps/*/project.yml`), so project files are reviewable text and the generated

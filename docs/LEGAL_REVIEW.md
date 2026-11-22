@@ -10,6 +10,7 @@ are completed in M8/M9.
 |---|---|---|
 | 2026-11-21 | Project code is licensed under **MIT** (`/LICENSE`). | Compatible with LGPL FFmpeg linked dynamically or run as a separate process, OS frameworks, and GPL tools run as separate executables. AGPL libraries stay excluded. MIT grants no rights to the Potion name or logo; add a trademark note in M8. |
 | 2026-11-21 | Bundle an **LGPL-only FFmpeg 9.1** as separate `ffmpeg`/`ffprobe` programs (not linked into the apps). | Built from pinned, checksummed sources by `scripts/ffmpeg/`. No `--enable-gpl`/`--enable-nonfree`, no x264/x265/fdk-aac, no network support. `verify-license.sh` enforces this in CI. Statically includes LAME (LGPL) and Opus, libogg, libvorbis, libvpx, libwebp (BSD) and SVT-AV1 (BSD-3-Clause-Clear + AOMedia Patent License 1.0). |
+| 2026-11-21 | Documents use the OS text system (macOS) and the Open XML SDK (MIT, Windows); no LibreOffice or Pandoc. | No new bundled dependency on macOS. Opening HTML/Markdown never fetches remote resources (files never leave the machine, and nothing is requested on the document's behalf). |
 | 2026-11-21 | Patent-encumbered encoding goes through the OS. | H.264/HEVC via VideoToolbox, AAC/ALAC via AudioToolbox on macOS (Media Foundation on Windows). FFmpeg's native AAC encoder is disabled. |
 
 ## Codec and patent notes (for legal advice)
