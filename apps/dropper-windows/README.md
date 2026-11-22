@@ -12,8 +12,9 @@ dotnet build apps\dropper-windows\PotionDropper\PotionDropper.csproj -c Debug -p
 
 Or open `Potion.slnx` at the repo root in Visual Studio and run the PotionDropper project.
 
-Status (M5): the window has the link bar; Fetch checks links against the source allowlist (`docs/SOURCES.md`).
-The media card, output options, download queue and Settings come in M7.
+Status (M7.1): first-run acknowledgment, link bar, Fetch with the media card, batches of links, Video/Audio output
+options and the download queue (Stop, Retry with resume, reorder), saving to Downloads. Settings, the history window,
+notifications and taskbar progress follow in M7.2.
 
 ## What comes from where
 

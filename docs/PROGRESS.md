@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M7 Dropper Windows UI (M2–M6 done: engines, Potion for macOS and Windows, Dropper core and macOS app)
-- **Last completed chunk:** M6.3 Dropper macOS: Settings, dropped links, Services
-- **Next chunk:** M7.1 Dropper Windows: C# DropQueue, acknowledgment, link bar with media card, output options
+- **Last completed chunk:** M7.1 Dropper Windows: DropQueue (C#), acknowledgment, Fetch, cards, options, queue
+- **Next chunk:** M7.2 Dropper Windows: Settings, history, notifications, taskbar progress, dropped links, close confirmation
 
 ## Milestones
 
@@ -19,7 +19,7 @@ Read this first in any new session. Update it at every checkpoint.
 | M4 Potion Windows UI | Done (Win11 top-level Explorer menu deferred to M9, see below) |
 | M5 Dropper core | Done |
 | M6 Dropper macOS UI | Done (Share extension deferred to M9, see M6.3) |
-| M7 Dropper Windows UI | Not started |
+| M7 Dropper Windows UI | In progress |
 | M7.5 Personal experimental module (private repo) | Not started |
 | M8 Legal and compliance pass | Not started |
 | M9 Packaging and V1 release | Not started |
@@ -57,6 +57,20 @@ Read this first in any new session. Update it at every checkpoint.
 - Checkpoints: Claude commits and pushes, then waits for "continue".
 - Dropper app scaffolds (`apps/dropper-*`) are created at the start of M5 rather than in M0, so M0–M4 stay
   focused on Potion.
+
+### M7 chunks
+
+- [x] M7.1 `DropQueue` in Potion.Core (C#, same behavior as Swift: parallel limit, no duplicate links, Stop keeps a
+      resumable partial file and Retry continues it, Remove, Clear finished, reorder, overall progress, events;
+      bindable `DropQueueItem` with the macOS status wording; `DropText.Detail`; 7 tests on a UI-like thread).
+      Windows app: first-run acknowledgment `ContentDialog` (Continue enabled by "I understand"; Quit exits), link bar
+      per 06-components.md (40-px sunken well, Fetch inside, "Paste link" when the clipboard holds a link, error
+      caption and border), loading skeleton, media card, batch card ("Download all"), Video/Audio as a two-button
+      segmented control with 20-px category tiles, Format and Quality/Bitrate, queue list (tile, name, status,
+      category-colored progress, Stop / Retry / Show in folder, right-click menu with Copy link and Remove, drag to
+      reorder), header with overall progress, Stop all, Clear finished; history recorded for M7.2's window
+- [ ] M7.2 Settings window (same options as macOS), Download history window, notifications, taskbar progress, dropped
+      links, close confirmation while downloading
 
 ### M6 chunks
 

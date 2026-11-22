@@ -2,14 +2,16 @@
     x:Class="PotionDropper.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:dropper="using:Potion.Core.Dropper"
+    xmlns:local="using:PotionDropper"
     Title="Potion Dropper">
 
-    <Grid>
+    <Grid x:Name="Root" Loaded="Root_Loaded">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />   <!-- title bar -->
-            <RowDefinition Height="Auto" />   <!-- link bar -->
-            <RowDefinition Height="Auto" />   <!-- link check -->
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />   <!-- link bar, card, options -->
+            <RowDefinition Height="Auto" />   <!-- queue header -->
+            <RowDefinition Height="*" />      <!-- queue -->
         </Grid.RowDefinitions>
 
         <!-- Custom title bar (09-platforms.md): small mark + app name. -->
@@ -21,24 +23,166 @@
             </StackPanel>
         </Grid>
 
-        <!-- Link bar (05-layout.md, "Potion Dropper: main window"). -->
-        <Grid Grid.Row="1" Margin="24,8,24,0" ColumnSpacing="{StaticResource PotionSpace2}">
+        <StackPanel Grid.Row="1" Margin="24,8,24,16" Spacing="{StaticResource PotionSpace4}">
+            <!-- Link bar (06-components.md, "Dropper: URL bar"): sunken well, link glyph, Fetch inside the trailing edge. -->
+            <StackPanel Spacing="{StaticResource PotionSpace2}">
+                <Border x:Name="LinkWell" Height="40" CornerRadius="8" BorderThickness="1"
+                        Background="{ThemeResource PotionSurfaceSunkenBrush}" BorderBrush="{ThemeResource PotionBorderStrongBrush}">
+                    <Grid ColumnSpacing="{StaticResource PotionSpace2}" Padding="12,0,4,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE71B;" FontSize="14" Foreground="{ThemeResource PotionTextTertiaryBrush}"
+                                  AutomationProperties.AccessibilityView="Raw" />
+                        <TextBox x:Name="LinkBox" Grid.Column="1" PlaceholderText="Paste a video link" BorderThickness="0"
+                                 Background="Transparent" VerticalAlignment="Center" AutomationProperties.Name="Link"
+                                 TextChanged="LinkBox_TextChanged" KeyDown="LinkBox_KeyDown" GotFocus="LinkBox_GotFocus" />
+                        <Button x:Name="PasteButton" Grid.Column="2" Content="Paste link" Visibility="Collapsed" Click="Paste_Click" />
+                        <Button x:Name="FetchButton" Grid.Column="3" Content="Fetch" Style="{StaticResource AccentButtonStyle}"
+                                IsEnabled="False" Click="Fetch_Click" />
+                    </Grid>
+                </Border>
+                <StackPanel x:Name="ErrorPanel" Orientation="Horizontal" Spacing="{StaticResource PotionSpace2}" Visibility="Collapsed">
+                    <FontIcon Glyph="&#xE783;" FontSize="14" Foreground="{ThemeResource PotionErrorBrush}" AutomationProperties.AccessibilityView="Raw" />
+                    <TextBlock x:Name="ErrorText" TextWrapping="Wrap" Style="{StaticResource BodyTextBlockStyle}" Foreground="{ThemeResource PotionErrorBrush}" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Media card (06-components.md, "Dropper: media card"); also the batch card and the loading skeleton. -->
+            <Grid x:Name="Card" ColumnSpacing="{StaticResource PotionSpace3}" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Width="96" Height="54" CornerRadius="6" Background="{ThemeResource PotionSurfaceRaisedBrush}">
+                    <Border x:Name="CardTile" Width="{StaticResource PotionCategoryTileSize}" Height="{StaticResource PotionCategoryTileSize}"
+                            CornerRadius="8" AutomationProperties.AccessibilityView="Raw">
+                        <FontIcon x:Name="CardGlyph" FontSize="16" />
+                    </Border>
+                </Border>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                    <TextBlock x:Name="CardTitle" TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"
+                               Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBlock x:Name="CardMeta" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource PotionTextSecondaryBrush}" />
+                </StackPanel>
+            </Grid>
+            <Grid x:Name="Skeleton" ColumnSpacing="{StaticResource PotionSpace3}" Visibility="Collapsed"
+                  AutomationProperties.Name="Fetching info…">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Width="96" Height="54" CornerRadius="6" Background="{ThemeResource PotionSurfaceRaisedBrush}" />
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="{StaticResource PotionSpace2}">
+                    <Border Width="240" Height="14" CornerRadius="4" HorizontalAlignment="Left" Background="{ThemeResource PotionSurfaceRaisedBrush}" />
+                    <Border Width="160" Height="12" CornerRadius="4" HorizontalAlignment="Left" Background="{ThemeResource PotionSurfaceRaisedBrush}" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Output options (06-components.md, "Dropper: output mode"). -->
+            <StackPanel x:Name="Options" Orientation="Horizontal" Spacing="{StaticResource PotionSpace4}" Visibility="Collapsed">
+                <StackPanel Orientation="Horizontal" Spacing="0" AutomationProperties.Name="Video or audio">
+                    <ToggleButton x:Name="VideoMode" Click="Mode_Click" CornerRadius="4,0,0,4" AutomationProperties.Name="Video">
+                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource PotionSpace2}">
+                            <Border Width="20" Height="20" CornerRadius="6" Background="{ThemeResource PotionCategoryVideoTintBrush}">
+                                <FontIcon Glyph="&#xE714;" FontSize="12" Foreground="{ThemeResource PotionCategoryVideoTextBrush}" />
+                            </Border>
+                            <TextBlock Text="Video" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton x:Name="AudioMode" Click="Mode_Click" CornerRadius="0,4,4,0" AutomationProperties.Name="Audio">
+                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource PotionSpace2}">
+                            <Border Width="20" Height="20" CornerRadius="6" Background="{ThemeResource PotionCategoryAudioTintBrush}">
+                                <FontIcon Glyph="&#xE8D6;" FontSize="12" Foreground="{ThemeResource PotionCategoryAudioTextBrush}" />
+                            </Border>
+                            <TextBlock Text="Audio" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                </StackPanel>
+                <ComboBox x:Name="FormatBox" Header="Format" MinWidth="160" SelectionChanged="FormatBox_SelectionChanged" />
+                <ComboBox x:Name="QualityBox" Header="Quality" MinWidth="160" />
+            </StackPanel>
+
+            <Grid x:Name="DownloadRow" Visibility="Collapsed">
+                <TextBlock x:Name="SavesTo" VerticalAlignment="Center" Style="{StaticResource CaptionTextBlockStyle}"
+                           Foreground="{ThemeResource PotionTextSecondaryBrush}" />
+                <Button x:Name="DownloadButton" Content="Download" HorizontalAlignment="Right" Style="{StaticResource AccentButtonStyle}"
+                        Click="Download_Click">
+                    <Button.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Control" Key="Enter" />
+                    </Button.KeyboardAccelerators>
+                </Button>
+            </Grid>
+        </StackPanel>
+
+        <!-- Queue header: overall progress, Stop all, Clear finished. -->
+        <Grid x:Name="QueueHeader" Grid.Row="2" Padding="24,8,24,8" ColumnSpacing="{StaticResource PotionSpace3}" Visibility="Collapsed"
+              BorderBrush="{ThemeResource PotionBorderBrush}" BorderThickness="0,1,0,0">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBox x:Name="LinkBox" PlaceholderText="Paste a video link" KeyDown="LinkBox_KeyDown"
-                     TextChanged="LinkBox_TextChanged" AutomationProperties.Name="Link" />
-            <Button Grid.Column="1" Content="Paste" Click="Paste_Click" />
-            <Button x:Name="FetchButton" Grid.Column="2" Content="Fetch" Style="{StaticResource AccentButtonStyle}"
-                    Click="Fetch_Click" IsEnabled="False" />
+            <TextBlock Text="Downloads" VerticalAlignment="Center" Style="{StaticResource BodyStrongTextBlockStyle}" />
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                <TextBlock x:Name="Summary" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource PotionTextSecondaryBrush}" />
+                <ProgressBar x:Name="OverallProgress" Maximum="1" Visibility="Collapsed" AutomationProperties.Name="Overall progress" />
+            </StackPanel>
+            <Button x:Name="StopAllButton" Grid.Column="2" Content="Stop all" Click="StopAll_Click" Visibility="Collapsed" />
+            <Button x:Name="ClearButton" Grid.Column="3" Content="Clear finished" Click="ClearFinished_Click" />
         </Grid>
 
-        <StackPanel x:Name="CheckPanel" Grid.Row="2" Orientation="Horizontal" Spacing="{StaticResource PotionSpace2}"
-                    Margin="24,12,24,0" Visibility="Collapsed">
-            <FontIcon x:Name="CheckIcon" FontSize="14" AutomationProperties.AccessibilityView="Raw" />
-            <TextBlock x:Name="CheckText" TextWrapping="Wrap" Style="{StaticResource BodyTextBlockStyle}" />
-        </StackPanel>
+        <!-- The queue (same row component as Potion). -->
+        <ListView x:Name="QueueList" Grid.Row="3" SelectionMode="Single" Padding="8,0,8,0" CanReorderItems="True" AllowDrop="True"
+                  ItemsSource="{x:Bind Queue.Items}" RightTapped="QueueList_RightTapped">
+            <ListView.ItemContainerTransitions>
+                <TransitionCollection><AddDeleteThemeTransition /></TransitionCollection>
+            </ListView.ItemContainerTransitions>
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="dropper:DropQueueItem">
+                    <Grid MinHeight="{StaticResource PotionQueueRowHeight}" ColumnSpacing="{StaticResource PotionSpace3}" Padding="0,6,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Width="{StaticResource PotionCategoryTileSize}" Height="{StaticResource PotionCategoryTileSize}" CornerRadius="8"
+                                VerticalAlignment="Center" Background="{x:Bind local:Ui.TintBrush(FormatId, Options), Mode=OneWay}"
+                                AutomationProperties.AccessibilityView="Raw">
+                            <FontIcon Glyph="{x:Bind local:Ui.Glyph(FormatId, Options), Mode=OneWay}" FontSize="16"
+                                      Foreground="{x:Bind local:Ui.TextBrush(FormatId, Options), Mode=OneWay}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="{x:Bind Title}" TextTrimming="CharacterEllipsis" Style="{StaticResource BodyStrongTextBlockStyle}"
+                                       ToolTipService.ToolTip="{x:Bind Link.Text}" />
+                            <TextBlock Text="{x:Bind StatusText, Mode=OneWay}" TextTrimming="CharacterEllipsis" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{x:Bind local:Ui.StatusBrush(IsFailed), Mode=OneWay}" />
+                            <ProgressBar Margin="0,4,0,0" Maximum="1" Value="{x:Bind local:Ui.Value(Fraction), Mode=OneWay}"
+                                         IsIndeterminate="{x:Bind local:Ui.Indeterminate(Fraction), Mode=OneWay}"
+                                         Visibility="{x:Bind IsRunning, Mode=OneWay}"
+                                         Foreground="{x:Bind local:Ui.FillBrush(FormatId, Options), Mode=OneWay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                            <Button Click="RowStop_Click" Visibility="{x:Bind CanStop, Mode=OneWay}" Tag="{x:Bind}"
+                                    AutomationProperties.Name="Stop" ToolTipService.ToolTip="Stop">
+                                <FontIcon Glyph="&#xE711;" FontSize="12" />
+                            </Button>
+                            <Button Click="RowRetry_Click" Visibility="{x:Bind CanRetry, Mode=OneWay}" Tag="{x:Bind}"
+                                    AutomationProperties.Name="Retry" ToolTipService.ToolTip="Retry">
+                                <FontIcon Glyph="&#xE72C;" FontSize="12" />
+                            </Button>
+                            <Button Click="RowShow_Click" Visibility="{x:Bind IsDone, Mode=OneWay}" Tag="{x:Bind}"
+                                    AutomationProperties.Name="Show in folder" ToolTipService.ToolTip="Show in folder">
+                                <FontIcon Glyph="&#xE838;" FontSize="12" />
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
     </Grid>
 </Window>
