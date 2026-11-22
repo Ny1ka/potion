@@ -88,3 +88,4 @@ __pycache__/
 universal-file-converter-prompt-*.txt
 universal-converter-*prompt*.md
 TestResults/
+swift-test.log
