@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Potion.Core.App;
 using Potion.Core.Formats;
+using Potion.Core.Windows;
 using Potion.Design;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics;
@@ -26,6 +27,9 @@ public sealed partial class MainWindow : Window
     public QueueModel Queue { get; } = new(SettingsStore.Default());
 
     private DropState _drop = DropState.None;
+    private readonly ConversionService _service = ConversionService.WithBundledTools();
+    private bool _updatingSaveTo;
+    private bool _closeConfirmed;
 
     public MainWindow()
     {
@@ -45,7 +49,11 @@ public sealed partial class MainWindow : Window
             presenter.PreferredMinimumHeight = (int)(MinHeight * scale);
         }
 
+        Queue.Converter = (item, directory, progress, token) =>
+            _service.ConvertAsync(item.Path, item.Format, item.Output!, directory, null, progress, token);
+        Queue.Recycle = NativeShell.MoveToRecycleBin;
         Queue.PropertyChanged += Queue_PropertyChanged;
+        AppWindow.Closing += AppWindow_Closing;
         Refresh();
     }
 
@@ -67,7 +75,7 @@ public sealed partial class MainWindow : Window
         DropZone.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
         QueueList.Visibility = empty ? Visibility.Collapsed : Visibility.Visible;
         Footer.Visibility = empty ? Visibility.Collapsed : Visibility.Visible;
-        CountText.Text = Queue.CountText;
+        RefreshFooter();
         ChooseButton.Visibility = Queue.IsAdding ? Visibility.Collapsed : Visibility.Visible;
         AddingRing.Visibility = Queue.IsAdding ? Visibility.Visible : Visibility.Collapsed;
         AddingRing.IsActive = Queue.IsAdding;
@@ -77,6 +85,106 @@ public sealed partial class MainWindow : Window
         Banner.Message = Queue.BannerMessage ?? "";
         Banner.IsOpen = Queue.BannerMessage is not null;
         ShowDropState();
+    }
+
+    /// <summary>Footer states (06-components.md): options and Convert all, progress and Stop, or the summary.</summary>
+    private void RefreshFooter()
+    {
+        var converting = Queue.IsConverting;
+        var completion = !converting && Queue.CompletionMessage is not null;
+        IdleOptions.Visibility = !converting && !completion ? Visibility.Visible : Visibility.Collapsed;
+        ConvertingPanel.Visibility = converting ? Visibility.Visible : Visibility.Collapsed;
+        CompletionPanel.Visibility = completion ? Visibility.Visible : Visibility.Collapsed;
+        ConvertButton.Visibility = converting ? Visibility.Collapsed : Visibility.Visible;
+        StopButton.Visibility = converting ? Visibility.Visible : Visibility.Collapsed;
+        ClearButton.IsEnabled = !converting;
+        ConvertButton.IsEnabled = Queue.CanConvert;
+        if (converting)
+        {
+            ConvertingText.Text = Queue.ConvertingText;
+            OverallProgress.Value = Queue.BatchFraction;
+        }
+        if (completion)
+        {
+            CompletionText.Text = Queue.CompletionMessage!;
+            CompletionIcon.Glyph = Queue.CompletionHasFailures ? "\uE783" : "\uE73E";
+            CompletionIcon.Foreground = (Brush)Ui.Resource(Queue.CompletionHasFailures ? "PotionErrorBrush" : "PotionSuccessBrush");
+        }
+        RecycleBox.IsChecked = Queue.MoveOriginalsToRecycleBin;
+        RefreshSaveTo();
+        // Taskbar: progress while converting; the error state after a batch with failures (09-platforms.md).
+        NativeShell.SetProgress(Hwnd, converting ? Queue.BatchFraction : 1,
+            converting ? NativeShell.TaskbarState.Normal
+            : completion && Queue.CompletionHasFailures ? NativeShell.TaskbarState.Error : NativeShell.TaskbarState.None);
+    }
+
+    /// <summary>"Same folder as original", recent folders, then "Choose folder…" (Sentence case on Windows).</summary>
+    private void RefreshSaveTo()
+    {
+        _updatingSaveTo = true;
+        var folders = Queue.RecentFolders.ToList();
+        if (Queue.SaveFolder is { } current && !folders.Contains(current, StringComparer.OrdinalIgnoreCase)) folders.Insert(0, current);
+        SaveToBox.Items.Clear();
+        SaveToBox.Items.Add(new ComboBoxItem { Content = "Same folder as original", Tag = "" });
+        foreach (var folder in folders)
+        {
+            var entry = new ComboBoxItem { Content = Path.GetFileName(folder) is { Length: > 0 } n ? n : folder, Tag = folder };
+            ToolTipService.SetToolTip(entry, folder);
+            SaveToBox.Items.Add(entry);
+        }
+        SaveToBox.Items.Add(new ComboBoxItem { Content = "Choose folder…", Tag = "choose" });
+        SaveToBox.SelectedIndex = Queue.SaveFolder is { } selected
+            ? 1 + folders.FindIndex(f => string.Equals(f, selected, StringComparison.OrdinalIgnoreCase))
+            : 0;
+        _updatingSaveTo = false;
+    }
+
+    private async void SaveToBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_updatingSaveTo || SaveToBox.SelectedItem is not ComboBoxItem { Tag: string tag }) return;
+        if (tag == "choose")
+        {
+            var picker = new FolderPicker();
+            picker.FileTypeFilter.Add("*");
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, Hwnd);
+            if (await picker.PickSingleFolderAsync() is StorageFolder folder) Queue.UseSaveFolder(folder.Path);
+            RefreshSaveTo();
+        }
+        else Queue.UseSaveFolder(tag.Length == 0 ? null : tag);
+    }
+
+    private void RecycleBox_Click(object sender, RoutedEventArgs e) => Queue.MoveOriginalsToRecycleBin = RecycleBox.IsChecked == true;
+
+    private void Convert_Click(object sender, RoutedEventArgs e) => Queue.ConvertAll();
+
+    private void Stop_Click(object sender, RoutedEventArgs e) => Queue.Stop();
+
+    private void ShowCompletion_Click(object sender, RoutedEventArgs e)
+    {
+        if (Queue.CompletionOutputs.FirstOrDefault(File.Exists) is { } first) ShowInFolder(first);
+    }
+
+    /// <summary>Asks before closing in the middle of a batch (files that haven't finished won't be saved).</summary>
+    private async void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
+    {
+        if (_closeConfirmed || !Queue.IsConverting) return;
+        args.Cancel = true;
+        var remaining = Queue.Remaining;
+        var dialog = new ContentDialog
+        {
+            XamlRoot = Root.XamlRoot,
+            Title = remaining == 1 ? "Potion is still converting 1 file." : $"Potion is still converting {remaining} files.",
+            Content = "If you close Potion now, files that haven't finished won't be saved.",
+            PrimaryButtonText = "Keep converting",
+            SecondaryButtonText = "Close",
+            DefaultButton = ContentDialogButton.Primary,
+        };
+        if (await dialog.ShowAsync() == ContentDialogResult.Secondary)
+        {
+            Queue.Stop();
+            _closeConfirmed = true;
+            Close();
+        }
     }
 
     /// <summary>Drag-over look (06-components.md): accent when it can be added, error when nothing can be converted.</summary>
@@ -236,8 +344,16 @@ public sealed partial class MainWindow : Window
             foreach (var entry in FormatMenuItems(formats, id => Queue.SetOutput(targets, id))) change.Items.Add(entry);
             menu.Items.Add(change);
         }
+        var retryable = targets.Where(t => t.Status is QueueStatus.Failed or QueueStatus.Canceled).ToList();
+        if (retryable.Count > 0)
+        {
+            var retry = new MenuFlyoutItem { Text = "Retry" };
+            retry.Click += (_, _) => Queue.Convert(retryable);
+            menu.Items.Add(retry);
+        }
         var show = new MenuFlyoutItem { Text = "Show in folder" };
-        show.Click += (_, _) => ShowInFolder(targets.First().Path);
+        // Done rows show the converted file; others the original.
+        show.Click += (_, _) => ShowInFolder(targets.First().SavedFiles.FirstOrDefault(File.Exists) ?? targets.First().Path);
         menu.Items.Add(show);
         menu.Items.Add(new MenuFlyoutSeparator());
         var remove = new MenuFlyoutItem { Text = "Remove" };

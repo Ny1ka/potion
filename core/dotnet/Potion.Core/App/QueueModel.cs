@@ -24,6 +24,8 @@ public sealed class SettingsStore(string path)
 
     public string? GetString(string key) => _values.TryGetValue(key, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
     public bool GetBool(string key, bool fallback) => _values.TryGetValue(key, out var v) && v.ValueKind is JsonValueKind.True or JsonValueKind.False ? v.GetBoolean() : fallback;
+    public IReadOnlyList<string> GetStrings(string key) =>
+        _values.TryGetValue(key, out var v) && v.ValueKind == JsonValueKind.Array ? v.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString()!).ToList() : [];
     public int GetInt(string key, int fallback) => _values.TryGetValue(key, out var v) && v.ValueKind == JsonValueKind.Number && v.TryGetInt32(out var i) ? i : fallback;
 
     public void Set(string key, object? value)
@@ -174,7 +176,7 @@ public sealed record DropState(int Files, int Folders, bool Invalid)
 }
 
 /// <summary>The main window's file list (UI-framework neutral; the WinUI view binds to it).</summary>
-public sealed class QueueModel(SettingsStore settings, ConversionMatrix? matrix = null) : INotifyPropertyChanged
+public sealed partial class QueueModel(SettingsStore settings, ConversionMatrix? matrix = null) : INotifyPropertyChanged
 {
     private readonly ConversionMatrix _matrix = matrix ?? ConversionMatrix.Shared;
 
@@ -277,12 +279,15 @@ public sealed class QueueModel(SettingsStore settings, ConversionMatrix? matrix 
 
     public void Remove(IEnumerable<QueueItem> items)
     {
-        foreach (var item in items.ToList()) Items.Remove(item);
+        var list = items.ToList();
+        CancelRunning(list);
+        foreach (var item in list) Items.Remove(item);
         NotifyListChanged();
     }
 
     public void Clear()
     {
+        if (IsConverting) return;
         Items.Clear();
         DismissBanner();
         NotifyListChanged();

@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M4 Potion Windows UI (M2 engines and M3 Potion macOS UI are done)
-- **Last completed chunk:** M4.1 Windows window, drop zone and queue (WinUI 3)
-- **Next chunk:** M4.2 Converting from the queue on Windows
+- **Last completed chunk:** M4.2 Converting from the queue on Windows
+- **Next chunk:** M4.3 Convert dialog and Advanced options on Windows
 
 ## Milestones
 
@@ -16,7 +16,7 @@ Read this first in any new session. Update it at every checkpoint.
 | M1 Core: formats | Done |
 | M2 Core: conversion engines | Done (macOS M2.0–M2.6, Windows M2.7a–d) |
 | M3 Potion macOS UI | Done (Quick Action extension deferred to M9, see below) |
-| M4 Potion Windows UI | In progress (M4.1 done) |
+| M4 Potion Windows UI | In progress (M4.1–M4.2 done) |
 | M5 Dropper core | Not started |
 | M6 Dropper macOS UI | Not started |
 | M7 Dropper Windows UI | Not started |
@@ -56,7 +56,12 @@ Read this first in any new session. Update it at every checkpoint.
       valid/invalid drag states, Add files (Ctrl+O) / Add folder, files from the command line, queue rows (tile, name,
       details, format menu grouped by category, status with icon), Delete, right-click Change format / Show in folder /
       Remove, InfoBar for files that can't be converted, footer with Clear. Built by CI only (no local Windows)
-- [ ] M4.2 Converting from the queue (ConversionService, progress, Stop, Save to, Recycle Bin, taskbar progress)
+- [x] M4.2 Queue runner in `Potion.Core.App` (same behavior as macOS: two at a time, adjustable 1–4, per-row and
+      overall progress, Stop, Retry, summary, Recycle Bin only after a verified save; 5 tests on a UI-like thread).
+      Windows app: ConversionService plugged in, FFmpeg copied into an `ffmpeg` folder next to Potion.exe (required for
+      Release), footer with Save to (same folder / recent / Choose folder…), Move originals to Recycle Bin, Convert all
+      (Ctrl+Enter), progress + Stop (Esc), "12 files converted · Show in folder", taskbar progress (error state after
+      failures), Retry and Show in folder for converted files, confirmation before closing mid-batch
 - [ ] M4.3 Convert dialog and Advanced options
 - [ ] M4.4 Settings, notifications, File Explorer context menu (needs MSIX/sparse package)
 

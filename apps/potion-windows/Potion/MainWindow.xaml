@@ -104,12 +104,50 @@
             </ListView.ItemTemplate>
         </ListView>
 
-        <!-- Footer (06-components.md, "Footer bar"). Save options and Convert all arrive with conversion (M4.2). -->
-        <Grid x:Name="Footer" Grid.Row="4" Visibility="Collapsed" Height="52" Padding="24,0,24,0"
+        <!-- Footer (06-components.md, "Footer bar"): save options and Convert all; progress and Stop while converting;
+             a short summary afterwards. -->
+        <Grid x:Name="Footer" Grid.Row="4" Visibility="Collapsed" MinHeight="52" Padding="24,8,24,8" ColumnSpacing="{StaticResource PotionSpace3}"
               BorderBrush="{ThemeResource PotionBorderBrush}" BorderThickness="0,1,0,0">
-            <TextBlock x:Name="CountText" VerticalAlignment="Center" Style="{StaticResource CaptionTextBlockStyle}"
-                       Foreground="{ThemeResource PotionTextSecondaryBrush}" />
-            <Button Content="Clear" HorizontalAlignment="Right" VerticalAlignment="Center" Click="Clear_Click" />
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Idle: where to save. -->
+            <StackPanel x:Name="IdleOptions" Orientation="Horizontal" Spacing="{StaticResource PotionSpace3}" VerticalAlignment="Center">
+                <ComboBox x:Name="SaveToBox" MinWidth="200" SelectionChanged="SaveToBox_SelectionChanged"
+                          AutomationProperties.Name="Save to" ToolTipService.ToolTip="Where converted files are saved" />
+                <CheckBox x:Name="RecycleBox" Content="Move originals to Recycle Bin" Click="RecycleBox_Click"
+                          ToolTipService.ToolTip="After a file converts, move the original to the Recycle Bin" />
+            </StackPanel>
+
+            <!-- Converting: overall progress. -->
+            <StackPanel x:Name="ConvertingPanel" Spacing="4" VerticalAlignment="Center" Visibility="Collapsed">
+                <TextBlock x:Name="ConvertingText" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource PotionTextSecondaryBrush}" />
+                <ProgressBar x:Name="OverallProgress" Maximum="1" AutomationProperties.Name="Overall progress" />
+            </StackPanel>
+
+            <!-- After a batch: summary. -->
+            <StackPanel x:Name="CompletionPanel" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Visibility="Collapsed">
+                <FontIcon x:Name="CompletionIcon" Glyph="&#xE73E;" FontSize="12" Foreground="{ThemeResource PotionSuccessBrush}"
+                          AutomationProperties.AccessibilityView="Raw" />
+                <TextBlock x:Name="CompletionText" VerticalAlignment="Center" Style="{StaticResource CaptionTextBlockStyle}" />
+                <HyperlinkButton Content="Show in folder" Click="ShowCompletion_Click" Padding="4,0,4,0" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource PotionSpace2}" VerticalAlignment="Center">
+                <Button x:Name="ClearButton" Content="Clear" Click="Clear_Click" />
+                <Button x:Name="ConvertButton" Content="Convert all" Style="{StaticResource AccentButtonStyle}" Click="Convert_Click">
+                    <Button.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Control" Key="Enter" />
+                    </Button.KeyboardAccelerators>
+                </Button>
+                <Button x:Name="StopButton" Content="Stop" Click="Stop_Click" Visibility="Collapsed">
+                    <Button.KeyboardAccelerators>
+                        <KeyboardAccelerator Key="Escape" />
+                    </Button.KeyboardAccelerators>
+                </Button>
+            </StackPanel>
         </Grid>
     </Grid>
 </Window>
