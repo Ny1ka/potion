@@ -138,3 +138,34 @@ public sealed class VideoPresets
         (30, "30"), (50, "50"), (60000.0 / 1001, "60000/1001"), (60, "60"),
     ];
 }
+
+/// <summary>PDF settings from presets.json ("pdf"): render resolutions, the pixel cap and compression levels.</summary>
+public sealed class PdfPresets
+{
+    public sealed record DpiSettings(double Default, List<double> Choices);
+    private sealed record PdfSection(DpiSettings RenderDpi, int MaxRenderPixels);
+    private sealed record PresetFile(PdfSection Pdf);
+
+    private static readonly Lazy<PdfPresets> SharedInstance = new(() => new PdfPresets(EnginePlatform.BundledPresetsJson()));
+    public static PdfPresets Shared => SharedInstance.Value;
+
+    public double DefaultDpi { get; }
+    public IReadOnlyList<double> DpiChoices { get; }
+    public int MaxRenderPixels { get; }
+
+    public PdfPresets(string json)
+    {
+        var pdf = (JsonSerializer.Deserialize<PresetFile>(json, EnginePlatform.Json) ?? throw new JsonException("empty presets.json")).Pdf;
+        DefaultDpi = pdf.RenderDpi.Default;
+        DpiChoices = pdf.RenderDpi.Choices;
+        MaxRenderPixels = pdf.MaxRenderPixels;
+    }
+}
+
+/// <param name="Pages">1-based pages to convert (see <see cref="PageSelection"/>), or null for every page.</param>
+/// <param name="Dpi">Resolution for PDF → image, and for pictures of scanned pages.</param>
+/// <param name="ImagePresetId">JPEG quality preset for PDF → JPG.</param>
+public sealed record PdfOptions(IReadOnlyList<int>? Pages = null, double? Dpi = null, string? ImagePresetId = null);
+
+/// <summary>Options for one conversion, per kind of file. Each engine reads only its own part.</summary>
+public sealed record ConversionSettings(AudioOptions? Audio = null, VideoOptions? Video = null, ImageOptions? Image = null, PdfOptions? Pdf = null);

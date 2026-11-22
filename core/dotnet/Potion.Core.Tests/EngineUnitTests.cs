@@ -50,6 +50,14 @@ public sealed class EngineUnitTests : EngineTestBase
     }
 
     [Fact]
+    public void PdfPresetsLoad()
+    {
+        Assert.Equal(150, PdfPresets.Shared.DefaultDpi);
+        Assert.Contains(300.0, PdfPresets.Shared.DpiChoices);
+        Assert.Equal(10000, PdfPresets.Shared.MaxRenderPixels);
+    }
+
+    [Fact]
     public void GeometryNeverUpscalesAndLetterboxes()
     {
         static MediaStream Video(int w, int h) => new(0, StreamKind.Video, "h264", "", null, null, null, null, w, h, 30, null, false, null);

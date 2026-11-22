@@ -4,9 +4,9 @@ Read this first in any new session. Update it at every checkpoint.
 
 ## Status
 
-- **Current milestone:** M2.7 Windows engines, then M4 Potion Windows UI (M3 Potion macOS UI is done)
-- **Last completed chunk:** M2.7d-4a Windows PDF tools + PDF → documents (C#)
-- **Next chunk:** M2.7d-4b Windows-only PDF → images, scanned pages, images → PDF, C# ConversionService
+- **Current milestone:** M4 Potion Windows UI (M2 engines and M3 Potion macOS UI are done)
+- **Last completed chunk:** M2.7d-4b Windows PDF rendering, images → PDF, C# ConversionService
+- **Next chunk:** M4.1 Windows window, drop zone and queue (WinUI 3)
 
 ## Milestones
 
@@ -14,7 +14,7 @@ Read this first in any new session. Update it at every checkpoint.
 |---|---|
 | M0 Scaffold | Done |
 | M1 Core: formats | Done |
-| M2 Core: conversion engines | macOS done (M2.0–M2.6); M2.7 Windows runs before M4 |
+| M2 Core: conversion engines | Done (macOS M2.0–M2.6, Windows M2.7a–d) |
 | M3 Potion macOS UI | Done (Quick Action extension deferred to M9, see below) |
 | M4 Potion Windows UI | Not started |
 | M5 Dropper core | Not started |
@@ -124,8 +124,10 @@ Read this first in any new session. Update it at every checkpoint.
           reorder, compress (best stream compression; images aren't recompressed on Windows) with PDFsharp 6.2.4,
           and PDF → DOCX/TXT/HTML via PdfPig text in reading order (page breaks between pages, page selection).
           Any encrypted PDF (password or owner restrictions) gets the copy-protected message. 5 tests
-    - [ ] M2.7d-4b Windows-only: PDF → PNG/JPG/SVG (Windows.Data.Pdf), pictures of scanned pages, images → PDF,
-          and a C# `ConversionService` routing every operation like the Swift one
+    - [x] M2.7d-4b `WindowsPdfEngine` (Potion.Core.Windows): PDF → PNG/JPG/SVG with Windows.Data.Pdf (resolution,
+          pixel cap, page selection), pictures of scanned pages for PDF → document, images → PDF (WIC decode,
+          PDFsharp pages at 72 dpi); `ConversionService` routes every matrix operation to its Windows engine.
+          Shared `PdfPresets`, `PdfOptions`, `ConversionSettings` in Potion.Core. 3 Windows-only tests (CI)
 
 ### M3 chunks
 
