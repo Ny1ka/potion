@@ -7,16 +7,17 @@ BIN="${1:?usage: verify-license.sh <bin-dir>}"
 FFMPEG="$BIN/ffmpeg"; [[ -x "$FFMPEG" ]] || FFMPEG="$BIN/ffmpeg.exe"
 fail() { echo "✗ $*" >&2; exit 1; }
 
-config="$("$FFMPEG" -hide_banner -buildconf)"
+# Windows builds print CRLF line endings; drop the carriage returns so the same checks work everywhere.
+config="$("$FFMPEG" -hide_banner -buildconf | tr -d '\r')"
 # The license text is wrapped across lines; flatten it before searching.
-license="$("$FFMPEG" -hide_banner -L | tr -s '\n ' '  ')"
+license="$("$FFMPEG" -hide_banner -L | tr -d '\r' | tr -s '\n ' '  ')"
 
 grep -q -- "--enable-gpl" <<<"$config" && fail "built with --enable-gpl"
 grep -q -- "--enable-nonfree" <<<"$config" && fail "built with --enable-nonfree"
 grep -q "GNU Lesser General Public License" <<<"$license" || fail "license is not LGPL"
 grep -q -- "--disable-network" <<<"$config" || fail "network support is enabled"
 # Patent-encumbered formats are encoded by the OS (spec Part 6.1.2), so FFmpeg's own AAC encoder must be absent.
-"$FFMPEG" -hide_banner -encoders 2>/dev/null | grep -qE '^ A[A-Z.]{5} aac ' && fail "FFmpeg's native AAC encoder is included"
+"$FFMPEG" -hide_banner -encoders 2>/dev/null | tr -d '\r' | grep -qE '^ A[A-Z.]{5} aac ' && fail "FFmpeg's native AAC encoder is included"
 for lib in libx264 libx265 libfdk-aac libxvid librubberband libvidstab; do
   grep -q -- "--enable-$lib" <<<"$config" && fail "GPL or non-free library enabled: $lib"
 done

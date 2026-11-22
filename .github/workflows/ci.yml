@@ -44,7 +44,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: build/ffmpeg/macos
-          key: ffmpeg-macos-${{ hashFiles('scripts/ffmpeg/versions.sh', 'scripts/ffmpeg/build-macos.sh', 'scripts/ffmpeg/verify-license.sh') }}
+          key: ffmpeg-macos-${{ hashFiles('scripts/ffmpeg/versions.sh', 'scripts/ffmpeg/build-macos.sh') }}
       - name: Build FFmpeg (LGPL, universal)
         if: steps.ffmpeg-cache.outputs.cache-hit != 'true'
         run: scripts/ffmpeg/build-macos.sh universal
@@ -79,7 +79,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: build/ffmpeg/windows
-          key: ffmpeg-windows-${{ hashFiles('scripts/ffmpeg/versions.sh', 'scripts/ffmpeg/build-windows.sh', 'scripts/ffmpeg/verify-windows-build.sh') }}
+          key: ffmpeg-windows-${{ hashFiles('scripts/ffmpeg/versions.sh', 'scripts/ffmpeg/build-windows.sh') }}
           enableCrossOsArchive: true
       - name: Install MinGW-w64 and build tools
         if: steps.ffmpeg-cache.outputs.cache-hit != 'true'
@@ -101,7 +101,7 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: build/ffmpeg/windows
-          key: ffmpeg-windows-${{ hashFiles('scripts/ffmpeg/versions.sh', 'scripts/ffmpeg/build-windows.sh', 'scripts/ffmpeg/verify-windows-build.sh') }}
+          key: ffmpeg-windows-${{ hashFiles('scripts/ffmpeg/versions.sh', 'scripts/ffmpeg/build-windows.sh') }}
           enableCrossOsArchive: true
           fail-on-cache-miss: true
       - name: Verify FFmpeg license (runs the .exe)
