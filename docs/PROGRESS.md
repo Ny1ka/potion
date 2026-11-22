@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M2.7 Windows engines, then M4 Potion Windows UI (M3 Potion macOS UI is done)
-- **Last completed chunk:** M2.7d-2a Windows document model + TXT/Markdown/HTML/EPUB readers
-- **Next chunk:** M2.7d-2b DOCX, ODT and RTF readers (C#)
+- **Last completed chunk:** M2.7d-2b DOCX, ODT and RTF readers (C#)
+- **Next chunk:** M2.7d-3 Windows document writers + document → PDF (MigraDoc)
 
 ## Milestones
 
@@ -101,7 +101,11 @@ Read this first in any new session. Update it at every checkpoint.
           (UTF-8/UTF-16/Windows-1252), HTML (HtmlAgilityPack; nothing fetched, only data: and local images),
           Markdown (Markdig → HTML, like macOS) and EPUB (spine order, images from the book, DRM check). 7 tests,
           run on every platform
-    - [ ] M2.7d-2b DOCX (Open XML SDK), ODT and RTF readers
+    - [x] M2.7d-2b readers for DOCX (Open XML SDK 3.5.1: heading styles/outline levels, lists with numbering,
+          tables, hyperlinks incl. HYPERLINK fields, images, run formatting, page setup; encrypted files →
+          copy-protected), ODT (content/styles XML: headings, lists with start values, tables, links, images,
+          automatic styles, page layout; password-protected → copy-protected) and RTF (own parser: formatting,
+          fonts, colors, Unicode/code page, lists, tables, hyperlink fields, PNG/JPEG pictures, page size). 6 tests
     - [ ] M2.7d-3 Writers for the same formats + document → PDF (PDFsharp/MigraDoc)
     - [ ] M2.7d-4 PDF tools and conversions (PDFsharp, PdfPig for text, Windows.Data.Pdf for images), images → PDF
 

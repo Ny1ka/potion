@@ -7,8 +7,8 @@ using Potion.Core.Formats;
 
 namespace Potion.Core.Documents;
 
-/// <summary>Reads documents into the format-neutral <see cref="Document"/> (Windows). Same coverage as the macOS
-/// readers: TXT, Markdown, HTML and EPUB here; DOCX, ODT and RTF in their own readers.</summary>
+/// <summary>Reads documents into the format-neutral <see cref="Document"/> (Windows): TXT, Markdown, HTML, EPUB,
+/// DOCX, ODT and RTF, like the macOS readers (DOC is macOS-only; see formats.json).</summary>
 public static class DocumentReader
 {
     static DocumentReader() => Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -24,15 +24,27 @@ public static class DocumentReader
                 "md" => ReadMarkdown(DecodeText(File.ReadAllBytes(path)), Path.GetDirectoryName(Path.GetFullPath(path))!),
                 "html" => HtmlReader.Read(DecodeText(File.ReadAllBytes(path)), HtmlReader.LocalImages(Path.GetDirectoryName(Path.GetFullPath(path))!)),
                 "epub" => ReadEpub(path),
+                "docx" => IsEncryptedOfficeFile(path) ? throw ConversionException.CopyProtected() : DocxReader.Read(path),
+                "odt" => OdtReader.Read(path),
+                "rtf" => RtfReader.Read(Encoding.Latin1.GetString(File.ReadAllBytes(path))),
                 _ => throw ConversionException.Unsupported(format.Name, "a document"),
             };
             document.Title ??= Path.GetFileNameWithoutExtension(path);
             return document;
         }
-        catch (Exception e) when (e is IOException or InvalidDataException or XmlException or FormatException or KeyNotFoundException)
+        catch (Exception e) when (e is not ConversionException and not OperationCanceledException and not OutOfMemoryException)
         {
+            // Malformed files make the parsers throw many kinds of exceptions; to the user they're all unreadable.
             throw ConversionException.Unreadable(name);
         }
+    }
+
+    /// <summary>Password-protected Word files are an OLE container with an <c>EncryptedPackage</c> stream instead of a zip.</summary>
+    public static bool IsEncryptedOfficeFile(string path)
+    {
+        var data = File.ReadAllBytes(path);
+        if (data.Length < 8 || !data.AsSpan(0, 8).SequenceEqual(new byte[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 })) return false;
+        return data.AsSpan().IndexOf(Encoding.Unicode.GetBytes("EncryptedPackage")) >= 0;
     }
 
     /// <summary>UTF-8 (with or without a byte-order mark), UTF-16 with a byte-order mark, otherwise Windows Latin 1.</summary>
