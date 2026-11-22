@@ -28,8 +28,15 @@ struct Completion: Equatable {
 /// Converting the queue: up to `maxParallel` files at once, each through `ConversionService`.
 /// Stop cancels the running files (FFmpeg processes are terminated) and leaves the rest waiting.
 extension QueueModel {
-    /// Two at a time: FFmpeg already uses every core for one video, and documents and images are quick.
-    static let maxParallel = 2
+    /// Two at a time by default: FFmpeg already uses every core for one video, and documents and images are
+    /// quick. Settings › Advanced allows 1–4.
+    static let defaultParallel = 2
+    static let parallelLimit = 4
+
+    var maxParallel: Int {
+        let value = defaults.object(forKey: SettingsKey.maxParallel) as? Int ?? Self.defaultParallel
+        return min(max(value, 1), Self.parallelLimit)
+    }
 
     var canConvert: Bool { !isConverting && items.contains { $0.isConvertible } }
 
@@ -44,6 +51,7 @@ extension QueueModel {
         guard !chosen.isEmpty else { return }
         for index in chosen { items[index].status = .waiting }
         if !isConverting {
+            Notifications.requestPermissionIfNeeded(defaults: defaults)
             batch = BatchProgress()
             batchIDs = []
             stopping = false
@@ -65,11 +73,18 @@ extension QueueModel {
 
     /// Starts waiting rows of this batch until `maxParallel` are running; ends the batch when nothing is left.
     private func pump() {
-        while !stopping, running.count < Self.maxParallel,
+        while !stopping, running.count < maxParallel,
               let next = items.first(where: { batchIDs.contains($0.id) && $0.status == .waiting && running[$0.id] == nil }) {
             start(next)
         }
         if running.isEmpty, isConverting { finishBatch() }
+        updateDockBadge()
+    }
+
+    /// Dock badge with the number of files left in the batch (09-platforms.md).
+    func updateDockBadge() {
+        let remaining = batch.total - batch.finished
+        NSApp.dockTile.badgeLabel = isConverting && remaining > 0 ? "\(remaining)" : nil
     }
 
     private func start(_ item: QueueItem) {
@@ -126,6 +141,7 @@ extension QueueModel {
 
     private func finishBatch() {
         isConverting = false
+        updateDockBadge()
         let converted = batch.converted
         // Rows that never started because of Stop stay waiting, ready for the next Convert All.
         batchIDs = []
@@ -134,6 +150,9 @@ extension QueueModel {
         let files = converted == 1 ? "1 file converted" : "\(converted) files converted"
         let message = batch.failed == 0 ? files : "\(files), \(batch.failed) failed"
         completion = Completion(message: message, outputs: batch.outputs)
+        if !NSApp.isActive, defaults.object(forKey: SettingsKey.notifications) as? Bool ?? true {
+            Notifications.post(message: message, outputs: batch.outputs)
+        }
         completionTask?.cancel()
         completionTask = Task { [weak self] in
             try? await Task.sleep(nanoseconds: 6_000_000_000)

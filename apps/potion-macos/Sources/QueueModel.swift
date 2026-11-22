@@ -159,6 +159,8 @@ enum SettingsKey {
     static let saveFolder = "saveFolder"
     static let recentFolders = "recentFolders"
     static let moveToTrash = "moveOriginalsToTrash"
+    static let notifications = "notifyWhenDone"
+    static let maxParallel = "maxParallelConversions"
     static func lastOutput(_ category: FormatCategory) -> String { "lastOutput.\(category.rawValue)" }
 }
 

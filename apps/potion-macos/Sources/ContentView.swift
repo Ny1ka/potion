@@ -48,6 +48,9 @@ struct ContentView: View {
                 Button { queue.showImporter = true } label: { Label("Add Files", systemImage: "plus") }
                     .help("Add files or folders")
             }
+            ToolbarItem {
+                SettingsButton()
+            }
         }
     }
 
@@ -310,5 +313,20 @@ struct SaveToPicker: View {
 private extension View {
     @ViewBuilder func labelsHidden(_ hidden: Bool) -> some View {
         if hidden { labelsHidden() } else { self }
+    }
+}
+
+/// Toolbar gear that opens Settings (09-platforms.md, "Toolbar").
+struct SettingsButton: View {
+    var body: some View {
+        if #available(macOS 14, *) {
+            SettingsLink { Label("Settings", systemImage: "gearshape") }
+                .help("Settings")
+        } else {
+            Button {
+                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            } label: { Label("Settings", systemImage: "gearshape") }
+                .help("Settings")
+        }
     }
 }

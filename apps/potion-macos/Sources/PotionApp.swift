@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import UserNotifications
 
 @main
 struct PotionApp: App {
@@ -19,16 +20,34 @@ struct PotionApp: App {
                 QueueCommands(queue: delegate.queue)
             }
         }
+
+        Settings {
+            SettingsView()
+                .environmentObject(delegate.queue)
+        }
     }
 }
 
 /// Owns the queue so files opened with Potion (dropped on the Dock icon, Open With, `open -a Potion`) land in it.
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     let queue = QueueModel()
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        UNUserNotificationCenter.current().delegate = self
+        Notifications.registerCategory()
+    }
 
     func application(_ application: NSApplication, open urls: [URL]) {
         queue.add(urls.filter(\.isFileURL))
+    }
+
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
+                                            withCompletionHandler completionHandler: @escaping () -> Void) {
+        Task { @MainActor in
+            Notifications.reveal(response)
+            completionHandler()
+        }
     }
 }
 
@@ -49,5 +68,9 @@ struct QueueCommands: View {
         Button("Stop") { queue.stop() }
             .keyboardShortcut(".")
             .disabled(!queue.isConverting)
+        Divider()
+        Button("Show in Finder") { queue.reveal(queue.selection) }
+            .keyboardShortcut("r", modifiers: [.command, .shift])
+            .disabled(queue.selection.isEmpty)
     }
 }

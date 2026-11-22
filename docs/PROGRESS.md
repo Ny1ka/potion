@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M3 Potion macOS UI (M2.7 Windows engines moved to just before M4, owner's call)
-- **Last completed chunk:** M3.3 Convert sheet and Advanced options (macOS)
-- **Next chunk:** M3.4 Settings, menus, Dock badge, notifications (macOS)
+- **Last completed chunk:** M3.4 Settings, menus, Dock badge, notifications (macOS)
+- **Next chunk:** M3.5 Finder Quick Action and first-launch onboarding (macOS)
 
 ## Milestones
 
@@ -15,7 +15,7 @@ Read this first in any new session. Update it at every checkpoint.
 | M0 Scaffold | Done |
 | M1 Core: formats | Done |
 | M2 Core: conversion engines | macOS done (M2.0–M2.6); M2.7 Windows runs before M4 |
-| M3 Potion macOS UI | In progress (M3.1–M3.3 done) |
+| M3 Potion macOS UI | In progress (M3.1–M3.4 done) |
 | M4 Potion Windows UI | Not started |
 | M5 Dropper core | Not started |
 | M6 Dropper macOS UI | Not started |
@@ -101,7 +101,11 @@ Read this first in any new session. Update it at every checkpoint.
       images (size, quality, rotate, flip), PDF (pages with live validation, resolution, JPG quality); a summary
       line of what will happen; Advanced stays open once opened. Footer "Convert all to" when every row is
       the same kind of file. Codec display names added to presets.json
-- [ ] M3.4 Settings (General, Output, Advanced), menus, Dock badge, notifications
+- [x] M3.4 Settings window (⌘, or the toolbar gear): General (include subfolders, notifications), Output (save
+      location, Move originals to Trash, default format per file type), Advanced (1–4 files at once, audio/video
+      tools present). File menu: Add Files… ⌘O, Options… ⌘I, Convert All ⌘↩, Stop ⌘., Show in Finder ⌘⇧R.
+      Dock badge with files left; a notification with Show when a batch ends in the background (permission is
+      asked when the first batch starts, not at launch)
 - [ ] M3.5 Finder Quick Action ("Convert with Potion") and first-launch onboarding
 
 ## Decisions coming up (from the final spec)
@@ -152,4 +156,6 @@ Read this first in any new session. Update it at every checkpoint.
 - macOS UI: drag-over states (valid/invalid), the grouped format menus and the footer "Convert all to" menu
   are built to the design docs but weren't captured in screenshots (they need a real drag or click). Check
   them when trying the app. The convert sheet has no size estimate yet ("about 120 MB" in 06-components).
+  The completion notification and Dock badge weren't triggered in testing (the first notification shows the
+  owner a permission prompt); check them on the first real batch.
 - Screenshots: Screen Recording is granted to VS Code, so Claude can capture app windows to check UI work.
