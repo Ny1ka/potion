@@ -13,6 +13,7 @@ cases, so macOS and Windows agree on what a file is and what it can become.
 | `tests/pages.json` | Conformance cases for page selections ("1-3, 5") used by the PDF tools |
 | `sources.json` | Potion Dropper's source allowlist, link limits, User-Agent and link error messages |
 | `tests/links.json` | Conformance cases for link parsing, normalization and source matching |
+| `tests/downloads.json` | Conformance cases for server answers, content checks, download file names and robots.txt |
 
 The Swift package can't read files outside its own folder, so `core/swift/Sources/PotionCore/Resources/`
 holds byte-for-byte copies. Run `make sync-spec` after editing anything here. A test in both cores fails if
@@ -156,8 +157,9 @@ order; each `id` must have an adapter in both cores (in a `SourceAdapters` folde
 | `limits.maxLinkLength` | Longest normalized link accepted |
 | `limits.maxLinksPerPaste` | Links kept from one paste or drop; the rest are counted as `overLimit` |
 | `playlistExtensions` | Streaming playlists and manifests, refused |
+| `download` | Redirect, timeout and retry limits, robots.txt size cap, default size limit, file name length, and content-type groups (below) |
 | `sources[]` | `id`, `name`, the `categories` it provides, and the `reviewed` date |
-| `messages` | User-facing text for each link error |
+| `messages` | User-facing text for each link and download error |
 
 Both cores parse links with their own code (not the platform URL parser), so they agree byte for byte.
 
@@ -190,3 +192,48 @@ Split on whitespace; remove leading `< ( [ { " ' “ ‘ «` and trailing `> ) ]
 a link candidate if it contains `://` or starts with an obvious host (step 2); other words are ignored. Candidates
 that fail are reported with their error; good links are kept in order without duplicates (compared after
 normalizing), up to `maxLinksPerPaste`.
+
+## Downloads (sources.json `download`, tests/downloads.json)
+
+### Server answers
+
+| Status | Result |
+|---|---|
+| 200, or 206 when a range was asked for | Check the content type (below), then the size: `Content-Length` over the size limit → `tooLarge` |
+| 206 without a range request, 204, other 1xx–4xx not listed | `refused` |
+| 301, 302, 303, 307, 308 | Follow `Location` (relative ones resolve against the current link), at most `maxRedirects` times (`tooManyRedirects`). Each target is parsed and matched like a typed link. No `Location` → `refused` |
+| 401, 403, 407 | `accessDenied` (never retried with credentials) |
+| 404, 410 | `notFound` |
+| 416 | With a range request: restart from the beginning. Otherwise `refused` |
+| 451 | `unavailableForLegalReasons` |
+| 429 | Retry after `Retry-After` seconds (a number, or an HTTP date measured from the response's `Date`), `defaultRetrySeconds` when missing or invalid; longer than `maxRetrySeconds` → `rateLimited`. At most `retries` times |
+| 503 | Retry like 429 when `Retry-After` is present and short enough; otherwise `serverError` |
+| other 5xx | `serverError` |
+
+Content type (lowercased, parameters removed): a `playlist` type → `playlist`; a `page` type → `unsupportedSite`;
+`audio/*`, `video/*` or a `media` type → media; empty or a `generic` type → **sniff**; anything else → `notMedia`.
+
+### Content check (sniff)
+
+The first `headerSize` bytes of every body go through format detection with the download's file name. An audio or
+video format is accepted (and decides the output extension). A text format, or text that isn't a known format (an
+error or sign-in page) → `unsupportedSite`. Any other format, unknown binary data or an empty body → `notMedia`.
+Bodies the server labelled as media are checked too, so a mislabelled page never reaches the converter.
+
+### File names
+
+`filename*` (RFC 8187, UTF-8 or ISO-8859-1), then `filename` from `Content-Disposition` (directory parts
+removed), then the link's decoded file name, then the host. Each candidate is cleaned: control characters
+removed, `< > : " / \ | ? *` replaced with `_`, dots and whitespace trimmed from both ends, `_` prepended to
+Windows device names (`CON`, `PRN`, `AUX`, `NUL`, `COM1–9`, `LPT1–9`, compared before the first dot), and
+shortened to `maxFileNameLength` characters (Unicode scalars) keeping an extension of up to 10 characters. A
+candidate that ends up empty falls through to the next.
+
+### robots.txt (RFC 9309)
+
+Fetched once per site and session, following redirects. 2xx → parse (at most `maxRobotsBytes`); 4xx → everything
+allowed; 5xx or no answer → nothing allowed. Groups whose `User-agent` product token equals Potion Dropper's
+(`PotionDropper`, case-insensitive) apply; if none, the `*` groups do. Matching groups combine. A rule's path
+(percent-encoded like link paths) matches from the start of the link's path and query; `*` matches anything and a
+final `$` anchors the end. The longest matching rule wins, `Allow` on a tie; no match allows. `/robots.txt` is
+always allowed.

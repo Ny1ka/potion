@@ -13,6 +13,42 @@
     "ism",
     "pls"
   ],
+  "download": {
+    "maxRedirects": 5,
+    "timeoutSeconds": 30,
+    "retries": 2,
+    "defaultRetrySeconds": 5,
+    "maxRetrySeconds": 60,
+    "maxRobotsBytes": 512000,
+    "defaultMaxBytes": 4294967296,
+    "maxFileNameLength": 200,
+    "contentTypes": {
+      "playlist": [
+        "application/vnd.apple.mpegurl",
+        "application/x-mpegurl",
+        "audio/mpegurl",
+        "audio/x-mpegurl",
+        "application/dash+xml",
+        "video/vnd.mpeg.dash.mpd"
+      ],
+      "media": [
+        "application/ogg",
+        "application/mp4",
+        "application/x-matroska"
+      ],
+      "generic": [
+        "application/octet-stream",
+        "binary/octet-stream",
+        "application/download",
+        "application/force-download",
+        "application/x-download"
+      ],
+      "page": [
+        "text/html",
+        "application/xhtml+xml"
+      ]
+    }
+  },
   "sources": [
     {
       "id": "direct",
@@ -33,6 +69,18 @@
     "invalidPort": "This link's port number isn't valid.",
     "playlist": "Potion Dropper can't download streaming playlists.",
     "notMedia": "This link isn't an audio or video file.",
-    "unsupportedSite": "Potion Dropper can't download from this site."
+    "unsupportedSite": "Potion Dropper can't download from this site.",
+    "accessDenied": "This file needs a sign-in or isn't public, so Potion Dropper can't download it.",
+    "notFound": "This file isn't on the site anymore. Check the link.",
+    "unavailableForLegalReasons": "The site says this file isn't available for legal reasons.",
+    "rateLimited": "The site is limiting downloads right now. Try again later.",
+    "serverError": "The site isn't answering right now. Try again later.",
+    "refused": "The site refused this download.",
+    "tooLarge": "This file is larger than the size limit in Settings.",
+    "robotsDisallowed": "This site asks apps not to download this file, so Potion Dropper won't.",
+    "tooManyRedirects": "This link redirects too many times.",
+    "network": "Can't reach the site. Check your internet connection.",
+    "timedOut": "The site stopped responding. Try again later.",
+    "interrupted": "The download stopped before it finished. Try again."
   }
 }

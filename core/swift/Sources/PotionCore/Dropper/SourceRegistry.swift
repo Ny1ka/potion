@@ -77,6 +77,7 @@ public final class SourceRegistry: Sendable {
     public let maxLinkLength: Int
     public let maxLinksPerPaste: Int
     public let playlistExtensions: Set<String>
+    public let download: DownloadSettings
     private let userAgentTemplate: String
     private let messages: [String: String]
     private let adapters: [(SourceInfo, any SourceAdapter)]
@@ -88,6 +89,7 @@ public final class SourceRegistry: Sendable {
         let userAgent: String
         let limits: Limits
         let playlistExtensions: [String]
+        let download: DownloadSettings
         let sources: [SourceInfo]
         let messages: [String: String]
     }
@@ -104,8 +106,8 @@ public final class SourceRegistry: Sendable {
         }
         guard spec.version == 1 else { throw LoadError.invalid("Unsupported sources.json version \(spec.version)") }
         guard spec.limits.maxLinkLength > 0, spec.limits.maxLinksPerPaste > 0 else { throw LoadError.invalid("Limits must be positive") }
-        for error in LinkError.allCases where spec.messages[error.rawValue] == nil {
-            throw LoadError.invalid("No message for \(error.rawValue)")
+        for id in LinkError.allCases.map(\.rawValue) + DownloadError.allCases.map(\.id) where spec.messages[id] == nil {
+            throw LoadError.invalid("No message for \(id)")
         }
 
         var byID: [String: any SourceAdapter] = [:]
@@ -126,6 +128,7 @@ public final class SourceRegistry: Sendable {
         maxLinkLength = spec.limits.maxLinkLength
         maxLinksPerPaste = spec.limits.maxLinksPerPaste
         playlistExtensions = Set(spec.playlistExtensions)
+        download = spec.download
         userAgentTemplate = spec.userAgent
         messages = spec.messages
         self.adapters = pairs
@@ -137,8 +140,14 @@ public final class SourceRegistry: Sendable {
         userAgentTemplate.replacingOccurrences(of: "{version}", with: version)
     }
 
+    /// The product token robots.txt groups are matched against ("PotionDropper").
+    public var robotsAgent: String { String(userAgentTemplate.prefix { $0 != "/" && $0 != " " }) }
+
     /// The text shown for a link error (follows the design system's voice rules).
     public func message(for error: LinkError) -> String { messages[error.rawValue] ?? "" }
+
+    /// The text shown for a download error.
+    public func message(for error: DownloadError) -> String { messages[error.id] ?? "" }
 
     /// Parses one link, as typed into the link field.
     public func link(from input: String) -> Result<DropLink, LinkError> {

@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M5 Dropper core (M2–M4 done: engines, Potion for macOS and Windows)
-- **Last completed chunk:** M5.1 Dropper links and the source allowlist
-- **Next chunk:** M5.2 Download manager (HTTP download, server checks, limits, resume, temp files)
+- **Last completed chunk:** M5.2a Download rules (server answers, content check, file names, robots.txt)
+- **Next chunk:** M5.2b Downloader (transport, redirects, robots.txt, resume, progress)
 
 ## Milestones
 
@@ -57,10 +57,15 @@ Read this first in any new session. Update it at every checkpoint.
       pasted text (punctuation, duplicates, 100-link limit), `SourceRegistry` with adapters in `SourceAdapters`
       folders (refuses to load an adapter missing from sources.json; tests check every source has a SOURCES.md
       entry with the same review date)
-- [ ] M5.2 Download manager (Swift + C#): HTTP(S) download of a `DropLink` with the honest User-Agent, server check
-      (audio/video content type and content detection, `needsCheck` links), size limit, redirects (re-checked against
-      the allowlist), resume with Range, `Retry-After`, timeouts, robots rules, hidden temp file, cancellation; tests
-      against a local test server
+- [x] M5.2a Download rules (Swift + C#, `core/spec/tests/downloads.json`: 52 server answers, 10 content checks,
+      22 file names, 7 robots statuses, 20 robots files): what to do with each status (redirects, retries with
+      `Retry-After`, resume restarts, access errors), content-type groups and the size limit, the content check that
+      every body passes before conversion, safe file names from `Content-Disposition` or the link, robots.txt
+      parsing and matching (RFC 9309) for the `PotionDropper` token, download error messages
+- [ ] M5.2b Downloader (Swift + C#): HTTP transport over URLSession / HttpClient with the honest User-Agent and no
+      cookies or credentials, redirects re-checked against the allowlist, robots.txt per site, retries, resume with
+      Range/If-Range, progress and speed, timeouts, size limit while streaming, hidden temp file, cancellation; tests
+      with a scripted transport and a local test server
 - [ ] M5.3 Dropper jobs: download → media info (duration limit, default 30 minutes) → convert with the existing
       engines (stream copy when possible), naming templates, duplicate/overwrite protection, history the user can
       clear; Dropper app scaffolds (`apps/dropper-macos`, `apps/dropper-windows`) that build in CI

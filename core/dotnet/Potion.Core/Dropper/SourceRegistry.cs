@@ -60,6 +60,7 @@ public sealed class SourceRegistry
     public int MaxLinkLength { get; }
     public int MaxLinksPerPaste { get; }
     public IReadOnlySet<string> PlaylistExtensions { get; }
+    public DownloadSettings Download { get; }
 
     private readonly string _userAgent;
     private readonly Dictionary<string, string> _messages;
@@ -91,8 +92,9 @@ public sealed class SourceRegistry
             if (MaxLinkLength <= 0 || MaxLinksPerPaste <= 0) throw new FormatSpecException("Limits must be positive");
             PlaylistExtensions = root.GetProperty("playlistExtensions").EnumerateArray().Select(e => e.GetString()!).ToHashSet();
             _messages = root.GetProperty("messages").EnumerateObject().ToDictionary(p => p.Name, p => p.Value.GetString()!);
-            foreach (var error in Enum.GetValues<LinkError>())
-                if (!_messages.ContainsKey(Id(error))) throw new FormatSpecException($"No message for {Id(error)}");
+            foreach (var id in Enum.GetValues<LinkError>().Select(Id).Concat(DownloadError.All.Select(e => e.Id)))
+                if (!_messages.ContainsKey(id)) throw new FormatSpecException($"No message for {id}");
+            Download = ParseDownload(root.GetProperty("download"));
 
             var byId = new Dictionary<string, ISourceAdapter>();
             foreach (var adapter in adapters ?? SourceAdapters.BuiltIn)
@@ -116,6 +118,23 @@ public sealed class SourceRegistry
             Sources = sources;
         }
     }
+
+    private static DownloadSettings ParseDownload(JsonElement d)
+    {
+        var types = d.GetProperty("contentTypes");
+        IReadOnlySet<string> Set(string name) => types.GetProperty(name).EnumerateArray().Select(e => e.GetString()!).ToHashSet();
+        return new DownloadSettings(
+            d.GetProperty("maxRedirects").GetInt32(), d.GetProperty("timeoutSeconds").GetInt32(), d.GetProperty("retries").GetInt32(),
+            d.GetProperty("defaultRetrySeconds").GetInt32(), d.GetProperty("maxRetrySeconds").GetInt32(), d.GetProperty("maxRobotsBytes").GetInt32(),
+            d.GetProperty("defaultMaxBytes").GetInt64(), d.GetProperty("maxFileNameLength").GetInt32(),
+            Set("playlist"), Set("media"), Set("generic"), Set("page"));
+    }
+
+    /// <summary>The product token robots.txt groups are matched against ("PotionDropper").</summary>
+    public string RobotsAgent => new(_userAgent.TakeWhile(c => c is not ('/' or ' ')).ToArray());
+
+    /// <summary>The text shown for a download error.</summary>
+    public string Message(DownloadError error) => _messages[error.Id];
 
     /// <summary>The id used in sources.json and the shared test cases ("notALink").</summary>
     public static string Id(LinkError error) => JsonNamingPolicy.CamelCase.ConvertName(error.ToString());
