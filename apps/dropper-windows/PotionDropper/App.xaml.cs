@@ -14,6 +14,8 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         _window = new MainWindow();
+        Notifications.Register();
+        _window.Closed += (_, _) => Notifications.Unregister();
         _window.Activate();
     }
 }

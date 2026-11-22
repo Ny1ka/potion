@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
@@ -25,8 +24,9 @@ public sealed partial class MainWindow : Window
     private readonly SourceRegistry _registry = SourceRegistry.Shared;
     private readonly Downloader _downloader;
     private readonly DropHistory _history;
-    internal SettingsStore Settings { get; } =
-        new(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Potion Dropper", "settings.json"));
+    private readonly DropperSettings _settings = DropperSettings.Default;
+    private bool _isActive = true;
+    private bool _closeConfirmed;
 
     public DropQueue Queue { get; }
 
@@ -44,7 +44,8 @@ public sealed partial class MainWindow : Window
         FFmpegTools? tools = null;
         try { tools = FFmpegTools.Locate(); } catch (ConversionException) { }
         var runner = new DropJobRunner(_downloader, new FFmpegMediaConverter(tools));
-        Queue = new DropQueue((link, folder, options, resume, stage, token) => runner.RunAsync(link, folder, options, resume, stage, token));
+        Queue = new DropQueue((link, folder, options, resume, stage, token) => runner.RunAsync(link, folder, options, resume, stage, token),
+            _settings.MaxParallel);
         _history = new DropHistory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Potion Dropper", "history.json"));
 
         InitializeComponent();
@@ -58,21 +59,79 @@ public sealed partial class MainWindow : Window
         Queue.PropertyChanged += (_, _) => UpdateQueueHeader();
         Queue.Items.CollectionChanged += (_, _) => UpdateQueueHeader();
         Queue.ItemFinished += Record;
-        SavesTo.Text = $"Saves to {Path.GetFileName(OutputFolder.TrimEnd(Path.DirectorySeparatorChar))}";
+        Queue.BatchFinished += (done, failed) => { if (!_isActive && _settings.Notifications) Notifications.BatchFinished(done, failed); };
+        Activated += (_, e) =>
+        {
+            _isActive = e.WindowActivationState != WindowActivationState.Deactivated;
+            if (_isActive) RefreshSavesTo();
+        };
+        AppWindow.Closing += AppWindow_Closing;
+        RefreshSavesTo();
         UpdateQueueHeader();
     }
 
-    /// <summary>Downloads go here (Settings arrive in M7.2).</summary>
-    internal string OutputFolder =>
-        Settings.GetString("outputFolder") is { } path && Directory.Exists(path) ? path : KnownFolders.Downloads;
+    private IntPtr Hwnd => WinRT.Interop.WindowNative.GetWindowHandle(this);
+    private string OutputFolder => _settings.OutputFolder;
+
+    private void RefreshSavesTo() => SavesTo.Text = $"Saves to {Path.GetFileName(OutputFolder.TrimEnd(Path.DirectorySeparatorChar))}";
+
+    private void History_Click(object sender, RoutedEventArgs e) => HistoryWindow.ShowFor(_history);
+    private void Settings_Click(object sender, RoutedEventArgs e) => SettingsWindow.ShowFor(_settings, Queue, _history);
+
+    /// <summary>Asks before closing while downloads are running (they wouldn't be saved).</summary>
+    private async void AppWindow_Closing(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowClosingEventArgs args)
+    {
+        if (_closeConfirmed || Queue.Remaining == 0) return;
+        args.Cancel = true;
+        var remaining = Queue.Remaining;
+        var dialog = new ContentDialog
+        {
+            XamlRoot = Root.XamlRoot,
+            Title = remaining == 1 ? "Potion Dropper is still downloading 1 link." : $"Potion Dropper is still downloading {remaining} links.",
+            Content = "If you close Potion Dropper now, downloads that haven't finished won't be saved.",
+            PrimaryButtonText = "Keep downloading",
+            SecondaryButtonText = "Close",
+            DefaultButton = ContentDialogButton.Primary,
+        };
+        if (await dialog.ShowAsync() == ContentDialogResult.Secondary)
+        {
+            Queue.StopAll();
+            _closeConfirmed = true;
+            Close();
+        }
+    }
+
+    // Dropped links
+
+    private void Root_DragOver(object sender, DragEventArgs e)
+    {
+        if (!e.DataView.Contains(StandardDataFormats.WebLink) && !e.DataView.Contains(StandardDataFormats.Text)) return;
+        e.AcceptedOperation = DataPackageOperation.Link;
+        e.DragUIOverride.Caption = "Fetch link";
+    }
+
+    /// <summary>A link dragged from a browser or another app is fetched like a pasted one.</summary>
+    private async void Root_Drop(object sender, DragEventArgs e)
+    {
+        try
+        {
+            string? text = null;
+            if (e.DataView.Contains(StandardDataFormats.WebLink)) text = (await e.DataView.GetWebLinkAsync()).AbsoluteUri;
+            else if (e.DataView.Contains(StandardDataFormats.Text)) text = await e.DataView.GetTextAsync();
+            if (string.IsNullOrWhiteSpace(text)) return;
+            LinkBox.Text = text.Trim();
+            Fetch();
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or System.Runtime.InteropServices.COMException) { }
+    }
 
     // First-run acknowledgment
 
     private async void Root_Loaded(object sender, RoutedEventArgs e)
     {
         LinkBox.Focus(FocusState.Programmatic);
-        if (Settings.GetInt(Acknowledgment.SettingsKey, 0) >= Acknowledgment.Version) return;
-        if (await Acknowledgment.ShowAsync(Root.XamlRoot)) Settings.Set(Acknowledgment.SettingsKey, Acknowledgment.Version);
+        if (_settings.AcknowledgedVersion >= Acknowledgment.Version) return;
+        if (await Acknowledgment.ShowAsync(Root.XamlRoot)) _settings.AcknowledgedVersion = Acknowledgment.Version;
         else Application.Current.Exit();
     }
 
@@ -257,7 +316,7 @@ public sealed partial class MainWindow : Window
 
     // Download
 
-    private long MaxBytes => _registry.Download.DefaultMaxBytes;
+    private long MaxBytes => _settings.MaxBytes;
 
     private DropOptions OptionsFor(string? format)
     {
@@ -265,7 +324,7 @@ public sealed partial class MainWindow : Window
         var settings = _mode == DropMode.Video
             ? new ConversionSettings(Video: new VideoOptions(PresetId: preset))
             : new ConversionSettings(Audio: new AudioOptions(PresetId: preset));
-        return new DropOptions(format, settings, MaxBytes: MaxBytes);
+        return new DropOptions(format, settings, _settings.NameTemplate, MaxBytes, _settings.MaxDurationMinutes, _settings.KeepSource);
     }
 
     private void Download_Click(object sender, RoutedEventArgs e)
@@ -299,6 +358,8 @@ public sealed partial class MainWindow : Window
         OverallProgress.Visibility = StopAllButton.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
         OverallProgress.Value = fraction;
         ClearButton.IsEnabled = Queue.Items.Any(i => i.IsDone);
+        // Taskbar progress (09-platforms.md): normal while downloading, cleared when idle.
+        Taskbar.SetProgress(Hwnd, fraction, busy ? Taskbar.State.Normal : Taskbar.State.None);
     }
 
     private void StopAll_Click(object sender, RoutedEventArgs e) => Queue.StopAll();
@@ -338,15 +399,13 @@ public sealed partial class MainWindow : Window
 
     private static void ShowInFolder(DropQueueItem item)
     {
-        if (item.Files.FirstOrDefault(File.Exists) is not { } path) return;
-        var info = new ProcessStartInfo("explorer.exe") { UseShellExecute = false };
-        info.ArgumentList.Add($"/select,{path}");
-        Process.Start(info);
+        if (item.Files.FirstOrDefault(File.Exists) is { } path) Notifications.ShowInFolder(path);
     }
 
     /// <summary>History keeps what the user can see and clear: finished and failed downloads (spec Part 6.1.4).</summary>
     private void Record(DropQueueItem item)
     {
+        if (!_settings.KeepHistory) return;
         try
         {
             if (item.IsDone)
@@ -356,6 +415,7 @@ public sealed partial class MainWindow : Window
                 _history.Add(DropHistory.Entry.Create(item.Link.Text, item.Link.Host, item.Title, error: item.Error));
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { /* history is a convenience */ }
+        HistoryWindow.RefreshIfOpen();
     }
 }
 
@@ -392,19 +452,6 @@ internal static class Acknowledgment
         check.Checked += (_, _) => dialog.IsPrimaryButtonEnabled = true;
         check.Unchecked += (_, _) => dialog.IsPrimaryButtonEnabled = false;
         return await dialog.ShowAsync() == ContentDialogResult.Primary;
-    }
-}
-
-/// <summary>The user's Downloads folder (SHGetKnownFolderPath via the environment's user profile).</summary>
-internal static class KnownFolders
-{
-    public static string Downloads
-    {
-        get
-        {
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
-            return Directory.Exists(path) ? path : Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        }
     }
 }
 

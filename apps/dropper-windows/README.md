@@ -12,9 +12,10 @@ dotnet build apps\dropper-windows\PotionDropper\PotionDropper.csproj -c Debug -p
 
 Or open `Potion.slnx` at the repo root in Visual Studio and run the PotionDropper project.
 
-Status (M7.1): first-run acknowledgment, link bar, Fetch with the media card, batches of links, Video/Audio output
-options and the download queue (Stop, Retry with resume, reorder), saving to Downloads. Settings, the history window,
-notifications and taskbar progress follow in M7.2.
+Status (M7 done): first-run acknowledgment, link bar, Fetch with the media card, batches of links, Video/Audio output
+options, the download queue (Stop, Retry with resume, reorder), Settings, Download history (Ctrl+H), notifications,
+taskbar progress, dropped links and a confirmation before closing mid-download. About with Terms and Privacy comes in
+M8; a share target needs package identity (M9).
 
 ## What comes from where
 

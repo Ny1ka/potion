@@ -6,7 +6,7 @@
     xmlns:local="using:PotionDropper"
     Title="Potion Dropper">
 
-    <Grid x:Name="Root" Loaded="Root_Loaded">
+    <Grid x:Name="Root" Loaded="Root_Loaded" AllowDrop="True" DragOver="Root_DragOver" Drop="Root_Drop">
         <Grid.Resources>
             <local:CategoryBrushConverter x:Key="TintBrush" Kind="Tint" />
             <local:CategoryBrushConverter x:Key="TextBrush" Kind="Text" />
@@ -16,6 +16,7 @@
         </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />   <!-- title bar -->
+            <RowDefinition Height="Auto" />   <!-- commands -->
             <RowDefinition Height="Auto" />   <!-- link bar, card, options -->
             <RowDefinition Height="Auto" />   <!-- queue header -->
             <RowDefinition Height="*" />      <!-- queue -->
@@ -30,7 +31,21 @@
             </StackPanel>
         </Grid>
 
-        <StackPanel Grid.Row="1" Margin="24,8,24,16" Spacing="{StaticResource PotionSpace4}">
+        <!-- History and Settings. -->
+        <CommandBar Grid.Row="1" DefaultLabelPosition="Right" HorizontalAlignment="Right" Background="Transparent"
+                    Margin="0,0,16,0" IsDynamicOverflowEnabled="False">
+            <AppBarButton Label="History" Click="History_Click" ToolTipService.ToolTip="Download history">
+                <AppBarButton.Icon><FontIcon Glyph="&#xE81C;" /></AppBarButton.Icon>
+                <AppBarButton.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Control" Key="H" />
+                </AppBarButton.KeyboardAccelerators>
+            </AppBarButton>
+            <AppBarButton Label="Settings" Click="Settings_Click" ToolTipService.ToolTip="Settings">
+                <AppBarButton.Icon><FontIcon Glyph="&#xE713;" /></AppBarButton.Icon>
+            </AppBarButton>
+        </CommandBar>
+
+        <StackPanel Grid.Row="2" Margin="24,0,24,16" Spacing="{StaticResource PotionSpace4}">
             <!-- Link bar (06-components.md, "Dropper: URL bar"): sunken well, link glyph, Fetch inside the trailing edge. -->
             <StackPanel Spacing="{StaticResource PotionSpace2}">
                 <Border x:Name="LinkWell" Height="40" CornerRadius="8" BorderThickness="1"
@@ -126,7 +141,7 @@
         </StackPanel>
 
         <!-- Queue header: overall progress, Stop all, Clear finished. -->
-        <Grid x:Name="QueueHeader" Grid.Row="2" Padding="24,8,24,8" ColumnSpacing="{StaticResource PotionSpace3}" Visibility="Collapsed"
+        <Grid x:Name="QueueHeader" Grid.Row="3" Padding="24,8,24,8" ColumnSpacing="{StaticResource PotionSpace3}" Visibility="Collapsed"
               BorderBrush="{ThemeResource PotionBorderBrush}" BorderThickness="0,1,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -144,7 +159,7 @@
         </Grid>
 
         <!-- The queue (same row component as Potion). -->
-        <ListView x:Name="QueueList" Grid.Row="3" SelectionMode="Single" Padding="8,0,8,0" CanReorderItems="True" AllowDrop="True"
+        <ListView x:Name="QueueList" Grid.Row="4" SelectionMode="Single" Padding="8,0,8,0" CanReorderItems="True" AllowDrop="True"
                   ItemsSource="{x:Bind Queue.Items}" RightTapped="QueueList_RightTapped">
             <ListView.ItemContainerTransitions>
                 <TransitionCollection><AddDeleteThemeTransition /></TransitionCollection>

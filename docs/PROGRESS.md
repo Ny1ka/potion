@@ -4,9 +4,9 @@ Read this first in any new session. Update it at every checkpoint.
 
 ## Status
 
-- **Current milestone:** M7 Dropper Windows UI (M2–M6 done: engines, Potion for macOS and Windows, Dropper core and macOS app)
-- **Last completed chunk:** M7.1 Dropper Windows: DropQueue (C#), acknowledgment, Fetch, cards, options, queue
-- **Next chunk:** M7.2 Dropper Windows: Settings, history, notifications, taskbar progress, dropped links, close confirmation
+- **Current milestone:** M7.5 Personal module loading point (M2–M7 done: engines, Potion and Potion Dropper on both platforms)
+- **Last completed chunk:** M7.2 Dropper Windows: Settings, history, notifications, taskbar, dropped links
+- **Next chunk:** M7.5 Generic, Debug-only external adapter loading point (both apps)
 
 ## Milestones
 
@@ -19,7 +19,7 @@ Read this first in any new session. Update it at every checkpoint.
 | M4 Potion Windows UI | Done (Win11 top-level Explorer menu deferred to M9, see below) |
 | M5 Dropper core | Done |
 | M6 Dropper macOS UI | Done (Share extension deferred to M9, see M6.3) |
-| M7 Dropper Windows UI | In progress |
+| M7 Dropper Windows UI | Done (share target deferred to M9) |
 | M7.5 Personal experimental module (private repo) | Not started |
 | M8 Legal and compliance pass | Not started |
 | M9 Packaging and V1 release | Not started |
@@ -69,8 +69,12 @@ Read this first in any new session. Update it at every checkpoint.
       segmented control with 20-px category tiles, Format and Quality/Bitrate, queue list (tile, name, status,
       category-colored progress, Stop / Retry / Show in folder, right-click menu with Copy link and Remove, drag to
       reorder), header with overall progress, Stop all, Clear finished; history recorded for M7.2's window
-- [ ] M7.2 Settings window (same options as macOS), Download history window, notifications, taskbar progress, dropped
-      links, close confirmation while downloading
+- [x] M7.2 Settings window (same options and keys as macOS: notifications, downloads at once, keep a history and
+      Clear history, save folder, keep the original, naming template with an example, largest download, length
+      limit), Download history window (Ctrl+H; Show in folder, Copy link, Remove, Clear history with confirmation),
+      notifications with Show in folder when a batch ends in the background, taskbar progress, links dropped on the
+      window, confirmation before closing mid-download. Deferred: Windows share target (needs package identity, M9);
+      the optional tray icon (off by default per 06-components.md, so not in V1)
 
 ### M6 chunks
 
