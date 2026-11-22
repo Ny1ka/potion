@@ -6,7 +6,7 @@ import Foundation
 /// closure (a `DropJobRunner` in the app, a fake in tests).
 @MainActor
 public final class DropQueue: ObservableObject {
-    public typealias Run = @Sendable (DropLink, DropOptions, ResumeState?, @escaping @Sendable (DropStage) -> Void) async throws -> DropOutcome
+    public typealias Run = @Sendable (DropLink, URL, DropOptions, ResumeState?, @escaping @Sendable (DropStage) -> Void) async throws -> DropOutcome
 
     public struct Item: Identifiable, Equatable, Sendable {
         public enum Status: Equatable, Sendable {
@@ -22,6 +22,8 @@ public final class DropQueue: ObservableObject {
 
         public let id: UUID
         public let link: DropLink
+        /// Where the download is saved (fixed when it's queued).
+        public let folder: URL
         public let options: DropOptions
         /// What the row shows: the file name from Fetch, or the link's own file name or site.
         public let title: String
@@ -101,10 +103,10 @@ public final class DropQueue: ObservableObject {
 
     /// Adds a link. A link that is already waiting or downloading isn't added twice; its id is returned instead.
     @discardableResult
-    public func add(_ link: DropLink, options: DropOptions, title: String? = nil, formatID: String? = nil) -> UUID {
+    public func add(_ link: DropLink, into folder: URL, options: DropOptions, title: String? = nil, formatID: String? = nil) -> UUID {
         if let existing = items.first(where: { $0.link == link && ($0.status == .waiting || $0.isRunning) }) { return existing.id }
         let name = title ?? (link.parts.fileName.isEmpty ? link.host : link.parts.fileName)
-        let item = Item(id: UUID(), link: link, options: options, title: name, formatID: formatID, status: .waiting)
+        let item = Item(id: UUID(), link: link, folder: folder, options: options, title: name, formatID: formatID, status: .waiting)
         items.append(item)
         batch.append(item.id)
         pump()
@@ -176,7 +178,7 @@ public final class DropQueue: ObservableObject {
         }
         tasks[id] = Task { [weak self] in
             do {
-                let outcome = try await run(item.link, item.options, resume, relay)
+                let outcome = try await run(item.link, item.folder, item.options, resume, relay)
                 self?.finish(id, outcome: outcome, error: nil)
             } catch {
                 self?.finish(id, outcome: nil, error: error)

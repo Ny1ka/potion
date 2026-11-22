@@ -8,9 +8,10 @@ make dropper-macos           # command-line Debug build
 make run-dropper-macos       # build and launch
 ```
 
-Status (M6.2): first-run acknowledgment, link bar, Fetch with the media card, batches of links, Video/Audio output
-options, the download queue (Stop, Retry with resume, reorder), Download History (⌘Y), notifications and the Dock
-badge. Downloads go to Downloads; Settings and link hand-off follow in M6.3.
+Status (M6 done): first-run acknowledgment, link bar, Fetch with the media card, batches of links, Video/Audio output
+options, the download queue (Stop, Retry with resume, reorder), Download History (⌘Y), notifications, the Dock badge,
+Settings (folder, naming template, size and length limits, downloads at once, history), dropped links and
+Services › "Download with Potion Dropper". About with Terms and Privacy comes in M8; a Share extension in M9.
 
 ## What comes from where
 

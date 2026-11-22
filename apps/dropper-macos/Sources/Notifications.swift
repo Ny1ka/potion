@@ -12,6 +12,7 @@ enum Notifications {
 
     /// Called when the first download is queued, so the permission prompt appears in context, never at launch.
     static func requestPermissionIfNeeded() {
+        guard DropperSettings.notifications else { return }
         let center = UNUserNotificationCenter.current()
         center.getNotificationSettings { settings in
             guard settings.authorizationStatus == .notDetermined else { return }
@@ -27,7 +28,7 @@ enum Notifications {
     }
 
     static func batchFinished(done: [DropQueue.Item], failed: [DropQueue.Item]) {
-        guard !NSApp.isActive else { return }
+        guard !NSApp.isActive, DropperSettings.notifications else { return }
         let content = UNMutableNotificationContent()
         let finished = done.count == 1 ? "1 download finished" : "\(done.count) downloads finished"
         switch (done.isEmpty, failed.isEmpty) {

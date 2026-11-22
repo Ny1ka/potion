@@ -41,17 +41,15 @@ final class DropperModel: ObservableObject {
     private var fetchTask: Task<Void, Never>?
     private var queueWatch: AnyCancellable?
 
-    /// Where downloads are saved (Settings arrive in M6.3).
-    var outputFolder: URL { FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)[0] }
-    var maxBytes: Int64 { registry.download.defaultMaxBytes }
+    var outputFolder: URL { DropperSettings.outputFolder }
+    var maxBytes: Int64 { DropperSettings.maxBytes }
 
     init() {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.0.0"
         let downloader = Downloader(transport: URLSessionTransport(), appVersion: version)
         let runner = DropJobRunner(downloader: downloader, converter: ConversionService.withBundledTools())
-        let folder = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)[0]
         self.downloader = downloader
-        queue = DropQueue { link, options, resume, stage in
+        queue = DropQueue(maxParallel: DropperSettings.maxParallel) { link, folder, options, resume, stage in
             try await runner.run(link, into: folder, options: options, resume: resume, stage: stage)
         }
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -108,6 +106,12 @@ final class DropperModel: ObservableObject {
         }
     }
 
+    /// Links dropped on the window or sent from another app (Services): fetched like typed ones.
+    func receive(_ text: String) {
+        self.text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        fetchLink()
+    }
+
     /// Pastes the clipboard's text into the field and fetches it.
     func pasteAndFetch() {
         guard let string = NSPasteboard.general.string(forType: .string) else { return }
@@ -141,21 +145,24 @@ final class DropperModel: ObservableObject {
         FormatRegistry.shared.formats.filter { $0.category == (mode == .video ? .video : .audio) && $0.isAvailable(on: ConversionMatrix.currentPlatform) }
     }
 
-    private var settings: ConversionSettings {
-        ConversionSettings(audio: AudioOptions(presetID: audioPresetID), video: VideoOptions(presetID: videoPresetID))
+    /// The options for a new download: the card's choices plus Settings.
+    private func options(format: String?) -> DropOptions {
+        DropOptions(outputFormatID: format,
+                    settings: ConversionSettings(audio: AudioOptions(presetID: audioPresetID), video: VideoOptions(presetID: videoPresetID)),
+                    nameTemplate: DropperSettings.nameTemplate, maxBytes: DropperSettings.maxBytes,
+                    maxDurationMinutes: DropperSettings.maxDurationMinutes, keepSource: DropperSettings.keepSource)
     }
 
     /// Adds the fetched link (or every link of a batch) to the queue and clears the link bar for the next one.
     func download() {
         Notifications.requestPermissionIfNeeded()
+        let folder = outputFolder
         if let media, let formatID {
-            var options = DropOptions(outputFormatID: formatID == media.source.id ? nil : formatID, settings: settings)
-            options.maxBytes = maxBytes
-            queue.add(media.link, options: options, title: media.preview.fileName, formatID: media.source.id)
+            queue.add(media.link, into: folder, options: options(format: formatID == media.source.id ? nil : formatID),
+                      title: media.preview.fileName, formatID: media.source.id)
         } else if !batchLinks.isEmpty {
-            var options = DropOptions(outputFormatID: batchFormatID, settings: settings)
-            options.maxBytes = maxBytes
-            for link in batchLinks { queue.add(link, options: options) }
+            let shared = options(format: batchFormatID)
+            for link in batchLinks { queue.add(link, into: folder, options: shared) }
         } else {
             return
         }
@@ -170,6 +177,7 @@ final class DropperModel: ObservableObject {
 
     /// History keeps what the user can see and clear: finished and failed downloads (spec Part 6.1.4).
     private func record(_ item: DropQueue.Item) {
+        guard DropperSettings.keepHistory else { return }
         let entry: DropHistory.Entry
         switch item.status {
         case .done(let files):

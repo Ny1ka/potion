@@ -13,7 +13,7 @@ final class ControlledRuns: @unchecked Sendable {
     func resumeSeen(_ link: String) -> ResumeState?? { lock.withLock { _resumes[link] } }
     var running: Int { lock.withLock { waiting.count } }
 
-    func run(_ link: DropLink, _ options: DropOptions, _ resume: ResumeState?, _ stage: @escaping @Sendable (DropStage) -> Void) async throws -> DropOutcome {
+    func run(_ link: DropLink, _ folder: URL, _ options: DropOptions, _ resume: ResumeState?, _ stage: @escaping @Sendable (DropStage) -> Void) async throws -> DropOutcome {
         lock.withLock {
             _started.append(link.string)
             _resumes[link.string] = resume
@@ -45,7 +45,7 @@ final class DropQueueTests: XCTestCase {
     @MainActor
     func make(_ maxParallel: Int = 2) -> (ControlledRuns, DropQueue) {
         let runs = ControlledRuns()
-        return (runs, DropQueue(maxParallel: maxParallel) { try await runs.run($0, $1, $2, $3) })
+        return (runs, DropQueue(maxParallel: maxParallel) { try await runs.run($0, $1, $2, $3, $4) })
     }
 
     /// Waits (briefly) for asynchronous queue work to settle.
@@ -58,7 +58,7 @@ final class DropQueueTests: XCTestCase {
     @MainActor func testRunsAtMostMaxParallelInOrder() async {
         let (runs, queue) = make()
         func status(_ id: UUID) -> DropQueue.Item.Status? { queue.items.first { $0.id == id }?.status }
-        let ids = (1...4).map { queue.add(link($0), options: DropOptions()) }
+        let ids = (1...4).map { queue.add(link($0), into: URL(fileURLWithPath: "/tmp"), options: DropOptions()) }
         await until { runs.running == 2 }
         XCTAssertEqual(runs.started, [link(1).string, link(2).string])
         XCTAssertEqual(status(ids[2]), .waiting)
@@ -74,8 +74,8 @@ final class DropQueueTests: XCTestCase {
 
     @MainActor func testTheSameLinkIsNotQueuedTwice() {
         let (_, queue) = make()
-        let a = queue.add(link(1), options: DropOptions())
-        let b = queue.add(link(1), options: DropOptions())
+        let a = queue.add(link(1), into: URL(fileURLWithPath: "/tmp"), options: DropOptions())
+        let b = queue.add(link(1), into: URL(fileURLWithPath: "/tmp"), options: DropOptions())
         XCTAssertEqual(a, b)
         XCTAssertEqual(queue.items.count, 1)
     }
@@ -85,7 +85,7 @@ final class DropQueueTests: XCTestCase {
         func status(_ id: UUID) -> DropQueue.Item.Status? { queue.items.first { $0.id == id }?.status }
         let resume = ResumeState(file: URL(fileURLWithPath: "/tmp/part"), bytes: 500, validator: "\"v\"", link: link(1))
         runs.resumeOnCancel = resume
-        let id = queue.add(link(1), options: DropOptions())
+        let id = queue.add(link(1), into: URL(fileURLWithPath: "/tmp"), options: DropOptions())
         await until { runs.running == 1 }
         queue.stop(id)
         await until { status(id) == .stopped }
@@ -99,9 +99,9 @@ final class DropQueueTests: XCTestCase {
     @MainActor func testFailureShowsTheMessageAndStopsWaitingItems() async {
         let (runs, queue) = make()
         func status(_ id: UUID) -> DropQueue.Item.Status? { queue.items.first { $0.id == id }?.status }
-        let first = queue.add(link(1), options: DropOptions())
+        let first = queue.add(link(1), into: URL(fileURLWithPath: "/tmp"), options: DropOptions())
         queue.maxParallel = 1
-        let second = queue.add(link(2), options: DropOptions())
+        let second = queue.add(link(2), into: URL(fileURLWithPath: "/tmp"), options: DropOptions())
         await until { runs.running == 1 }
         queue.stop(second)
         XCTAssertEqual(status(second), .stopped)
@@ -116,8 +116,8 @@ final class DropQueueTests: XCTestCase {
         var finished: [UUID] = []
         queue.onBatchFinished = { done, failed in batches.append((done.count, failed.count)) }
         queue.onItemFinished = { finished.append($0.id) }
-        let a = queue.add(link(1), options: DropOptions())
-        let b = queue.add(link(2), options: DropOptions())
+        let a = queue.add(link(1), into: URL(fileURLWithPath: "/tmp"), options: DropOptions())
+        let b = queue.add(link(2), into: URL(fileURLWithPath: "/tmp"), options: DropOptions())
         await until { runs.running == 2 }
         XCTAssertEqual(queue.overall.total, 2)
         runs.succeed(link(1).string)
@@ -132,8 +132,8 @@ final class DropQueueTests: XCTestCase {
 
     @MainActor func testRemoveAndClearFinished() async {
         let (runs, queue) = make()
-        let a = queue.add(link(1), options: DropOptions())
-        let b = queue.add(link(2), options: DropOptions())
+        let a = queue.add(link(1), into: URL(fileURLWithPath: "/tmp"), options: DropOptions())
+        let b = queue.add(link(2), into: URL(fileURLWithPath: "/tmp"), options: DropOptions())
         await until { runs.running == 2 }
         queue.remove(a)
         XCTAssertEqual(queue.items.count, 2, "a running item can't be removed")
@@ -149,7 +149,7 @@ final class DropQueueTests: XCTestCase {
     @MainActor func testMove() {
         let (_, queue) = make()
         queue.maxParallel = 1
-        let ids = (1...3).map { queue.add(link($0), options: DropOptions()) }
+        let ids = (1...3).map { queue.add(link($0), into: URL(fileURLWithPath: "/tmp"), options: DropOptions()) }
         queue.move(fromOffsets: IndexSet(integer: 2), toOffset: 1)
         XCTAssertEqual(queue.items.map(\.id), [ids[0], ids[2], ids[1]])
     }

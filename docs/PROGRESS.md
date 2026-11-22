@@ -4,9 +4,9 @@ Read this first in any new session. Update it at every checkpoint.
 
 ## Status
 
-- **Current milestone:** M6 Dropper macOS UI (M2–M5 done: engines, Potion for macOS and Windows, Dropper core)
-- **Last completed chunk:** M6.2 Dropper macOS: download queue, batches, history, notifications, Dock badge
-- **Next chunk:** M6.3 Dropper macOS: Settings, dropping links, Services hand-off
+- **Current milestone:** M7 Dropper Windows UI (M2–M6 done: engines, Potion for macOS and Windows, Dropper core and macOS app)
+- **Last completed chunk:** M6.3 Dropper macOS: Settings, dropped links, Services
+- **Next chunk:** M7.1 Dropper Windows: C# DropQueue, acknowledgment, link bar with media card, output options
 
 ## Milestones
 
@@ -18,7 +18,7 @@ Read this first in any new session. Update it at every checkpoint.
 | M3 Potion macOS UI | Done (Quick Action extension deferred to M9, see below) |
 | M4 Potion Windows UI | Done (Win11 top-level Explorer menu deferred to M9, see below) |
 | M5 Dropper core | Done |
-| M6 Dropper macOS UI | In progress |
+| M6 Dropper macOS UI | Done (Share extension deferred to M9, see M6.3) |
 | M7 Dropper Windows UI | Not started |
 | M7.5 Personal experimental module (private repo) | Not started |
 | M8 Legal and compliance pass | Not started |
@@ -78,9 +78,14 @@ Read this first in any new session. Update it at every checkpoint.
       (⌘Y; finished and failed downloads, Show in Finder, Copy Link, Remove, Clear History with confirmation);
       notifications when a batch ends in the background (permission asked at the first download); Dock badge with
       downloads left; quitting mid-download asks first
-- [ ] M6.3 Settings (output folder, naming template, size and duration limits, downloads at once, keep original,
-      history on/off), drag a link onto the window or Dock icon, Services / share-menu link hand-off, About with
-      Terms and Privacy placeholders filled in M8
+- [x] M6.3 Settings window (General: notifications, downloads at once, keep a history, Clear History; Output: save
+      folder, keep the original, naming template with a live example; Advanced: largest download 1–32 GB or no limit,
+      length limit on/off and 5–240 minutes) applied to downloads queued afterwards (each queued item keeps its
+      folder); links dropped on the window are fetched (accent outline while dragging); Services › "Download with
+      Potion Dropper" for a link selected in any app. Deferred: a Share extension (needs real signing, M9, like
+      Potion's Quick Action); dropping on the Dock icon (would mean declaring http/https URL handling, which offers
+      Dropper as a browser); the optional menu bar extra (off by default per 06-components.md, so not in V1); About
+      with Terms/Privacy/Acknowledgements (M8, for both apps)
 
 ### M5 chunks
 

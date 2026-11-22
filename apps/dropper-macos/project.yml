@@ -81,6 +81,15 @@ targets:
         # redirects they lead to, re-checked against the allowlist), so App Transport Security can't decide this.
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
+        # Services › Download with Potion Dropper, for a link selected in any app.
+        NSServices:
+          - NSMenuItem:
+              default: Download with Potion Dropper
+            NSMessage: downloadWithPotionDropper
+            NSPortName: Potion Dropper
+            NSSendTypes:
+              - public.url
+              - public.utf8-plain-text
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ny1ka.potion-dropper
