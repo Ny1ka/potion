@@ -180,13 +180,17 @@ jobs:
         run: scripts/forbidden-scan.sh --artifact apps/dropper-windows/PotionDropper/bin/x64/Release
       - name: Every shipped .NET package is in the third-party notices
         shell: bash
-        run: python scripts/legal/notices.py check-packages apps/potion-windows/Potion/bin/x64/Release/*/*/Potion.deps.json apps/dropper-windows/PotionDropper/bin/x64/Release/*/*/PotionDropper.deps.json
+        run: |
+          shopt -s nullglob
+          files=(apps/potion-windows/Potion/bin/x64/Release/*/*/Potion.deps.json apps/dropper-windows/PotionDropper/bin/x64/Release/*/*/PotionDropper.deps.json)
+          echo "Checking: ${files[*]}"
+          python scripts/legal/notices.py check-packages "${files[@]}"
       # XAML compiler errors don't match the .NET problem matcher, so build errors are re-reported as annotations.
       - name: Report build errors
         if: failure()
         shell: bash
         run: |
           [ -f build-windows.log ] || exit 0
-          grep -E "error [A-Z]+[0-9]+|: error |XamlCompiler error" build-windows.log | sort -u | head -40 | while IFS= read -r line; do
+          { grep -E "error [A-Z]+[0-9]+|: error |XamlCompiler error" build-windows.log || true; } | sort -u | head -40 | while IFS= read -r line; do
             echo "::error title=build::${line:0:900}"
           done

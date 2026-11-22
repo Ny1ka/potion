@@ -10,6 +10,7 @@
 Standard library only, so it runs on every CI runner.
 """
 import json
+import os
 import pathlib
 import re
 import sys
@@ -18,6 +19,13 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "legal" / "third-party.json"
 LICENSES = ROOT / "legal" / "licenses"
 OUTPUT = ROOT / "legal" / "THIRD_PARTY_NOTICES.md"
+
+
+def problem(message):
+    """Prints a problem; on GitHub Actions also as an annotation, so it's visible on the run page."""
+    problem(f"{message}")
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        print(f"::error title=third-party notices::{message}")
 
 
 def load():
@@ -82,11 +90,11 @@ def render(data):
 def check_files(data):
     missing = [f for c in data["components"] for f in c["licenseFiles"] if not (LICENSES / f).resolve().is_file()]
     for f in missing:
-        print(f"✗ missing license file: legal/licenses/{f}", file=sys.stderr)
+        problem(f"missing license file: legal/licenses/{f}")
     fenced = [f for c in data["components"] for f in c["licenseFiles"]
               if (LICENSES / f).resolve().is_file() and "~~~~" in (LICENSES / f).resolve().read_text(encoding="utf-8", errors="replace")]
     for f in fenced:
-        print(f"✗ {f} contains '~~~~', which would break the Markdown fence", file=sys.stderr)
+        problem(f"{f} contains '~~~~', which would break the Markdown fence")
     return not missing and not fenced
 
 
@@ -104,7 +112,7 @@ def cmd_check():
     if not check_files(data):
         return 1
     if not OUTPUT.is_file() or OUTPUT.read_text(encoding="utf-8") != render(data):
-        print("✗ legal/THIRD_PARTY_NOTICES.md is out of date. Run: scripts/legal/notices.py generate", file=sys.stderr)
+        problem("legal/THIRD_PARTY_NOTICES.md is out of date. Run: scripts/legal/notices.py generate")
         return 1
     print("✓ third-party notices are up to date")
     return 0
@@ -121,7 +129,7 @@ def cmd_check_ffmpeg():
         if key is None:
             continue
         if pinned.get(key) != c["version"]:
-            print(f"✗ {c['name']}: third-party.json says {c['version']}, versions.sh says {pinned.get(key)}", file=sys.stderr)
+            problem(f"{c['name']}: third-party.json says {c['version']}, versions.sh says {pinned.get(key)}")
             ok = False
     if ok:
         print("✓ FFmpeg component versions match scripts/ffmpeg/versions.sh")
@@ -143,6 +151,9 @@ def shipped_packages(path):
 
 
 def cmd_check_packages(paths):
+    if not paths:
+        problem("no deps.json or project.assets.json files were given (did the build output move?)")
+        return 1
     data = load()
     listed = {p for c in data["components"] for p in c.get("packages", [])}
     packs = {p for c in data["components"] for p in c.get("runtimePacks", [])}
@@ -153,11 +164,11 @@ def cmd_check_packages(paths):
         for package in sorted(packages):
             if package in listed or package.split("/")[0] in build_only:
                 continue
-            print(f"✗ {path}: {package} isn't in legal/third-party.json (add it with its license, or update the version)", file=sys.stderr)
+            problem(f"{path}: {package} isn't in legal/third-party.json (add it with its license, or update the version)")
             ok = False
         for pack in sorted(runtime):
             if not any(pack.startswith(prefix) for prefix in packs):
-                print(f"✗ {path}: runtime pack {pack} isn't in legal/third-party.json", file=sys.stderr)
+                problem(f"{path}: runtime pack {pack} isn't in legal/third-party.json")
                 ok = False
     if ok:
         print(f"✓ every shipped .NET package is listed ({len(paths)} file(s) checked)")
