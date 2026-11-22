@@ -60,7 +60,7 @@ final class DropQueueTests: XCTestCase {
         func status(_ id: UUID) -> DropQueue.Item.Status? { queue.items.first { $0.id == id }?.status }
         let ids = (1...4).map { queue.add(link($0), into: URL(fileURLWithPath: "/tmp"), options: DropOptions()) }
         await until { runs.running == 2 }
-        XCTAssertEqual(runs.started, [link(1).string, link(2).string])
+        XCTAssertEqual(Set(runs.started), [link(1).string, link(2).string], "the first two start (their jobs may begin in either order)")
         XCTAssertEqual(status(ids[2]), .waiting)
 
         runs.succeed(link(1).string)

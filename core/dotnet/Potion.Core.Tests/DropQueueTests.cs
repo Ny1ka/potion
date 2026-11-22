@@ -64,7 +64,7 @@ public class DropQueueTests
         var queue = new DropQueue(runs.Run);
         var items = Enumerable.Range(1, 4).Select(n => queue.Add(Link(n), Folder, new DropOptions())).ToList();
         await Until(() => runs.Running == 2);
-        Assert.Equal([Link(1).Text, Link(2).Text], runs.Started);
+        Assert.Equal([Link(1).Text, Link(2).Text], runs.Started.Order(StringComparer.Ordinal));   // their jobs may begin in either order
         Assert.Equal(DropItemStatus.Waiting, items[2].Status);
 
         runs.Succeed(Link(1).Text);

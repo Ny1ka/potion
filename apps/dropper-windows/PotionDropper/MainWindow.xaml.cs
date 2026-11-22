@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Potion.Core.App;
@@ -418,26 +419,42 @@ public static class Ui
         FormatCategory.Video => PotionCategory.Video, _ => PotionCategory.Docs,
     };
 
-    /// <summary>The row's category: the known format's, otherwise the chosen output's, otherwise video.</summary>
-    public static FormatCategory CategoryOf(string? formatId, DropOptions options)
-    {
-        var known = formatId is null ? null : FormatRegistry.Shared.FormatById(formatId);
-        var output = options.OutputFormatId is null ? null : FormatRegistry.Shared.FormatById(options.OutputFormatId);
-        return (known ?? output)?.Category == FormatCategory.Audio ? FormatCategory.Audio : FormatCategory.Video;
-    }
-
     public static Brush TintBrush(FormatCategory c) => (Brush)Resource(Design(c).ResourcePrefix() + "TintBrush");
     public static Brush TextBrush(FormatCategory c) => (Brush)Resource(Design(c).ResourcePrefix() + "TextBrush");
     public static Brush FillBrush(FormatCategory c) => (Brush)Resource(Design(c).ResourcePrefix() + "FillBrush");
     public static string Glyph(FormatCategory c) => Design(c).Glyph();
 
-    // Row helpers for x:Bind function bindings (which can't pick between overloads, hence the distinct names).
-    public static Brush RowTint(string? formatId, DropOptions options) => TintBrush(CategoryOf(formatId, options));
-    public static Brush RowText(string? formatId, DropOptions options) => TextBrush(CategoryOf(formatId, options));
-    public static Brush RowFill(string? formatId, DropOptions options) => FillBrush(CategoryOf(formatId, options));
-    public static string RowGlyph(string? formatId, DropOptions options) => Glyph(CategoryOf(formatId, options));
+}
 
-    public static Brush StatusBrush(bool failed) => (Brush)Resource(failed ? "PotionErrorBrush" : "PotionTextSecondaryBrush");
-    public static double Value(double? fraction) => fraction ?? 0;
-    public static bool Indeterminate(double? fraction) => fraction is null;
+/// <summary>Category → design-system brush for the queue rows ({Binding} converters: no x:Bind function bindings).</summary>
+public sealed partial class CategoryBrushConverter : IValueConverter
+{
+    /// <summary>"Tint", "Text" or "Fill".</summary>
+    public string Kind { get; set; } = "Tint";
+
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        var category = value is FormatCategory c ? c : FormatCategory.Video;
+        return Kind switch { "Text" => Ui.TextBrush(category), "Fill" => Ui.FillBrush(category), _ => Ui.TintBrush(category) };
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotSupportedException();
+}
+
+/// <summary>Category → Segoe Fluent glyph.</summary>
+public sealed partial class CategoryGlyphConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        Ui.Glyph(value is FormatCategory c ? c : FormatCategory.Video);
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotSupportedException();
+}
+
+/// <summary>Failed → error brush; otherwise secondary text (status always also has words).</summary>
+public sealed partial class StatusBrushConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        Ui.Resource(value is true ? "PotionErrorBrush" : "PotionTextSecondaryBrush");
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotSupportedException();
 }

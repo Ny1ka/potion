@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using Potion.Core.App;
+using Potion.Core.Formats;
 
 namespace Potion.Core.Dropper;
 
@@ -34,7 +35,18 @@ public sealed class DropQueueItem : INotifyPropertyChanged
 
     private string? _formatId;
     /// <summary>The format the row's tile shows: the downloaded one until the result is known.</summary>
-    public string? FormatId { get => _formatId; internal set { _formatId = value; Changed(); } }
+    public string? FormatId { get => _formatId; internal set { _formatId = value; Changed(); Changed(nameof(Category)); } }
+
+    /// <summary>The row's category: the known format's, otherwise the chosen output's, otherwise video.</summary>
+    public FormatCategory Category
+    {
+        get
+        {
+            var known = _formatId is null ? null : FormatRegistry.Shared.FormatById(_formatId);
+            var output = Options.OutputFormatId is null ? null : FormatRegistry.Shared.FormatById(Options.OutputFormatId);
+            return (known ?? output)?.Category == FormatCategory.Audio ? FormatCategory.Audio : FormatCategory.Video;
+        }
+    }
 
     public DropItemStatus Status { get; private set; } = DropItemStatus.Waiting;
     public DownloadProgress? Download { get; private set; }
@@ -58,6 +70,11 @@ public sealed class DropQueueItem : INotifyPropertyChanged
         DropItemStatus.Converting => Conversion,
         _ => null,
     };
+
+    /// <summary>For a progress bar's Value (0 when unknown).</summary>
+    public double ProgressValue => Fraction ?? 0;
+    /// <summary>True while running without a known total.</summary>
+    public bool IsIndeterminate => IsRunning && Fraction is null;
 
     /// <summary>The row's status line, worded like the macOS app.</summary>
     public string StatusText => Status switch

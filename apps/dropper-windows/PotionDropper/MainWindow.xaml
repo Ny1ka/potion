@@ -7,6 +7,13 @@
     Title="Potion Dropper">
 
     <Grid x:Name="Root" Loaded="Root_Loaded">
+        <Grid.Resources>
+            <local:CategoryBrushConverter x:Key="TintBrush" Kind="Tint" />
+            <local:CategoryBrushConverter x:Key="TextBrush" Kind="Text" />
+            <local:CategoryBrushConverter x:Key="FillBrush" Kind="Fill" />
+            <local:CategoryGlyphConverter x:Key="Glyph" />
+            <local:StatusBrushConverter x:Key="StatusBrush" />
+        </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />   <!-- title bar -->
             <RowDefinition Height="Auto" />   <!-- link bar, card, options -->
@@ -151,20 +158,20 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Border Width="{StaticResource PotionCategoryTileSize}" Height="{StaticResource PotionCategoryTileSize}" CornerRadius="8"
-                                VerticalAlignment="Center" Background="{x:Bind local:Ui.RowTint(FormatId, Options), Mode=OneWay}"
+                                VerticalAlignment="Center" Background="{Binding Category, Converter={StaticResource TintBrush}}"
                                 AutomationProperties.AccessibilityView="Raw">
-                            <FontIcon Glyph="{x:Bind local:Ui.RowGlyph(FormatId, Options), Mode=OneWay}" FontSize="16"
-                                      Foreground="{x:Bind local:Ui.RowText(FormatId, Options), Mode=OneWay}" />
+                            <FontIcon Glyph="{Binding Category, Converter={StaticResource Glyph}}" FontSize="16"
+                                      Foreground="{Binding Category, Converter={StaticResource TextBrush}}" />
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                             <TextBlock Text="{x:Bind Title}" TextTrimming="CharacterEllipsis" Style="{StaticResource BodyStrongTextBlockStyle}"
                                        ToolTipService.ToolTip="{x:Bind Link.Text}" />
                             <TextBlock Text="{x:Bind StatusText, Mode=OneWay}" TextTrimming="CharacterEllipsis" Style="{StaticResource CaptionTextBlockStyle}"
-                                       Foreground="{x:Bind local:Ui.StatusBrush(IsFailed), Mode=OneWay}" />
-                            <ProgressBar Margin="0,4,0,0" Maximum="1" Value="{x:Bind local:Ui.Value(Fraction), Mode=OneWay}"
-                                         IsIndeterminate="{x:Bind local:Ui.Indeterminate(Fraction), Mode=OneWay}"
+                                       Foreground="{Binding IsFailed, Converter={StaticResource StatusBrush}}" />
+                            <ProgressBar Margin="0,4,0,0" Maximum="1" Value="{x:Bind ProgressValue, Mode=OneWay}"
+                                         IsIndeterminate="{x:Bind IsIndeterminate, Mode=OneWay}"
                                          Visibility="{x:Bind IsRunning, Mode=OneWay}"
-                                         Foreground="{x:Bind local:Ui.RowFill(FormatId, Options), Mode=OneWay}" />
+                                         Foreground="{Binding Category, Converter={StaticResource FillBrush}}" />
                         </StackPanel>
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                             <Button Click="RowStop_Click" Visibility="{x:Bind CanStop, Mode=OneWay}" Tag="{Binding}"
