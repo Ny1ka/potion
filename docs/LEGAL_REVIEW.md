@@ -31,7 +31,7 @@ are completed in M8/M9.
 | # | Question | Needs lawyer? | Status |
 |---|---|---|---|
 | 1 | Mac App Store and Microsoft Store distribution for Potion: does shipping an LGPL FFmpeg satisfy the LGPL "user can replace the library" requirement inside a store package? | Yes | Open (decide before M9) |
-| 2 | App Sandbox for Potion (macOS): needed for the Mac App Store, but it limits "save next to the original" and "move original to Trash" unless the user grants folder access. | No (product decision) | Open (decide in M3) |
+| 2 | App Sandbox for Potion (macOS): needed for the Mac App Store, but it limits "save next to the original" and "move original to Trash" unless the user grants folder access. | No (product decision) | Decided 2026-11-21: off for V1 (DMG). Revisit for the Mac App Store |
 
 ## Items for lawyer review before public release
 

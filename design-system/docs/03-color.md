@@ -39,7 +39,7 @@ For **custom-drawn** surfaces: drop zone, category tiles, onboarding, About wind
 | surfaceRaised | `#211D2B` | `#EFEDF3` | Badges, inputs, segmented track |
 | surfaceSunken | `#0B0A10` | `#ECEAF1` | URL field well (Dropper) |
 | border | `#2E2939` | `#E4E1EA` | Hairlines, row separators (decorative) |
-| borderStrong | `#3A3547` | `#C9C4D3` | Drop zone dashed border, input borders |
+| borderStrong | `#8A849C` | `#C9C4D3` | Drop zone dashed border, input borders (dark value reaches 3:1 on the macOS window background) |
 | textPrimary | `#FFFFFF` | `#17141F` | |
 | textSecondary | `#B6B0C4` | `#4D475A` | Metadata (size, format) |
 | textTertiary | `#9A94A8` | `#6B6577` | Captions, placeholders, "Waiting" |

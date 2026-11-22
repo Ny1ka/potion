@@ -21,8 +21,8 @@
             <SolidColorBrush x:Key="PotionSurfaceSunkenBrush" Color="#FF0B0A10"/>
             <Color x:Key="PotionBorderColor">#FF2E2939</Color>
             <SolidColorBrush x:Key="PotionBorderBrush" Color="#FF2E2939"/>
-            <Color x:Key="PotionBorderStrongColor">#FF3A3547</Color>
-            <SolidColorBrush x:Key="PotionBorderStrongBrush" Color="#FF3A3547"/>
+            <Color x:Key="PotionBorderStrongColor">#FF8A849C</Color>
+            <SolidColorBrush x:Key="PotionBorderStrongBrush" Color="#FF8A849C"/>
             <Color x:Key="PotionTextPrimaryColor">#FFFFFFFF</Color>
             <SolidColorBrush x:Key="PotionTextPrimaryBrush" Color="#FFFFFFFF"/>
             <Color x:Key="PotionTextSecondaryColor">#FFB6B0C4</Color>

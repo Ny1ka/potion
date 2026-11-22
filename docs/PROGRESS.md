@@ -4,9 +4,9 @@ Read this first in any new session. Update it at every checkpoint.
 
 ## Status
 
-- **Current milestone:** M2 Core: conversion engines
-- **Last completed chunk:** M2.6 PDF tools (Swift)
-- **Next chunk:** M2.7 Windows: FFmpeg build + engines in Potion.Core (C#)
+- **Current milestone:** M3 Potion macOS UI (M2.7 Windows engines moved to just before M4, owner's call)
+- **Last completed chunk:** M3.1 Window, drop zone and queue (macOS)
+- **Next chunk:** M3.2 Converting from the queue (macOS)
 
 ## Milestones
 
@@ -14,8 +14,8 @@ Read this first in any new session. Update it at every checkpoint.
 |---|---|
 | M0 Scaffold | Done |
 | M1 Core: formats | Done |
-| M2 Core: conversion engines | In progress (M2.0–M2.6 done) |
-| M3 Potion macOS UI | Not started |
+| M2 Core: conversion engines | macOS done (M2.0–M2.6); M2.7 Windows runs before M4 |
+| M3 Potion macOS UI | In progress (M3.1 done) |
 | M4 Potion Windows UI | Not started |
 | M5 Dropper core | Not started |
 | M6 Dropper macOS UI | Not started |
@@ -77,7 +77,23 @@ Read this first in any new session. Update it at every checkpoint.
       chosen DPI, rotation-aware, size-capped; SVG wraps the rendered page), `pdfToDocument` (DOCX/TXT/HTML
       from PDFKit's text, page breaks in DOCX, pages without text become pictures). Password-protected PDFs
       and permission-restricted ones get the copy-protected message where the permission is missing. 14 tests
-- [ ] M2.7 Windows: FFmpeg build for Windows + the same engines in Potion.Core (C#), tested in CI
+- [ ] M2.7 Windows: FFmpeg build for Windows + the same engines in Potion.Core (C#), tested in CI.
+      Moved to run right before M4 (owner, 2026-11-21) so the Mac app is testable sooner.
+
+### M3 chunks
+
+- [x] M3.1 Window, drop zone and queue: single `Window` scene, drop zone with valid/invalid drag states,
+      Add Files (toolbar, ⌘O, Choose Files…), files opened with Potion (Dock icon, Open With) join the queue,
+      `FileCollector` in PotionCore (folders, subfolders, hidden files/packages skipped, duplicates, 5,000
+      limit; 3 tests), queue rows (tile, middle-truncated name, format · size, compatible formats grouped by
+      category, last-used format per category, status), multi-select, Delete, context menu (Change Format,
+      Show in Finder, Remove), banner for files that can't be converted, footer with Clear
+- [ ] M3.2 Converting from the queue: job runner over the engines (limited parallelism, cancel/Stop), per-row
+      progress, footer (Save to, Move originals to Trash, Convert All/Stop, overall progress, "12 files
+      converted · Show in Finder"), ffmpeg/ffprobe bundled in `Contents/Helpers`
+- [ ] M3.3 Convert sheet and Advanced options (per category, from presets), batch "Convert all to…"
+- [ ] M3.4 Settings (General, Output, Advanced), menus, Dock badge, notifications
+- [ ] M3.5 Finder Quick Action ("Convert with Potion") and first-launch onboarding
 
 ## Decisions coming up (from the final spec)
 
@@ -86,11 +102,16 @@ Read this first in any new session. Update it at every checkpoint.
 - **Document engine (decided 2026-11-21):** native first (option 1 of 3). macOS uses the system text
   system; Windows will use the Open XML SDK (MIT) plus a small PDF writer. No LibreOffice; revisit only if
   real-world fidelity is not good enough, and only with the owner's approval (spec 6.1.1).
+- **App Sandbox (decided 2026-11-21):** off for V1, which ships as a notarized DMG. Hardened Runtime stays on.
+  Revisit for a Mac App Store version.
+- **Drop zone contrast (decided 2026-11-21):** dark `borderStrong` lightened from #3A3547 to #8A849C (3.6:1 on
+  the macOS window background) in `design-system/tokens/tokens.json` and regenerated. Regenerating with a
+  different librsvg/ImageMagick re-renders logo PNGs with tiny pixel differences; only text outputs were
+  committed because the images don't use this token.
 - **macOS architectures:** Release builds are universal (Apple Silicon + Intel) unless the owner drops Intel.
 
 ## Known issues / TODO
 
-- The M0 window shows the static empty-state drop zone only. Dropping files does nothing until M3.1.
 - No Windows machine locally: the WinUI app is verified only in CI until the owner runs it on a PC. The .NET SDK
   (10.0) is installed in `~/.dotnet` so `make test-core-dotnet` runs the shared C# core on macOS.
 - Windows M0 window: the min-size uses `OverlappedPresenter.PreferredMinimumWidth/Height` (physical pixels,
@@ -114,11 +135,9 @@ Read this first in any new session. Update it at every checkpoint.
   Headings in Word/ODT files without heading styles are guessed from big bold text. EPUB output is one
   chapter. Our DOCX and EPUB files pass our structure tests but haven't been opened in Microsoft Word,
   Apple Books or an EPUB validator yet: owner check after M3 (or add epubcheck to CI if it's worth it).
-- Open product decision for M3: App Sandbox on or off (see `docs/LEGAL_REVIEW.md` #2).
-- Design-system conflict (needs owner decision before M3.1): dark `borderStrong` (#3A3547) is tuned for the
-  brand background (#0E0C14), but `09-platforms.md` puts the drop zone on the system window background
-  (~#323232 in dark mode), where the dashed border is ~1.1:1 and effectively invisible. Light mode is fine.
 - The owner's prompt files (`universal-file-converter-prompt-*.txt`, `universal-converter-*prompt*.md`) are
   gitignored: they describe the personal add-on and must never be committed. Per spec 6.6.5 the final prompt
   belongs in the private repo; `docs/SPEC.md` is the public copy (add-on references removed).
+- macOS UI: drag-over states (valid/invalid) and the grouped format menus are built to the design docs but
+  weren't captured in screenshots (they need a real drag or click). Check them when trying the app.
 - Screenshots: Screen Recording is granted to VS Code, so Claude can capture app windows to check UI work.
