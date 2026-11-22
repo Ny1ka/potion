@@ -21,6 +21,8 @@ struct QueueListView: View {
         .listStyle(.inset)
         .onDeleteCommand { queue.remove(queue.selection) }
         .contextMenu(forSelectionType: QueueItem.ID.self) { ids in
+            Button("Options…") { queue.showOptions(for: ids) }
+                .disabled(queue.items.allSatisfy { !ids.contains($0.id) || $0.isBusy })
             let formats = queue.commonOutputs(for: ids)
             if !formats.isEmpty {
                 Menu("Change Format") {
@@ -34,6 +36,8 @@ struct QueueListView: View {
             Button("Show in Finder") { queue.reveal(ids) }
             Divider()
             Button("Remove") { queue.remove(ids) }
+        } primaryAction: { ids in
+            queue.showOptions(for: ids)   // double-click opens the convert sheet
         }
     }
 }

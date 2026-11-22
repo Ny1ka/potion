@@ -39,7 +39,7 @@ public enum PageSelection {
     }
 
     /// A short description for file names: [2,3,4] → "2–4", [1,3] → "1, 3".
-    static func describe(_ pages: [Int]) -> String {
+    public static func describe(_ pages: [Int]) -> String {
         var parts: [String] = []
         var index = 0
         while index < pages.count {

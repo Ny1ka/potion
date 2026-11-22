@@ -39,6 +39,9 @@ struct QueueCommands: View {
     var body: some View {
         Button("Add Files…") { queue.showImporter = true }
             .keyboardShortcut("o")
+        Button("Options…") { queue.showOptions(for: queue.selection) }
+            .keyboardShortcut("i")
+            .disabled(queue.selection.isEmpty)
         Divider()
         Button("Convert All") { queue.convertAll() }
             .keyboardShortcut(.return)

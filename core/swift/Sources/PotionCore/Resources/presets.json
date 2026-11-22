@@ -229,6 +229,7 @@
     "maxBitrateKbps": 60000,
     "codecs": {
       "h264": {
+        "name": "H.264",
         "encoder": {
           "macos": "h264_videotoolbox",
           "windows": "h264_mf"
@@ -236,6 +237,7 @@
         "efficiency": 1.0
       },
       "hevc": {
+        "name": "HEVC (H.265)",
         "encoder": {
           "macos": "hevc_videotoolbox",
           "windows": "hevc_mf"
@@ -244,30 +246,35 @@
         "tag": "hvc1"
       },
       "vp9": {
+        "name": "VP9",
         "encoder": {
           "default": "libvpx-vp9"
         },
         "efficiency": 0.6
       },
       "vp8": {
+        "name": "VP8",
         "encoder": {
           "default": "libvpx"
         },
         "efficiency": 1.0
       },
       "mpeg4": {
+        "name": "MPEG-4 Part 2",
         "encoder": {
           "default": "mpeg4"
         },
         "efficiency": 1.5
       },
       "wmv2": {
+        "name": "Windows Media Video",
         "encoder": {
           "default": "wmv2"
         },
         "efficiency": 1.6
       },
       "mpeg2video": {
+        "name": "MPEG-2",
         "encoder": {
           "default": "mpeg2video"
         },
@@ -275,6 +282,7 @@
         "standardFrameRates": true
       },
       "flv1": {
+        "name": "Sorenson Spark (FLV)",
         "encoder": {
           "default": "flv"
         },

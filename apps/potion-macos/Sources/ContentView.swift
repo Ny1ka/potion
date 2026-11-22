@@ -39,6 +39,10 @@ struct ContentView: View {
                       allowsMultipleSelection: true) { result in
             if case let .success(urls) = result { queue.add(urls) }
         }
+        .sheet(item: $queue.sheet) { request in
+            let chosen = queue.items.filter { request.ids.contains($0.id) }
+            if !chosen.isEmpty { ConvertSheet(items: chosen) }
+        }
         .toolbar {
             ToolbarItem {
                 Button { queue.showImporter = true } label: { Label("Add Files", systemImage: "plus") }
@@ -171,7 +175,11 @@ struct FooterView: View {
                     CompletionView(completion: completion)
                 } else {
                     // Narrow windows drop the "Save to:" label, then shorten the checkbox label.
+                    // Narrow windows drop "Convert all to" (Select All + Change Format does the same), then the
+                    // "Save to:" label, then shorten the checkbox label.
                     ViewThatFits(in: .horizontal) {
+                        HStack(spacing: PotionSpacing.x3) { ConvertAllToMenu(); saveOptions(showLabel: true, trashLabel: "Move originals to Trash") }
+                        HStack(spacing: PotionSpacing.x3) { ConvertAllToMenu(); saveOptions(showLabel: false, trashLabel: "Move to Trash") }
                         saveOptions(showLabel: true, trashLabel: "Move originals to Trash")
                         saveOptions(showLabel: false, trashLabel: "Move originals to Trash")
                         saveOptions(showLabel: false, trashLabel: "Move to Trash")
@@ -198,6 +206,28 @@ extension FooterView {
                 .help("After a file converts, move the original to the Trash")
                 .accessibilityLabel("Move originals to Trash")
                 .fixedSize()
+        }
+    }
+}
+
+/// "Convert all to [MP3 ▾]": shown when every row is the same kind of file (05-layout.md).
+struct ConvertAllToMenu: View {
+    @EnvironmentObject var queue: QueueModel
+
+    var body: some View {
+        let ids = Set(queue.items.map(\.id))
+        let formats = queue.commonOutputs(for: ids)
+        let sameCategory = Set(queue.items.map(\.format.category)).count == 1
+        if sameCategory, queue.items.count > 1, !formats.isEmpty {
+            let current = Set(queue.items.map(\.outputID))
+            let title = current.count == 1 ? formats.first { $0.id == current.first }?.name ?? "Choose" : "Choose"
+            Menu {
+                FormatMenuItems(formats: formats) { queue.setOutput($0, for: ids) }
+            } label: {
+                Text("Convert all to: \(title)")
+            }
+            .fixedSize()
+            .help("Set the same format for every file")
         }
     }
 }

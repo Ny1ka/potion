@@ -18,6 +18,8 @@ struct QueueItem: Identifiable, Equatable {
     /// The formats this file can become, from the conversion matrix (input's own category first).
     let outputs: [FileFormat]
     var outputID: String
+    /// Advanced options chosen in the convert sheet (each engine reads its own part).
+    var settings = ConversionSettings()
     var status: Status = .waiting
 
     var category: PotionCategory { PotionCategory(rawValue: format.category.rawValue) ?? .docs }
@@ -34,6 +36,8 @@ final class QueueModel: ObservableObject {
     @Published var truncatedCount: Int?
     @Published var isAdding = false
     @Published var showImporter = false
+    /// Rows whose convert sheet is open.
+    @Published var sheet: SheetRequest?
 
     // Converting (see QueueRunner.swift)
     @Published var isConverting = false
@@ -113,6 +117,21 @@ final class QueueModel: ObservableObject {
         }
     }
 
+    /// Applies the convert sheet's choices to these rows.
+    func apply(outputID: String, settings: ConversionSettings, to ids: Set<QueueItem.ID>) {
+        setOutput(outputID, for: ids)
+        for index in items.indices where ids.contains(items[index].id) && items[index].outputID == outputID {
+            items[index].settings = settings
+        }
+    }
+
+    /// Opens the convert sheet for these rows (or the selection).
+    func showOptions(for ids: Set<QueueItem.ID>) {
+        let chosen = items.filter { ids.contains($0.id) && !$0.isBusy }
+        guard !chosen.isEmpty else { return }
+        sheet = SheetRequest(ids: Set(chosen.map(\.id)))
+    }
+
     func remove(_ ids: Set<QueueItem.ID>) {
         for id in ids { running[id]?.cancel() }
         items.removeAll { ids.contains($0.id) }
@@ -141,4 +160,13 @@ enum SettingsKey {
     static let recentFolders = "recentFolders"
     static let moveToTrash = "moveOriginalsToTrash"
     static func lastOutput(_ category: FormatCategory) -> String { "lastOutput.\(category.rawValue)" }
+}
+
+struct SheetRequest: Identifiable {
+    let id = UUID()
+    let ids: Set<QueueItem.ID>
+}
+
+extension QueueItem {
+    var isBusy: Bool { if case .converting = status { return true } else { return false } }
 }

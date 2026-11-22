@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M3 Potion macOS UI (M2.7 Windows engines moved to just before M4, owner's call)
-- **Last completed chunk:** M3.2 Converting from the queue (macOS)
-- **Next chunk:** M3.3 Convert sheet and Advanced options (macOS)
+- **Last completed chunk:** M3.3 Convert sheet and Advanced options (macOS)
+- **Next chunk:** M3.4 Settings, menus, Dock badge, notifications (macOS)
 
 ## Milestones
 
@@ -15,7 +15,7 @@ Read this first in any new session. Update it at every checkpoint.
 | M0 Scaffold | Done |
 | M1 Core: formats | Done |
 | M2 Core: conversion engines | macOS done (M2.0–M2.6); M2.7 Windows runs before M4 |
-| M3 Potion macOS UI | In progress (M3.1–M3.2 done) |
+| M3 Potion macOS UI | In progress (M3.1–M3.3 done) |
 | M4 Potion Windows UI | Not started |
 | M5 Dropper core | Not started |
 | M6 Dropper macOS UI | Not started |
@@ -95,7 +95,12 @@ Read this first in any new session. Update it at every checkpoint.
       converted copy is verified and saved), overall progress and "6 files converted · Show in Finder".
       ffmpeg/ffprobe are copied into `Contents/Helpers` and signed by a build phase (required for Release).
       Checked by hand in the app: 6 kinds of conversion, Stop on a 1080p video, Trash, narrow-window footer
-- [ ] M3.3 Convert sheet and Advanced options (per category, from presets), batch "Convert all to…"
+- [x] M3.3 Convert sheet (double-click a row, Options… ⌘I, or the context menu; one or several rows) with
+      the matrix's limitation notes and Advanced options from presets.json: video (quality or custom bitrate,
+      resolution, frame rate, codec, aspect ratio), GIF quality, audio (quality or bitrate, sample rate),
+      images (size, quality, rotate, flip), PDF (pages with live validation, resolution, JPG quality); a summary
+      line of what will happen; Advanced stays open once opened. Footer "Convert all to" when every row is
+      the same kind of file. Codec display names added to presets.json
 - [ ] M3.4 Settings (General, Output, Advanced), menus, Dock badge, notifications
 - [ ] M3.5 Finder Quick Action ("Convert with Potion") and first-launch onboarding
 
@@ -144,6 +149,7 @@ Read this first in any new session. Update it at every checkpoint.
 - The owner's prompt files (`universal-file-converter-prompt-*.txt`, `universal-converter-*prompt*.md`) are
   gitignored: they describe the personal add-on and must never be committed. Per spec 6.6.5 the final prompt
   belongs in the private repo; `docs/SPEC.md` is the public copy (add-on references removed).
-- macOS UI: drag-over states (valid/invalid) and the grouped format menus are built to the design docs but
-  weren't captured in screenshots (they need a real drag or click). Check them when trying the app.
+- macOS UI: drag-over states (valid/invalid), the grouped format menus and the footer "Convert all to" menu
+  are built to the design docs but weren't captured in screenshots (they need a real drag or click). Check
+  them when trying the app. The convert sheet has no size estimate yet ("about 120 MB" in 06-components).
 - Screenshots: Screen Recording is granted to VS Code, so Claude can capture app windows to check UI work.

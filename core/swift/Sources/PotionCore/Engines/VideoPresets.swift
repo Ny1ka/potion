@@ -10,6 +10,8 @@ public struct VideoPresets: Sendable {
     }
 
     public struct Codec: Decodable, Sendable, Equatable {
+        /// Name shown to users, e.g. "HEVC (H.265)".
+        public let name: String
         let encoder: [String: String]
         /// Bitrate multiplier relative to H.264 for the same quality (HEVC/VP9 need less, older codecs more).
         public let efficiency: Double

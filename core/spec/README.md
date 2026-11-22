@@ -112,7 +112,7 @@ Only conversions the matrix lists are ever offered. It's written as **routes** i
 | Field | Meaning |
 |---|---|
 | `presets` | Original quality (copy streams when nothing changes, otherwise match the source bitrate), High, Standard, Small (bits per pixel used to size the bitrate) |
-| `codecs.<id>` | Encoder per platform, `efficiency` (bitrate multiplier vs. H.264), container `tag`, `standardFrameRates` (MPEG-2) |
+| `codecs.<id>` | Display `name`, encoder per platform, `efficiency` (bitrate multiplier vs. H.264), container `tag`, `standardFrameRates` (MPEG-2) |
 | `audioCodecs.<id>` | Encoder and bitrate used when a container needs its audio re-encoded |
 | `formats.<id>` | `muxer`, offered `videoCodecs` (first is the default), `audioCodec`, source codecs that can be copied (`copyVideo`, `copyAudio`, `*` = any), `faststart` |
 | `gif.<preset>` | Frame rate and maximum width for video → GIF |

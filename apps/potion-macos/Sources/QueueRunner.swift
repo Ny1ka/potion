@@ -85,7 +85,8 @@ extension QueueModel {
         running[id] = Task { [weak self] in
             let status: QueueItem.Status
             do {
-                let saved = try await service.convert(item.url, from: item.format, to: output, outputDirectory: directory) { fraction in
+                let saved = try await service.convert(item.url, from: item.format, to: output, outputDirectory: directory,
+                                                      settings: item.settings) { fraction in
                     relay.send(fraction)
                 }
                 if moveToTrash, !saved.isEmpty, !saved.contains(item.url) {
