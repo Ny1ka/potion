@@ -46,6 +46,8 @@ public static class SettingsKeys
     public const string IncludeSubfolders = "includeSubfolders";
     public const string SaveFolder = "saveFolder";
     public const string MoveToRecycleBin = "moveOriginalsToRecycleBin";
+    public const string Notifications = "notifyWhenDone";
+    public const string ExplorerMenu = "explorerMenu";
     public static string LastOutput(FormatCategory category) => "lastOutput." + category.ToString().ToLowerInvariant();
 }
 

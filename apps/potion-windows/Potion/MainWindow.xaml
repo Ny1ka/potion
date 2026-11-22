@@ -39,6 +39,9 @@
             <AppBarButton Label="Add folder" Click="AddFolder_Click" ToolTipService.ToolTip="Add a folder">
                 <AppBarButton.Icon><FontIcon Glyph="&#xE8B7;" /></AppBarButton.Icon>
             </AppBarButton>
+            <AppBarButton Label="Settings" Click="Settings_Click" ToolTipService.ToolTip="Settings">
+                <AppBarButton.Icon><FontIcon Glyph="&#xE713;" /></AppBarButton.Icon>
+            </AppBarButton>
         </CommandBar>
 
         <!-- Batch-level messages (06-components.md, "Errors"). -->

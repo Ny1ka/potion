@@ -38,6 +38,17 @@ public sealed class ConvertOptionsTests : EngineTestBase
     }
 
     [Fact]
+    public void DefaultFormatChoicesPerFileType()
+    {
+        var video = DefaultFormats.For(FormatCategory.Video).Select(f => f.Id).ToList();
+        Assert.Contains("mp4", video);
+        Assert.DoesNotContain("mp3", video);
+        var images = DefaultFormats.For(FormatCategory.Image).Select(f => f.Id).ToList();
+        Assert.Contains("webp", images);
+        Assert.DoesNotContain("pdf", images);   // other categories aren't defaults
+    }
+
+    [Fact]
     public async Task SettingsTravelWithTheRow()
     {
         var path = Path.Combine(Dir, "a.png");

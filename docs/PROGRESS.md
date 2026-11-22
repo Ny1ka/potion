@@ -4,9 +4,9 @@ Read this first in any new session. Update it at every checkpoint.
 
 ## Status
 
-- **Current milestone:** M4 Potion Windows UI (M2 engines and M3 Potion macOS UI are done)
-- **Last completed chunk:** M4.3 Convert dialog and Advanced options on Windows
-- **Next chunk:** M4.4 Windows Settings, notifications and File Explorer integration
+- **Current milestone:** M5 Dropper core (M2–M4 done: engines, Potion for macOS and Windows)
+- **Last completed chunk:** M4.4 Windows Settings, notifications, File Explorer menu, single instance
+- **Next chunk:** M5.1 Dropper core: URL validation and the source-adapter allowlist
 
 ## Milestones
 
@@ -16,7 +16,7 @@ Read this first in any new session. Update it at every checkpoint.
 | M1 Core: formats | Done |
 | M2 Core: conversion engines | Done (macOS M2.0–M2.6, Windows M2.7a–d) |
 | M3 Potion macOS UI | Done (Quick Action extension deferred to M9, see below) |
-| M4 Potion Windows UI | In progress (M4.1–M4.3 done) |
+| M4 Potion Windows UI | Done (Win11 top-level Explorer menu deferred to M9, see below) |
 | M5 Dropper core | Not started |
 | M6 Dropper macOS UI | Not started |
 | M7 Dropper Windows UI | Not started |
@@ -66,7 +66,11 @@ Read this first in any new session. Update it at every checkpoint.
       macOS; 3 tests) and per-row `ConversionSettings` passed to the engines. Windows `ConvertDialog` (ContentDialog:
       header, Convert to with "Each file's current format", notes, Advanced expander remembered, Recycle Bin choice),
       opened by double-click, Options… in the context menu or Ctrl+I; footer "Convert all to" for same-kind queues
-- [ ] M4.4 Settings, notifications, File Explorer context menu (needs MSIX/sparse package)
+- [x] M4.4 Settings window (General: subfolders, notifications, File Explorer menu; Output: save location, Recycle
+      Bin, default format per file type from `DefaultFormats`; Advanced: files at once, tools present), completion
+      notifications with Show in folder (Windows App SDK, unpackaged registration) when Potion is in the background,
+      "Convert with Potion" in File Explorer's classic menu (per-user registry, toggled in Settings), single instance
+      (`Program.cs`: a second launch hands its files to the running window)
 
 ### M2 chunks
 
@@ -209,6 +213,9 @@ Read this first in any new session. Update it at every checkpoint.
   Every new dependency must pass `scripts/forbidden-scan.sh --artifact` on its DLLs before it's added.
 - **DOC on Windows (decided 2026-11-21):** macOS only for now (no free, reliable .doc reader/writer on Windows).
   formats.json marks it `"platforms": ["macos"]`; the Windows app never offers it. Revisit if a good library appears.
+- **Windows File Explorer menu (2026-11-22):** Windows 11 shows third-party commands in its top-level menu only for
+  apps with package identity (MSIX or a sparse package, both need signing). Until M9, Potion adds "Convert with
+  Potion" to the classic menu (Show more options on Windows 11, top level on Windows 10) via per-user registry keys.
 - **macOS architectures:** Release builds are universal (Apple Silicon + Intel) unless the owner drops Intel.
 
 ## Known issues / TODO

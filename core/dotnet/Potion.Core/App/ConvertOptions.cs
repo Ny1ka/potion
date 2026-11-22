@@ -110,3 +110,20 @@ public static class OptionsText
         catch (ConversionException) { return (pageCount == 1 ? "This PDF has only 1 page" : $"Use pages 1–{pageCount}, for example “1–3, 5”", true); }
     }
 }
+
+/// <summary>Settings › Output: the formats offered as a file type's default (same list as macOS).</summary>
+public static class DefaultFormats
+{
+    /// <summary>Formats in the same category that files of this category can become (union over its formats).</summary>
+    public static IReadOnlyList<FileFormat> For(FormatCategory category, FormatRegistry? registry = null, ConversionMatrix? matrix = null)
+    {
+        registry ??= FormatRegistry.Shared;
+        matrix ??= ConversionMatrix.Shared;
+        var seen = new HashSet<string>();
+        var result = new List<FileFormat>();
+        foreach (var format in registry.Formats.Where(f => f.Category == category && f.IsAvailableOn(ConversionMatrix.CurrentPlatform)))
+            foreach (var option in matrix.Outputs(format.Id).Where(o => o.Output.Category == category))
+                if (seen.Add(option.Output.Id)) result.Add(option.Output);
+        return result;
+    }
+}

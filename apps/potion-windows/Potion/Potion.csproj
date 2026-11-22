@@ -19,6 +19,8 @@
     <ApplicationIcon>..\..\..\design-system\windows\Potion\Assets\Potion.ico</ApplicationIcon>
     <Product>Potion</Product>
     <Version>0.1.0</Version>
+    <!-- Program.cs provides Main (single instance); the XAML compiler must not generate one. -->
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
     <Copyright>Copyright © 2026 Nyika. MIT License.</Copyright>
   </PropertyGroup>
 

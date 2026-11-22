@@ -30,6 +30,8 @@ public sealed partial class MainWindow : Window
     private readonly ConversionService _service = ConversionService.WithBundledTools();
     private bool _updatingSaveTo;
     private bool _closeConfirmed;
+    private bool _isActive = true;
+    private string? _notifiedCompletion;
 
     public MainWindow()
     {
@@ -54,6 +56,7 @@ public sealed partial class MainWindow : Window
         Queue.Recycle = NativeShell.MoveToRecycleBin;
         Queue.PropertyChanged += Queue_PropertyChanged;
         AppWindow.Closing += AppWindow_Closing;
+        Activated += (_, e) => _isActive = e.WindowActivationState != WindowActivationState.Deactivated;
         Refresh();
     }
 
@@ -106,6 +109,12 @@ public sealed partial class MainWindow : Window
         }
         if (completion)
         {
+            // When the batch ends in the background, also send a notification (once per batch).
+            if (!_isActive && Queue.Settings.GetBool(SettingsKeys.Notifications, true) && _notifiedCompletion != Queue.CompletionMessage)
+            {
+                _notifiedCompletion = Queue.CompletionMessage;
+                Notifications.Show(Queue.CompletionMessage!, Queue.CompletionOutputs);
+            }
             CompletionText.Text = Queue.CompletionMessage!;
             CompletionIcon.Glyph = Queue.CompletionHasFailures ? "\uE783" : "\uE73E";
             CompletionIcon.Foreground = (Brush)Ui.Resource(Queue.CompletionHasFailures ? "PotionErrorBrush" : "PotionSuccessBrush");
@@ -163,7 +172,13 @@ public sealed partial class MainWindow : Window
 
     private void RecycleBox_Click(object sender, RoutedEventArgs e) => Queue.MoveOriginalsToRecycleBin = RecycleBox.IsChecked == true;
 
-    private void Convert_Click(object sender, RoutedEventArgs e) => Queue.ConvertAll();
+    private void Convert_Click(object sender, RoutedEventArgs e)
+    {
+        _notifiedCompletion = null;
+        Queue.ConvertAll();
+    }
+
+    private void Settings_Click(object sender, RoutedEventArgs e) => SettingsWindow.ShowFor(Queue, _service.Tools is not null);
 
     private void Stop_Click(object sender, RoutedEventArgs e) => Queue.Stop();
 
