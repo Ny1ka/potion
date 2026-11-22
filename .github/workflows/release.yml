@@ -1,28 +1,38 @@
-# Builds the macOS beta: Release configuration only, from a clean checkout of this public repository (spec Part 6.6.7:
-# it never has access to any private repository, local adapter folder or personal settings). Run it by hand from the
-# Actions tab. The result is a workflow artifact for trusted beta testers, not a public GitHub release.
+# Releases Potion for macOS: Release configuration only, from a clean checkout of this public repository (spec Part
+# 6.6.7: it never has access to any private repository, local adapter folder or personal settings). Run it by hand from
+# the Actions tab:
+#   - "Publish" off: a test build, kept as a workflow artifact for 7 days.
+#   - "Publish" on (main only): a public GitHub release named after VERSION (v0.9.0), with the DMG, the FFmpeg source
+#     bundle (LGPL source offer) and checksums, and the notes in docs/release-notes/v<VERSION>.md.
 #
-# Signing and notarization are off: the owner decided (2026-11-22) to buy nothing until the apps are polished and
-# beta-tested. When a Developer ID certificate exists, signing and notarization are added here, using GitHub secrets.
-# Windows installers follow once the Windows apps have been tested on a real PC.
-name: Release (macOS beta)
+# Potion Dropper is never built or published here (owner's decision, 2026-11-22): it isn't offered as a download.
+# The builds are unsigned until the owner gets a Developer ID certificate; signing and notarization are added then.
+# Windows releases follow once the Windows app has been tested on a real PC.
+name: Release (Potion for macOS)
 
 on:
   workflow_dispatch:
     inputs:
-      label:
-        description: "Label for the file names, e.g. beta.1"
-        required: true
-        default: "beta.1"
+      publish:
+        description: "Publish the public GitHub release (v + VERSION). Leave off for a test build."
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
   macos:
-    name: macOS release build
+    name: Potion for macOS
     runs-on: macos-15
+    permissions:
+      contents: write   # creates the release and its tag when publishing
     steps:
+      - name: Publishing only from main
+        if: inputs.publish && github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Releases are published from main only (this run is on ${GITHUB_REF})."
+          exit 1
       - uses: actions/checkout@v7
       - name: Install build tools
         run: brew install xcodegen nasm cmake
@@ -47,37 +57,46 @@ jobs:
           python3 scripts/legal/notices.py check-ffmpeg
       - name: Scan tracked files
         run: scripts/forbidden-scan.sh --tree
-
-      - name: Build Potion and Potion Dropper (Release)
-        run: |
-          cd apps/potion-macos && xcodegen generate --quiet && cd ../..
-          cd apps/dropper-macos && xcodegen generate --quiet && cd ../..
-          for scheme in "Potion:apps/potion-macos/Potion.xcodeproj" "PotionDropper:apps/dropper-macos/Potion Dropper.xcodeproj"; do
-            xcodebuild -project "${scheme#*:}" -scheme "${scheme%%:*}" -configuration Release \
-              -derivedDataPath build/DerivedData CURRENT_PROJECT_VERSION=${{ github.run_number }} -quiet build
-          done
-      - name: Scan the Release apps (blocked terms and the Debug-only loader)
-        run: |
-          scripts/forbidden-scan.sh --artifact build/DerivedData/Build/Products/Release/Potion.app
-          scripts/forbidden-scan.sh --artifact "build/DerivedData/Build/Products/Release/Potion Dropper.app"
-
-      - name: Package
-        env:
-          LABEL: ${{ inputs.label }}   # passed through the environment, never pasted into the script
+      - name: Release notes exist
         run: |
           version="$(tr -d '[:space:]' < VERSION)"
-          label="$LABEL"
-          [[ "$label" =~ ^[A-Za-z0-9.-]+$ ]] || { echo "::error::Label may only contain letters, digits, dots and hyphens"; exit 1; }
-          scripts/release/make-dmg.sh build/DerivedData/Build/Products/Release/Potion.app "dist/Potion-$version-$label.dmg" "Potion"
-          scripts/release/make-dmg.sh "build/DerivedData/Build/Products/Release/Potion Dropper.app" "dist/Potion-Dropper-$version-$label.dmg" "Potion Dropper"
-          scripts/release/ffmpeg-sources.sh "dist/ffmpeg-sources-$version.tar"
-          cp legal/THIRD_PARTY_NOTICES.md legal/TERMS.md legal/PRIVACY.md docs/BETA.md dist/
-          (cd dist && shasum -a 256 *.dmg *.tar > SHA256SUMS.txt)
+          test -f "docs/release-notes/v$version.md" || { echo "::error::Write docs/release-notes/v$version.md first"; exit 1; }
           echo "version=$version" >> "$GITHUB_ENV"
-      - name: Upload the beta
+
+      - name: Build Potion (Release)
+        run: |
+          cd apps/potion-macos && xcodegen generate --quiet && cd ../..
+          xcodebuild -project apps/potion-macos/Potion.xcodeproj -scheme Potion -configuration Release \
+            -derivedDataPath build/DerivedData CURRENT_PROJECT_VERSION=${{ github.run_number }} -quiet build
+      - name: Scan the Release app (blocked terms and the Debug-only loader)
+        run: scripts/forbidden-scan.sh --artifact build/DerivedData/Build/Products/Release/Potion.app
+
+      - name: Package
+        run: |
+          scripts/release/make-dmg.sh build/DerivedData/Build/Products/Release/Potion.app "dist/Potion-$version.dmg" "Potion"
+          scripts/release/ffmpeg-sources.sh "dist/ffmpeg-sources-$version.tar"
+          (cd dist && shasum -a 256 *.dmg *.tar > SHA256SUMS.txt)
+          cat dist/SHA256SUMS.txt
+
+      - name: Upload the test build
+        if: ${{ !inputs.publish }}
         uses: actions/upload-artifact@v7
         with:
-          name: potion-macos-${{ env.version }}-${{ inputs.label }}
+          name: potion-macos-${{ env.version }}-test
           path: dist/
-          retention-days: 30
+          retention-days: 7
           if-no-files-found: error
+
+      - name: Publish the release
+        if: inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="v$version"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "::error::Release $tag already exists. Bump VERSION (scripts/release/version.sh set x.y.z) for a new release."
+            exit 1
+          fi
+          gh release create "$tag" "dist/Potion-$version.dmg" "dist/ffmpeg-sources-$version.tar" dist/SHA256SUMS.txt \
+            --target "$GITHUB_SHA" --title "Potion $version" --notes-file "docs/release-notes/$tag.md" --latest
+          echo "Published: $(gh release view "$tag" --json url --jq .url)"

@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M9 Packaging and V1 release: macOS beta first (M2–M8 done)
-- **Last completed chunk:** M9.1 Versioning, macOS beta release workflow, DMGs, FFmpeg source bundle, release gate
-- **Next chunk:** run the first macOS beta build; polish from beta feedback (Windows installer after real-PC testing)
+- **Last completed chunk:** M9.2 Public release setup for Potion for macOS v0.9.0
+- **Next chunk:** M9.2b README visual refresh with demos (after the owner publishes v0.9.0)
 
 ## Milestones
 
@@ -65,9 +65,15 @@ Read this first in any new session. Update it at every checkpoint.
       a clean checkout, release gate checks (FFmpeg license, versions, notices, source and artifact scans), unsigned
       DMGs for both macOS apps (`scripts/release/make-dmg.sh`), the FFmpeg LGPL source bundle
       (`scripts/release/ffmpeg-sources.sh`: every pinned archive, checksum-verified, plus build scripts and
-      BUILDINFO), notices, Terms, Privacy, `docs/BETA.md` and SHA256SUMS, uploaded as a 30-day workflow artifact
-      (not a public release); release gate checklist in LEGAL_REVIEW
-- [ ] M9.2 Beta round on macOS: fixes and polish from testers (incl. the About splash animation)
+      BUILDINFO), notices, Terms, Privacy and SHA256SUMS, uploaded as a workflow artifact; release gate checklist in
+      LEGAL_REVIEW
+- [x] M9.2 Public release of **Potion for macOS v0.9.0** (owner's decision after testing; unsigned; Dropper never
+      published as a download): release workflow builds Potion only, "Publish" creates the GitHub release from `main`
+      (DMG, FFmpeg source bundle, checksums, notes in `docs/release-notes/v0.9.0.md`; refuses to overwrite a
+      release), test builds otherwise; README with Download, features and app status (Dropper: experimental, not
+      released); `docs/BETA.md` removed
+- [ ] M9.2b README visual refresh with demos of Potion in use
+- [ ] M9.2c Polish from feedback (incl. the About splash animation)
 - [ ] M9.3 Windows: test both apps on a real PC, trim the Windows App SDK to the components the apps use, EXE
       installer (tool to be chosen and license-checked), Windows beta
 - [ ] M9.4 When the owner decides: Developer ID signing and notarization, Windows signing, `v1.0.0`
