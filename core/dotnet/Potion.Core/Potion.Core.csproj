@@ -14,6 +14,11 @@
   <ItemGroup>
     <EmbeddedResource Include="..\..\spec\formats.json" LogicalName="Potion.Core.formats.json" Link="Spec\formats.json" />
     <EmbeddedResource Include="..\..\spec\matrix.json" LogicalName="Potion.Core.matrix.json" Link="Spec\matrix.json" />
+    <EmbeddedResource Include="..\..\spec\presets.json" LogicalName="Potion.Core.presets.json" Link="Spec\presets.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Potion.Core.Tests" />
   </ItemGroup>
 
 </Project>

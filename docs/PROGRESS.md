@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M2.7 Windows engines, then M4 Potion Windows UI (M3 Potion macOS UI is done)
-- **Last completed chunk:** M2.7a Windows FFmpeg build
-- **Next chunk:** M2.7b C# process runner, media probe, safe saving, audio and video engines
+- **Last completed chunk:** M2.7b C# audio and video engines
+- **Next chunk:** M2.7c Images on Windows (WIC)
 
 ## Milestones
 
@@ -83,8 +83,11 @@ Read this first in any new session. Update it at every checkpoint.
         devices; static runtime, so only Windows system DLLs). `verify-windows-build.sh` checks it without running
         it; CI's new "Windows FFmpeg build" job (Linux) caches it and the Windows job runs `verify-license.sh` on
         the real .exe
-  - [ ] M2.7b C# `ProcessRunner`, `MediaProbe`, `OutputFiles`, presets, audio and video engines (platform-neutral;
-        tests run against the macOS FFmpeg locally and the Windows one in CI)
+  - [x] M2.7b Potion.Core (C#): `ConversionException` (same wording as Swift), `FFmpegTools`, `ProcessRunner`
+        (argument lists, kills the process tree on cancel), `MediaProbe`, `OutputFiles`, presets from the embedded
+        presets.json with per-platform encoders, `AudioEngine` and `VideoEngine` ported from Swift. 18 tests (8 unit,
+        10 end-to-end; they use the macOS FFmpeg locally and the Windows build in CI; the Media Foundation test
+        runs only where Media Foundation exists)
   - [ ] M2.7c Images on Windows (WIC)
   - [ ] M2.7d Documents and PDF on Windows (Open XML SDK, Windows.Data.Pdf)
 

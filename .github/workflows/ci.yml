@@ -107,8 +107,10 @@ jobs:
       - name: Verify FFmpeg license (runs the .exe)
         shell: bash
         run: scripts/ffmpeg/verify-license.sh build/ffmpeg/windows/bin
-      - name: Potion.Core tests
+      - name: Potion.Core tests (including engine tests with the FFmpeg build)
         run: dotnet test core/dotnet/Potion.Core.Tests
+        env:
+          POTION_REQUIRE_FFMPEG: "1"
       - name: Build Potion (Debug)
         run: dotnet build apps/potion-windows/Potion/Potion.csproj -c Debug -p:Platform=x64
       - name: Build Potion (Release)
