@@ -28,6 +28,11 @@ public sealed record LinkList(IReadOnlyList<DropLink> Links, IReadOnlyList<LinkP
 /// <param name="Reviewed">When the source's terms were last reviewed (YYYY-MM-DD).</param>
 public sealed record SourceInfo(string Id, string Name, IReadOnlyList<FormatCategory> Categories, string Reviewed);
 
+/// <summary>Naming settings from sources.json "naming".</summary>
+/// <param name="FallbackName">Used when neither the template nor the title leaves a usable name.</param>
+/// <param name="ReserveForSuffix">Characters kept free for " 2" and the extension.</param>
+public sealed record NamingSettings(string DefaultTemplate, string FallbackName, int ReserveForSuffix);
+
 /// <summary>What a source adapter decided about a link: accept (with the format, if known) or reject.</summary>
 public sealed record SourceMatch(LinkError? Error, string? FormatId = null, bool NeedsCheck = false)
 {
@@ -61,6 +66,7 @@ public sealed class SourceRegistry
     public int MaxLinksPerPaste { get; }
     public IReadOnlySet<string> PlaylistExtensions { get; }
     public DownloadSettings Download { get; }
+    public NamingSettings Naming { get; }
 
     private readonly string _userAgent;
     private readonly Dictionary<string, string> _messages;
@@ -92,9 +98,12 @@ public sealed class SourceRegistry
             if (MaxLinkLength <= 0 || MaxLinksPerPaste <= 0) throw new FormatSpecException("Limits must be positive");
             PlaylistExtensions = root.GetProperty("playlistExtensions").EnumerateArray().Select(e => e.GetString()!).ToHashSet();
             _messages = root.GetProperty("messages").EnumerateObject().ToDictionary(p => p.Name, p => p.Value.GetString()!);
-            foreach (var id in Enum.GetValues<LinkError>().Select(Id).Concat(DownloadError.All.Select(e => e.Id)))
+            foreach (var id in Enum.GetValues<LinkError>().Select(Id).Concat(DownloadError.All.Select(e => e.Id)).Append("tooLong"))
                 if (!_messages.ContainsKey(id)) throw new FormatSpecException($"No message for {id}");
             Download = ParseDownload(root.GetProperty("download"));
+            var naming = root.GetProperty("naming");
+            Naming = new NamingSettings(naming.GetProperty("defaultTemplate").GetString()!, naming.GetProperty("fallbackName").GetString()!,
+                naming.GetProperty("reserveForSuffix").GetInt32());
 
             var byId = new Dictionary<string, ISourceAdapter>();
             foreach (var adapter in adapters ?? SourceAdapters.BuiltIn)
@@ -126,12 +135,15 @@ public sealed class SourceRegistry
         return new DownloadSettings(
             d.GetProperty("maxRedirects").GetInt32(), d.GetProperty("timeoutSeconds").GetInt32(), d.GetProperty("retries").GetInt32(),
             d.GetProperty("defaultRetrySeconds").GetInt32(), d.GetProperty("maxRetrySeconds").GetInt32(), d.GetProperty("maxRobotsBytes").GetInt32(),
-            d.GetProperty("defaultMaxBytes").GetInt64(), d.GetProperty("maxFileNameLength").GetInt32(),
+            d.GetProperty("defaultMaxBytes").GetInt64(), d.GetProperty("defaultMaxDurationMinutes").GetInt32(), d.GetProperty("maxFileNameLength").GetInt32(),
             Set("playlist"), Set("media"), Set("generic"), Set("page"));
     }
 
     /// <summary>The product token robots.txt groups are matched against ("PotionDropper").</summary>
     public string RobotsAgent => new(_userAgent.TakeWhile(c => c is not ('/' or ' ')).ToArray());
+
+    /// <summary>A message by its id in sources.json.</summary>
+    public string Message(string id) => _messages.GetValueOrDefault(id, "");
 
     /// <summary>The text shown for a download error.</summary>
     public string Message(DownloadError error) => _messages[error.Id];

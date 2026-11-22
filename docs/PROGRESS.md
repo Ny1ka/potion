@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M5 Dropper core (M2–M4 done: engines, Potion for macOS and Windows)
-- **Last completed chunk:** M5.2c Real HTTP transports (URLSession, HttpClient) with loopback tests
-- **Next chunk:** M5.3 Dropper jobs (download → media info → convert, naming, history) and app scaffolds
+- **Last completed chunk:** M5.3a Dropper jobs (pipeline, naming templates, history)
+- **Next chunk:** M5.3b Dropper app scaffolds (macOS and Windows) building in CI
 
 ## Milestones
 
@@ -45,6 +45,9 @@ Read this first in any new session. Update it at every checkpoint.
 - M6: the Dropper macOS app needs `NSAppTransportSecurity` › `NSAllowsArbitraryLoads` in its Info.plist, or
   App Transport Security blocks plain `http://` direct links (loopback is exempt, so the core tests don't show it).
   The Downloader itself never downgrades: it only follows the link or redirect the server gives.
+- M6/M7: conversion errors are worded for Potion ("Potion's conversion tools are missing. Reinstall Potion…",
+  "…so Potion can't convert it."). Dropper must show "Potion Dropper" instead: make the product name a parameter
+  of the error text in both cores before the Dropper UI shows these messages.
 
 ## Decisions
 
@@ -81,9 +84,14 @@ Read this first in any new session. Update it at every checkpoint.
       TcpListener) with 8 tests per core: streaming, our headers, redirects not followed, cookies not stored or sent,
       401 passed through, timeout, connection refused, Downloader end to end (robots.txt, redirect, content check)
       and resume after a dropped connection
-- [ ] M5.3 Dropper jobs: download → media info (duration limit, default 30 minutes) → convert with the existing
-      engines (stream copy when possible), naming templates, duplicate/overwrite protection, history the user can
-      clear; Dropper app scaffolds (`apps/dropper-macos`, `apps/dropper-windows`) that build in CI
+- [x] M5.3a Dropper jobs (Swift + C#): `DropJobRunner` (download → ffprobe → duration limit, default 30 minutes,
+      and copy-protection check → keep or convert with the regular engines → unique final name; hidden work folder
+      kept only for resumable failures), naming templates (`{title}`, `{site}`, `{date}`, `{format}`; 13 shared
+      cases), `DropHistory` (JSON, newest first, 500 entries, remove and clear), `MediaConverting` /
+      `IMediaConverter` with `FFmpegMediaConverter` (C#, audio/video only). 8 job tests per core incl. a real FFmpeg
+      run (WAV link → MP3)
+- [ ] M5.3b Dropper app scaffolds: `apps/dropper-macos` (XcodeGen, SwiftUI) and `apps/dropper-windows` (WinUI 3)
+      that build and launch in CI, with their own identities, icons and Release scans
 
 ### M4 chunks
 

@@ -47,7 +47,13 @@
         "text/html",
         "application/xhtml+xml"
       ]
-    }
+    },
+    "defaultMaxDurationMinutes": 30
+  },
+  "naming": {
+    "defaultTemplate": "{title}",
+    "fallbackName": "download",
+    "reserveForSuffix": 16
   },
   "sources": [
     {
@@ -64,7 +70,7 @@
     "notALink": "This isn't a web link. Links start with https://.",
     "unsupportedScheme": "Potion Dropper downloads only web links (http and https).",
     "credentials": "Links that contain a user name or password aren't supported.",
-    "tooLong": "This link is too long.",
+    "tooLong": "This file is {minutes} minutes long. The limit in Settings is {limit} minutes.",
     "invalidHost": "This link's site address isn't valid.",
     "invalidPort": "This link's port number isn't valid.",
     "playlist": "Potion Dropper can't download streaming playlists.",

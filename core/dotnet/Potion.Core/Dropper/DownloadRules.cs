@@ -39,6 +39,7 @@ public sealed record DownloadSettings(
     int MaxRetrySeconds,
     int MaxRobotsBytes,
     long DefaultMaxBytes,
+    int DefaultMaxDurationMinutes,
     int MaxFileNameLength,
     IReadOnlySet<string> PlaylistTypes,
     IReadOnlySet<string> MediaTypes,

@@ -46,6 +46,7 @@ public struct DownloadSettings: Decodable, Hashable, Sendable {
     public let maxRetrySeconds: Int
     public let maxRobotsBytes: Int
     public let defaultMaxBytes: Int64
+    public let defaultMaxDurationMinutes: Int
     public let maxFileNameLength: Int
     public let contentTypes: ContentTypes
 }

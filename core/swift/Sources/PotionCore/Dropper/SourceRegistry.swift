@@ -44,6 +44,15 @@ public struct SourceInfo: Decodable, Hashable, Sendable {
     public let reviewed: String
 }
 
+/// Naming settings from sources.json `naming`.
+public struct NamingSettings: Decodable, Hashable, Sendable {
+    public let defaultTemplate: String
+    /// Used when neither the template nor the title leaves a usable name.
+    public let fallbackName: String
+    /// Characters kept free for " 2" and the extension.
+    public let reserveForSuffix: Int
+}
+
 /// What a source adapter decided about a link.
 public enum SourceMatch: Equatable, Sendable {
     case accept(formatID: String?, needsCheck: Bool)
@@ -78,6 +87,7 @@ public final class SourceRegistry: Sendable {
     public let maxLinksPerPaste: Int
     public let playlistExtensions: Set<String>
     public let download: DownloadSettings
+    public let naming: NamingSettings
     private let userAgentTemplate: String
     private let messages: [String: String]
     private let adapters: [(SourceInfo, any SourceAdapter)]
@@ -90,6 +100,7 @@ public final class SourceRegistry: Sendable {
         let limits: Limits
         let playlistExtensions: [String]
         let download: DownloadSettings
+        let naming: NamingSettings
         let sources: [SourceInfo]
         let messages: [String: String]
     }
@@ -106,7 +117,7 @@ public final class SourceRegistry: Sendable {
         }
         guard spec.version == 1 else { throw LoadError.invalid("Unsupported sources.json version \(spec.version)") }
         guard spec.limits.maxLinkLength > 0, spec.limits.maxLinksPerPaste > 0 else { throw LoadError.invalid("Limits must be positive") }
-        for id in LinkError.allCases.map(\.rawValue) + DownloadError.allCases.map(\.id) where spec.messages[id] == nil {
+        for id in LinkError.allCases.map(\.rawValue) + DownloadError.allCases.map(\.id) + ["tooLong"] where spec.messages[id] == nil {
             throw LoadError.invalid("No message for \(id)")
         }
 
@@ -129,6 +140,7 @@ public final class SourceRegistry: Sendable {
         maxLinksPerPaste = spec.limits.maxLinksPerPaste
         playlistExtensions = Set(spec.playlistExtensions)
         download = spec.download
+        naming = spec.naming
         userAgentTemplate = spec.userAgent
         messages = spec.messages
         self.adapters = pairs
@@ -148,6 +160,9 @@ public final class SourceRegistry: Sendable {
 
     /// The text shown for a link error (follows the design system's voice rules).
     public func message(for error: LinkError) -> String { messages[error.rawValue] ?? "" }
+
+    /// A message by its id in sources.json.
+    public func message(id: String) -> String { messages[id] ?? "" }
 
     /// The text shown for a download error.
     public func message(for error: DownloadError) -> String { messages[error.id] ?? "" }

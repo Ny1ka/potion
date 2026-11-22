@@ -13,7 +13,7 @@ cases, so macOS and Windows agree on what a file is and what it can become.
 | `tests/pages.json` | Conformance cases for page selections ("1-3, 5") used by the PDF tools |
 | `sources.json` | Potion Dropper's source allowlist, link limits, User-Agent and link error messages |
 | `tests/links.json` | Conformance cases for link parsing, normalization, source matching, pasted text and redirect targets |
-| `tests/downloads.json` | Conformance cases for server answers, content checks, download file names and robots.txt |
+| `tests/downloads.json` | Conformance cases for server answers, content checks, download file names, robots.txt and naming templates |
 
 The Swift package can't read files outside its own folder, so `core/swift/Sources/PotionCore/Resources/`
 holds byte-for-byte copies. Run `make sync-spec` after editing anything here. A test in both cores fails if
@@ -157,7 +157,8 @@ order; each `id` must have an adapter in both cores (in a `SourceAdapters` folde
 | `limits.maxLinkLength` | Longest normalized link accepted |
 | `limits.maxLinksPerPaste` | Links kept from one paste or drop; the rest are counted as `overLimit` |
 | `playlistExtensions` | Streaming playlists and manifests, refused |
-| `download` | Redirect, timeout and retry limits, robots.txt size cap, default size limit, file name length, and content-type groups (below) |
+| `download` | Redirect, timeout and retry limits, robots.txt size cap, default size and duration limits, file name length, and content-type groups (below) |
+| `naming` | Default naming template, the fallback name, and characters kept free for " 2" and the extension |
 | `sources[]` | `id`, `name`, the `categories` it provides, and the `reviewed` date |
 | `messages` | User-facing text for each link and download error |
 
@@ -237,3 +238,23 @@ allowed; 5xx or no answer → nothing allowed. Groups whose `User-agent` product
 (percent-encoded like link paths) matches from the start of the link's path and query; `*` matches anything and a
 final `$` anchors the end. The longest matching rule wins, `Allow` on a tie; no match allows. `/robots.txt` is
 always allowed.
+
+## Naming (sources.json `naming`, tests/downloads.json `names`)
+
+A template uses `{title}` (the download's file name without an extension that names a known format), `{site}`
+(the host, lowercased, without `www.`), `{date}` (YYYY-MM-DD, local) and `{format}` (the output format's name).
+Tokens ignore case; any other `{…}` stays as typed. The result is cleaned like a file name (above) and shortened
+to `maxFileNameLength − reserveForSuffix` characters. If nothing usable is left, the title is used, then
+`fallbackName`. Existing files are never replaced: " 2", " 3"… is added (as in Potion).
+
+## Jobs
+
+One link runs through: download (above) into a hidden `.potion-dropper-…` folder inside the output folder →
+inspect with ffprobe (copy-protected media is refused; longer than `defaultMaxDurationMinutes`, unless the user
+changed or removed the limit → "tooLong", and the download is deleted) → if the output format is the downloaded
+one, move it to its final name; otherwise give it its final name inside the work folder and convert it into the
+output folder with the regular engines (stream copy when possible). The original is kept next to the result only
+when the user asks. The work folder is removed, unless a failed download can be resumed.
+
+Duration is checked after downloading: FFmpeg has no network access, and direct links carry no duration. The size
+limit protects against large downloads before and during the transfer.
