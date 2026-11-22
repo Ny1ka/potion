@@ -5,7 +5,8 @@ using Potion.Core.Formats;
 namespace Potion.Core.Documents;
 
 /// <summary>
-/// Converts documents on Windows (matrix operations <c>ConvertDocument</c> and <c>DocumentToPdf</c>), the
+/// Converts documents on Windows (matrix operations <c>ConvertDocument</c>, <c>DocumentToPdf</c> and
+/// <c>PdfToDocument</c>), the
 /// counterpart of the Swift <c>DocumentEngine</c>: read into a <see cref="Document"/>, write the output to a hidden
 /// temporary file, re-open it to check it, then save it under a name that doesn't exist yet.
 /// </summary>
@@ -15,16 +16,21 @@ public sealed class DocumentEngine(ConversionMatrix? matrix = null)
 
     public static readonly IReadOnlySet<string> Writable = new HashSet<string> { "txt", "md", "html", "epub", "docx", "rtf", "odt", "pdf" };
 
+    /// <param name="pages">PDF input only: 1-based pages to convert (all when null).</param>
+    /// <param name="renderPage">PDF input only (Windows): a picture of a page, used for pages without text.</param>
     public async Task<string> ConvertAsync(string input, FileFormat inputFormat, FileFormat outputFormat, string outputDirectory,
-                                           CancellationToken token = default)
+                                           CancellationToken token = default, IReadOnlyList<int>? pages = null,
+                                           Func<int, (byte[] Png, double Width, double Height)?>? renderPage = null)
     {
         var conversion = _matrix.Conversion(inputFormat.Id, outputFormat.Id);
-        if (conversion?.Operation is not (ConversionOperation.ConvertDocument or ConversionOperation.DocumentToPdf)
+        if (conversion?.Operation is not (ConversionOperation.ConvertDocument or ConversionOperation.DocumentToPdf or ConversionOperation.PdfToDocument)
             || !Writable.Contains(outputFormat.Id))
             throw ConversionException.Unsupported(inputFormat.Name, outputFormat.Name);
         OutputFiles.CheckWritable(outputDirectory);
 
-        var document = await Task.Run(() => DocumentReader.Read(input, inputFormat), token).ConfigureAwait(false);
+        var document = await Task.Run(() => conversion.Operation == ConversionOperation.PdfToDocument
+            ? PdfTools.ToDocument(input, pages, renderPage)
+            : DocumentReader.Read(input, inputFormat), token).ConfigureAwait(false);
         var hasText = document.PlainText.Trim().Length > 0;
         var title = Path.GetFileNameWithoutExtension(input);
         var ext = outputFormat.PreferredExtension;

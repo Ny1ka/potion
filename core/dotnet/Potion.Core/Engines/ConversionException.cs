@@ -41,6 +41,11 @@ public sealed class ConversionException : Exception
     /// <summary>Windows only: the codec for this file comes from a free Microsoft Store extension that isn't installed.</summary>
     public static ConversionException NeedsExtension(string fileName, string extension) =>
         new(ConversionErrorKind.NeedsExtension, $"To convert “{fileName}”, install {extension} from the Microsoft Store, then try again.");
+    public static ConversionException InvalidPages(string selection, int pageCount) =>
+        new(ConversionErrorKind.InvalidPages,
+            $"“{selection}” isn't a valid page selection. Use {(pageCount == 1 ? "page 1" : $"pages 1–{pageCount}")}, for example “1–3, 5”.");
+    public static ConversionException NotSmaller(string fileName) =>
+        new(ConversionErrorKind.NotSmaller, $"“{fileName}” is already as small as Potion can make it, so no compressed copy was saved.");
     public static ConversionException VerificationFailed(string fileName) =>
         new(ConversionErrorKind.VerificationFailed, $"The converted copy of “{fileName}” didn't check out, so it wasn't saved.");
 }

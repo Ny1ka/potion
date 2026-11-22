@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M2.7 Windows engines, then M4 Potion Windows UI (M3 Potion macOS UI is done)
-- **Last completed chunk:** M2.7d-3c Windows document → PDF (MigraDoc 6.2.4)
-- **Next chunk:** M2.7d-4 PDF tools and PDF conversions on Windows
+- **Last completed chunk:** M2.7d-4a Windows PDF tools + PDF → documents (C#)
+- **Next chunk:** M2.7d-4b Windows-only PDF → images, scanned pages, images → PDF, C# ConversionService
 
 ## Milestones
 
@@ -120,7 +120,12 @@ Read this first in any new session. Update it at every checkpoint.
           2026-11-22): page size and margins, headings with PDF bookmarks, alignment, styled text, clickable links,
           list markers with their own numbers, bordered tables, images scaled to fit, code, page breaks; `PdfFonts`
           finds system TrueType fonts on Windows/macOS/Linux with fallbacks. Verified with PdfPig (2 tests)
-    - [ ] M2.7d-4 PDF tools and conversions (PDFsharp, PdfPig for text, Windows.Data.Pdf for images), images → PDF
+    - [x] M2.7d-4a `PageSelection` in C# (passes core/spec/tests/pages.json), `PdfTools`: merge, split, extract,
+          reorder, compress (best stream compression; images aren't recompressed on Windows) with PDFsharp 6.2.4,
+          and PDF → DOCX/TXT/HTML via PdfPig text in reading order (page breaks between pages, page selection).
+          Any encrypted PDF (password or owner restrictions) gets the copy-protected message. 5 tests
+    - [ ] M2.7d-4b Windows-only: PDF → PNG/JPG/SVG (Windows.Data.Pdf), pictures of scanned pages, images → PDF,
+          and a C# `ConversionService` routing every operation like the Swift one
 
 ### M3 chunks
 
