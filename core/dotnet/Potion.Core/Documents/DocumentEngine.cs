@@ -13,8 +13,8 @@ public sealed class DocumentEngine(ConversionMatrix? matrix = null)
 {
     private readonly ConversionMatrix _matrix = matrix ?? ConversionMatrix.Shared;
 
-    /// <summary>Outputs written so far (DOCX, RTF, ODT and PDF follow in the next chunks).</summary>
-    public static readonly IReadOnlySet<string> Writable = new HashSet<string> { "txt", "md", "html", "epub" };
+    /// <summary>Outputs written so far (PDF follows in the next chunk).</summary>
+    public static readonly IReadOnlySet<string> Writable = new HashSet<string> { "txt", "md", "html", "epub", "docx", "rtf", "odt" };
 
     public async Task<string> ConvertAsync(string input, FileFormat inputFormat, FileFormat outputFormat, string outputDirectory,
                                            CancellationToken token = default)
@@ -45,6 +45,9 @@ public sealed class DocumentEngine(ConversionMatrix? matrix = null)
         "txt" => Encoding.UTF8.GetBytes(PlainTextWriter.Write(document)),
         "md" => Encoding.UTF8.GetBytes(MarkdownWriter.Write(document)),
         "html" => Encoding.UTF8.GetBytes(HtmlWriter.Write(document, title)),
+        "docx" => DocxWriter.Write(document, title),
+        "rtf" => Encoding.ASCII.GetBytes(RtfWriter.Write(document)),
+        "odt" => OdtWriter.Write(document),
         "epub" => EpubWriter.Write(document, title, System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName is { Length: 2 } l ? l : "en"),
         _ => throw ConversionException.Unsupported("Document", formatId.ToUpperInvariant()),
     };

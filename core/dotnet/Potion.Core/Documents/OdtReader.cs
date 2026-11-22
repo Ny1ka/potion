@@ -105,7 +105,7 @@ public static class OdtReader
                     var id = ++_listId;
                     var counter = new List<int> { start - 1 };
                     foreach (var item in e.Elements(Text + "list-item"))
-                        foreach (var block in Blocks(item.Elements(), listDepth + 1, (list?.Ordered ?? ordered, list?.Id ?? id, counter)))
+                        foreach (var block in Blocks(item.Elements(), listDepth + 1, (ordered, id, counter)))
                             yield return block;
                 }
                 else if (e.Name == TableNs + "table")

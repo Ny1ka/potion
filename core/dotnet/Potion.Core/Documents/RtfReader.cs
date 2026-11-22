@@ -21,6 +21,7 @@ public static class RtfReader
         public bool InTable;
         public int List;          // \ls index, 0 = none
         public int ListLevel;
+        public int Outline = -1;  // \outlinelevelN: heading N+1
         public int Skip;          // \ucN: characters to skip after \u
         public string Destination = "";   // "", "fonttbl", "colortbl", "pict", "fldinst", "fldrslt", "listtext", "skip"…
         public State Clone() => (State)MemberwiseClone();
@@ -198,7 +199,8 @@ public static class RtfReader
                     _state.Skip = 1;
                     break;
                 // Paragraphs
-                case "pard": _state.Alignment = Alignment.Start; _state.InTable = false; _state.List = 0; _state.ListLevel = 0; break;
+                case "pard": _state.Alignment = Alignment.Start; _state.InTable = false; _state.List = 0; _state.ListLevel = 0; _state.Outline = -1; break;
+                case "outlinelevel": _state.Outline = p is >= 0 and < 6 ? p.Value : -1; break;
                 case "ql": _state.Alignment = Alignment.Start; break;
                 case "qc": _state.Alignment = Alignment.Center; break;
                 case "qr": _state.Alignment = Alignment.End; break;
@@ -314,7 +316,7 @@ public static class RtfReader
             }
             else if (hasContent || force)
             {
-                block = new Paragraph(hasContent ? inlines : [], 0, _state.Alignment);
+                block = new Paragraph(hasContent ? inlines : [], _state.Outline >= 0 && hasContent ? _state.Outline + 1 : 0, _state.Alignment);
             }
             else return;
             _listText.Clear();

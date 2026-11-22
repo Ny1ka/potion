@@ -86,6 +86,70 @@ public sealed class DocumentWriterTests : EngineTestBase
         Assert.Single(back.Blocks.OfType<Paragraph>().SelectMany(p => p.Inlines).OfType<ImageRun>());
     }
 
+    private static Document WithPage()
+    {
+        var doc = Sample();
+        doc.Page = new PageSetup(792, 612, 36, 36, 36, 36);
+        doc.Blocks.Insert(2, new Paragraph([new TextRun("Centered and colored", TextStyle.Plain with { Color = "336699", Italic = true })], 0, Alignment.Center));
+        return doc;
+    }
+
+    private static void AssertRoundTrip(Document back, bool checksPage = true)
+    {
+        Assert.Equal("Quarterly Report", back.Blocks.OfType<Paragraph>().First(p => p.HeadingLevel == 1).PlainText);
+        var runs = back.Blocks.OfType<Paragraph>().SelectMany(p => p.Inlines).OfType<TextRun>().ToList();
+        Assert.Contains(runs, r => r.Text.Contains("bold") && r.Style.Bold);
+        Assert.Contains(runs, r => r.Style.Link == "https://example.com/page");
+        Assert.Contains(runs, r => r.Text.Contains("Centered") && r.Style.Italic && r.Style.Color == "336699");
+        Assert.Equal(Alignment.Center, back.Blocks.OfType<Paragraph>().First(p => p.PlainText.Contains("Centered")).Alignment);
+        var items = back.Blocks.OfType<ListItem>().ToList();
+        Assert.Equal(["First", "Second", "Nested"], items.Select(i => i.PlainText.Trim()));
+        Assert.True(items[2].Ordered);
+        Assert.Equal(3, items[2].Number);
+        Assert.Equal("Region\tSales\nNorth\t120", back.Blocks.OfType<Table>().Single().PlainText);
+        Assert.Single(back.Blocks.OfType<Paragraph>().SelectMany(p => p.Inlines).OfType<ImageRun>());
+        if (checksPage) Assert.Equal(new PageSetup(792, 612, 36, 36, 36, 36), back.Page);
+    }
+
+    [Fact]
+    public void DocxRoundTrips()
+    {
+        var path = Path.Combine(Dir, "out.docx");
+        File.WriteAllBytes(path, DocxWriter.Write(WithPage(), "Report"));
+        using (var zip = ZipFile.OpenRead(path))
+            foreach (var entry in zip.Entries.Where(e => e.FullName.EndsWith(".xml") || e.FullName.EndsWith(".rels")))
+            {
+                using var s = entry.Open();
+                XDocument.Load(s);
+            }
+        AssertRoundTrip(DocumentReader.Read(path, S.Format("docx")));
+    }
+
+    [Fact]
+    public void RtfRoundTrips()
+    {
+        var rtf = RtfWriter.Write(WithPage());
+        Assert.DoesNotContain(rtf, c => c > 127);   // pure 7-bit RTF
+        AssertRoundTrip(RtfReader.Read(rtf));
+    }
+
+    [Fact]
+    public void OdtRoundTrips()
+    {
+        var path = Path.Combine(Dir, "out.odt");
+        File.WriteAllBytes(path, OdtWriter.Write(WithPage()));
+        using (var zip = ZipFile.OpenRead(path))
+        {
+            Assert.Equal("mimetype", zip.Entries[0].FullName);
+            foreach (var entry in zip.Entries.Where(e => e.FullName.EndsWith(".xml")))
+            {
+                using var s = entry.Open();
+                XDocument.Load(s);
+            }
+        }
+        AssertRoundTrip(DocumentReader.Read(path, S.Format("odt")));
+    }
+
     [Fact]
     public async Task EngineConvertsAndNeverOverwrites()
     {
