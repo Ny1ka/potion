@@ -46,6 +46,27 @@ targets:
       - path: Resources
     dependencies:
       - package: PotionCore
+    postBuildScripts:
+      # Copies the LGPL FFmpeg build (scripts/ffmpeg/) into Contents/Helpers and signs it. Debug builds
+      # without it still run (audio and video then report the tools as missing); Release builds require it.
+      - name: Bundle FFmpeg
+        basedOnDependencyAnalysis: false
+        script: |
+          set -euo pipefail
+          SRC="${SRCROOT}/../../build/ffmpeg/macos/bin"
+          DEST="${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/Helpers"
+          if [ ! -x "$SRC/ffmpeg" ] || [ ! -x "$SRC/ffprobe" ]; then
+            if [ "${CONFIGURATION}" = "Release" ]; then
+              echo "error: FFmpeg build missing at $SRC. Run scripts/ffmpeg/build-macos.sh universal"; exit 1
+            fi
+            echo "warning: FFmpeg build missing at $SRC, so audio and video conversion won't work. Run scripts/ffmpeg/build-macos.sh"
+            exit 0
+          fi
+          mkdir -p "$DEST"
+          for tool in ffmpeg ffprobe; do
+            ditto "$SRC/$tool" "$DEST/$tool"
+            codesign --force --options runtime --timestamp=none --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" "$DEST/$tool"
+          done
     info:
       path: Sources/Info.plist
       properties:
@@ -64,6 +85,8 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: NO
         COMBINE_HIDPI_IMAGES: YES
+        # The FFmpeg bundling script reads build/ffmpeg outside the project folder.
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
 
 schemes:
   Potion:

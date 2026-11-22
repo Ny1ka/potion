@@ -35,12 +35,38 @@ final class QueueModel: ObservableObject {
     @Published var isAdding = false
     @Published var showImporter = false
 
-    private let matrix: ConversionMatrix
-    private let defaults: UserDefaults
+    // Converting (see QueueRunner.swift)
+    @Published var isConverting = false
+    @Published var batch = BatchProgress()
+    /// "12 files converted", shown in the footer for a few seconds after a batch.
+    @Published var completion: Completion?
+    /// Where converted files go: nil = next to each original.
+    @Published var saveFolder: URL? { didSet { defaults.set(saveFolder?.path, forKey: SettingsKey.saveFolder) } }
+    @Published var recentFolders: [URL] { didSet { defaults.set(recentFolders.map(\.path), forKey: SettingsKey.recentFolders) } }
+    @Published var moveOriginalsToTrash: Bool { didSet { defaults.set(moveOriginalsToTrash, forKey: SettingsKey.moveToTrash) } }
 
-    init(matrix: ConversionMatrix = .shared, defaults: UserDefaults = .standard) {
+    let matrix: ConversionMatrix
+    let defaults: UserDefaults
+    let service: ConversionService
+    var running: [QueueItem.ID: Task<Void, Never>] = [:]
+    var batchIDs = Set<QueueItem.ID>()
+    var stopping = false
+    var completionTask: Task<Void, Never>?
+
+    init(matrix: ConversionMatrix = .shared, defaults: UserDefaults = .standard,
+         service: ConversionService = .withBundledTools()) {
         self.matrix = matrix
         self.defaults = defaults
+        self.service = service
+        let fm = FileManager.default
+        func existingFolder(_ path: String?) -> URL? {
+            var isDir: ObjCBool = false
+            guard let path, fm.fileExists(atPath: path, isDirectory: &isDir), isDir.boolValue else { return nil }
+            return URL(fileURLWithPath: path, isDirectory: true)
+        }
+        saveFolder = existingFolder(defaults.string(forKey: SettingsKey.saveFolder))
+        recentFolders = (defaults.stringArray(forKey: SettingsKey.recentFolders) ?? []).compactMap(existingFolder)
+        moveOriginalsToTrash = defaults.bool(forKey: SettingsKey.moveToTrash)
     }
 
     var includeSubfolders: Bool { defaults.object(forKey: SettingsKey.includeSubfolders) as? Bool ?? true }
@@ -88,11 +114,13 @@ final class QueueModel: ObservableObject {
     }
 
     func remove(_ ids: Set<QueueItem.ID>) {
+        for id in ids { running[id]?.cancel() }
         items.removeAll { ids.contains($0.id) }
         selection.subtract(ids)
     }
 
     func clear() {
+        guard !isConverting else { return }
         items.removeAll()
         selection.removeAll()
         unsupported = []
@@ -109,5 +137,8 @@ final class QueueModel: ObservableObject {
 
 enum SettingsKey {
     static let includeSubfolders = "includeSubfolders"
+    static let saveFolder = "saveFolder"
+    static let recentFolders = "recentFolders"
+    static let moveToTrash = "moveOriginalsToTrash"
     static func lastOutput(_ category: FormatCategory) -> String { "lastOutput.\(category.rawValue)" }
 }

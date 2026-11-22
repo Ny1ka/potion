@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M3 Potion macOS UI (M2.7 Windows engines moved to just before M4, owner's call)
-- **Last completed chunk:** M3.1 Window, drop zone and queue (macOS)
-- **Next chunk:** M3.2 Converting from the queue (macOS)
+- **Last completed chunk:** M3.2 Converting from the queue (macOS)
+- **Next chunk:** M3.3 Convert sheet and Advanced options (macOS)
 
 ## Milestones
 
@@ -15,7 +15,7 @@ Read this first in any new session. Update it at every checkpoint.
 | M0 Scaffold | Done |
 | M1 Core: formats | Done |
 | M2 Core: conversion engines | macOS done (M2.0–M2.6); M2.7 Windows runs before M4 |
-| M3 Potion macOS UI | In progress (M3.1 done) |
+| M3 Potion macOS UI | In progress (M3.1–M3.2 done) |
 | M4 Potion Windows UI | Not started |
 | M5 Dropper core | Not started |
 | M6 Dropper macOS UI | Not started |
@@ -88,9 +88,13 @@ Read this first in any new session. Update it at every checkpoint.
       limit; 3 tests), queue rows (tile, middle-truncated name, format · size, compatible formats grouped by
       category, last-used format per category, status), multi-select, Delete, context menu (Change Format,
       Show in Finder, Remove), banner for files that can't be converted, footer with Clear
-- [ ] M3.2 Converting from the queue: job runner over the engines (limited parallelism, cancel/Stop), per-row
-      progress, footer (Save to, Move originals to Trash, Convert All/Stop, overall progress, "12 files
-      converted · Show in Finder"), ffmpeg/ffprobe bundled in `Contents/Helpers`
+- [x] M3.2 Converting from the queue: `ConversionService` in PotionCore routes every matrix operation to its
+      engine (4 tests). The app converts two files at a time with per-row progress (category fill), Stop
+      (FFmpeg processes are terminated, rows show Canceled, nothing partial is left), Retry, Convert All (⌘↩),
+      Save to (next to the original, recent folders, Choose Folder…), Move originals to Trash (only after the
+      converted copy is verified and saved), overall progress and "6 files converted · Show in Finder".
+      ffmpeg/ffprobe are copied into `Contents/Helpers` and signed by a build phase (required for Release).
+      Checked by hand in the app: 6 kinds of conversion, Stop on a 1080p video, Trash, narrow-window footer
 - [ ] M3.3 Convert sheet and Advanced options (per category, from presets), batch "Convert all to…"
 - [ ] M3.4 Settings (General, Output, Advanced), menus, Dock badge, notifications
 - [ ] M3.5 Finder Quick Action ("Convert with Potion") and first-launch onboarding
@@ -118,7 +122,9 @@ Read this first in any new session. Update it at every checkpoint.
   scaled by DPI); check it on a real PC in M4.1. The mono mark in the empty state is added in M4.1.
 - Local Xcode is 15.4; keep `projectFormat: xcode15_0` in `project.yml` files.
 - Engine tests need the FFmpeg build (`scripts/ffmpeg/build-macos.sh`); they skip locally without it and fail
-  in CI (`POTION_REQUIRE_FFMPEG=1`). The app doesn't bundle `ffmpeg`/`ffprobe` yet (M3: `Contents/Helpers`).
+  in CI (`POTION_REQUIRE_FFMPEG=1`). The app bundles it in `Contents/Helpers` (Debug builds without it still
+  run, but audio/video report the tools as missing). The universal binaries add ~130 MB to the app; an
+  FFmpeg build trimmed to the formats Potion uses (M9) would shrink that.
 - Images: animated GIF/WebP inputs convert their first frame only. SVG rendering relies on AppKit and
   needs a recent macOS (it works on 26; check 13–15 before release, or fall back with a clear error). AVIF via
   the FFmpeg fallback drops transparency.

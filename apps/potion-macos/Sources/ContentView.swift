@@ -146,21 +146,128 @@ struct Banner: View {
 
 // MARK: - Footer
 
-/// Footer bar (06-components.md, "Footer bar"). Saving options and Convert All arrive with conversion (M3.2).
+/// Footer bar (06-components.md, "Footer bar"): save options and Convert All; overall progress and Stop
+/// while converting; a short summary afterwards.
 struct FooterView: View {
     @EnvironmentObject var queue: QueueModel
 
     var body: some View {
-        HStack(spacing: PotionSpacing.x2) {
-            Text(queue.items.count == 1 ? "1 file" : "\(queue.items.count) files")
-                .font(PotionFont.secondary)
-                .foregroundStyle(PotionColor.textSecondary)
-                .monospacedDigit()
-            Spacer()
-            Button("Clear") { queue.clear() }
+        HStack(spacing: PotionSpacing.x3) {
+            if queue.isConverting {
+                VStack(alignment: .leading, spacing: PotionSpacing.x1) {
+                    Text("Converting \(queue.batch.current) of \(queue.batch.total)…")
+                        .font(PotionFont.secondary)
+                        .foregroundStyle(PotionColor.textSecondary)
+                        .monospacedDigit()
+                    ProgressView(value: queue.batch.fraction)
+                        .progressViewStyle(.linear)
+                        .accessibilityLabel("Overall progress")
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Button("Stop") { queue.stop() }
+                    .keyboardShortcut(.cancelAction)
+            } else {
+                if let completion = queue.completion {
+                    CompletionView(completion: completion)
+                } else {
+                    // Narrow windows drop the "Save to:" label, then shorten the checkbox label.
+                    ViewThatFits(in: .horizontal) {
+                        saveOptions(showLabel: true, trashLabel: "Move originals to Trash")
+                        saveOptions(showLabel: false, trashLabel: "Move originals to Trash")
+                        saveOptions(showLabel: false, trashLabel: "Move to Trash")
+                    }
+                }
+                Spacer(minLength: PotionSpacing.x2)
+                Button("Clear") { queue.clear() }
+                Button("Convert All") { queue.convertAll() }
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(!queue.canConvert)
+            }
         }
         .padding(.horizontal, PotionSpacing.x4)
         .frame(height: 52)
+    }
+}
+
+extension FooterView {
+    func saveOptions(showLabel: Bool, trashLabel: String) -> some View {
+        HStack(spacing: PotionSpacing.x3) {
+            SaveToPicker(showLabel: showLabel)
+            Toggle(trashLabel, isOn: $queue.moveOriginalsToTrash)
+                .toggleStyle(.checkbox)
+                .help("After a file converts, move the original to the Trash")
+                .accessibilityLabel("Move originals to Trash")
+                .fixedSize()
+        }
+    }
+}
+
+struct CompletionView: View {
+    @EnvironmentObject var queue: QueueModel
+    let completion: Completion
+
+    var body: some View {
+        HStack(spacing: PotionSpacing.x1) {
+            Image(systemName: "checkmark").foregroundStyle(PotionColor.success).accessibilityHidden(true)
+            Text(completion.message)
+                .font(PotionFont.secondary)
+                .foregroundStyle(PotionColor.textPrimary)
+                .monospacedDigit()
+                .lineLimit(1)
+            if !completion.outputs.isEmpty {
+                Text("·").foregroundStyle(PotionColor.textTertiary).accessibilityHidden(true)
+                Button("Show in Finder") {
+                    NSWorkspace.shared.activateFileViewerSelecting(
+                        completion.outputs.filter { FileManager.default.fileExists(atPath: $0.path) })
+                }
+                .buttonStyle(.link)
+                .font(PotionFont.secondary)
+            }
+        }
+    }
+}
+
+/// "Save to:" popup: next to each original, a recent folder, or a folder the user chooses.
+struct SaveToPicker: View {
+    @EnvironmentObject var queue: QueueModel
+    var showLabel = true
+
+    enum Choice: Hashable { case original, folder(URL), choose }
+
+    var body: some View {
+        Picker("Save to:", selection: selection) {
+            Text("Same Folder as Original").tag(Choice.original)
+            if !folders.isEmpty {
+                Divider()
+                ForEach(folders, id: \.self) { url in
+                    Label(FileManager.default.displayName(atPath: url.path), systemImage: "folder").tag(Choice.folder(url))
+                }
+            }
+            Divider()
+            Text("Choose Folder…").tag(Choice.choose)
+        }
+        .pickerStyle(.menu)
+        .labelsHidden(!showLabel)
+        .fixedSize()
+        .help(queue.saveFolder?.path ?? "Converted files are saved next to the originals")
+    }
+
+    private var folders: [URL] {
+        var list = queue.recentFolders
+        if let current = queue.saveFolder, !list.contains(current) { list.insert(current, at: 0) }
+        return list
+    }
+
+    private var selection: Binding<Choice> {
+        Binding(
+            get: { queue.saveFolder.map(Choice.folder) ?? .original },
+            set: { choice in
+                switch choice {
+                case .original: queue.useSaveFolder(nil)
+                case let .folder(url): queue.useSaveFolder(url)
+                case .choose: DispatchQueue.main.async { queue.chooseSaveFolder() }   // after the menu closes
+                }
+            })
     }
 }
 
@@ -168,4 +275,10 @@ struct FooterView: View {
     ContentView()
         .environmentObject(QueueModel())
         .frame(width: PotionSize.windowDefault.width, height: PotionSize.windowDefault.height)
+}
+
+private extension View {
+    @ViewBuilder func labelsHidden(_ hidden: Bool) -> some View {
+        if hidden { labelsHidden() } else { self }
+    }
 }

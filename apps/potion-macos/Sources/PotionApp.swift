@@ -16,8 +16,7 @@ struct PotionApp: App {
         .windowToolbarStyle(.unifiedCompact)
         .commands {
             CommandGroup(replacing: .newItem) {
-                Button("Add Files…") { delegate.queue.showImporter = true }
-                    .keyboardShortcut("o")
+                QueueCommands(queue: delegate.queue)
             }
         }
     }
@@ -30,5 +29,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func application(_ application: NSApplication, open urls: [URL]) {
         queue.add(urls.filter(\.isFileURL))
+    }
+}
+
+/// File menu items that follow the queue's state.
+struct QueueCommands: View {
+    @ObservedObject var queue: QueueModel
+
+    var body: some View {
+        Button("Add Files…") { queue.showImporter = true }
+            .keyboardShortcut("o")
+        Divider()
+        Button("Convert All") { queue.convertAll() }
+            .keyboardShortcut(.return)
+            .disabled(!queue.canConvert)
+        Button("Stop") { queue.stop() }
+            .keyboardShortcut(".")
+            .disabled(!queue.isConverting)
     }
 }

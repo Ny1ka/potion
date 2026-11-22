@@ -27,9 +27,11 @@ struct QueueListView: View {
                     FormatMenuItems(formats: formats) { queue.setOutput($0, for: ids) }
                 }
             }
-            Button("Show in Finder") {
-                NSWorkspace.shared.activateFileViewerSelecting(queue.items.filter { ids.contains($0.id) }.map(\.url))
+            let retryable = queue.items.filter { ids.contains($0.id) && $0.isRetryable }
+            if !retryable.isEmpty {
+                Button("Retry") { queue.retry(Set(retryable.map(\.id))) }
             }
+            Button("Show in Finder") { queue.reveal(ids) }
             Divider()
             Button("Remove") { queue.remove(ids) }
         }
@@ -88,9 +90,14 @@ struct QueueRowView: View {
                     .foregroundStyle(isFailed ? PotionColor.error : PotionColor.textSecondary)
                     .lineLimit(1)
                     .truncationMode(.tail)
+                if case let .converting(fraction) = item.status {
+                    RowProgressBar(fraction: fraction, fill: item.category.fill)
+                        .padding(.top, PotionSpacing.x1)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .help(item.url.path)
+            .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }   // separators start at the file name
 
             Image(systemName: "arrow.right")
                 .font(.system(size: 14))
@@ -106,6 +113,7 @@ struct QueueRowView: View {
             .labelsHidden()
             .pickerStyle(.menu)
             .frame(width: Self.formatColumnWidth)
+            .disabled(isConverting)
             .help("Convert to")
             StatusView(status: item.status)
                 .frame(width: 72, alignment: .trailing)
@@ -115,6 +123,7 @@ struct QueueRowView: View {
     }
 
     private var isFailed: Bool { if case .failed = item.status { return true } else { return false } }
+    private var isConverting: Bool { if case .converting = item.status { return true } else { return false } }
 
     private var secondaryLine: String {
         if case let .failed(reason) = item.status { return reason }
@@ -145,5 +154,33 @@ struct StatusView: View {
         .font(PotionFont.secondary)
         .monospacedDigit()
         .lineLimit(1)
+    }
+}
+
+/// Per-row progress (06-components.md): 4 pt, the file's category fill on a raised track.
+struct RowProgressBar: View {
+    let fraction: Double
+    let fill: Color
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                Capsule().fill(PotionColor.surfaceRaised)
+                Capsule().fill(fill).frame(width: geometry.size.width * min(max(fraction, 0), 1))
+            }
+        }
+        .frame(height: PotionSize.progressBar)
+        .accessibilityElement()
+        .accessibilityLabel("Progress")
+        .accessibilityValue(fraction.formatted(.percent.precision(.fractionLength(0))))
+    }
+}
+
+extension QueueItem {
+    var isRetryable: Bool {
+        switch status {
+        case .failed, .canceled: return true
+        default: return false
+        }
     }
 }

@@ -36,7 +36,8 @@ binding layers and harder debugging, while the OS-framework engines would still 
 | `DocumentEngine` | `convertDocument`, `documentToPdf` | The macOS text system (`NSAttributedString` readers; RTF/DOC/ODT/HTML writers), TextKit pagination for PDF, Foundation's Markdown parser; our own DOCX and EPUB writers and EPUB reader on a small zip implementation (`Zip.swift`, Compression framework) |
 | `PDFEngine` | `pdfToImage`, `pdfToDocument`, merge/split/extract/reorder/compress | PDFKit, Core Graphics, ImageIO; documents written through `DocumentEngine`'s writers |
 
-Every engine checks the matrix first, writes to a hidden temporary file in the destination folder, verifies
+Apps call `ConversionService`, which picks the engine from the matrix operation and passes the per-category
+options (`ConversionSettings`). Every engine checks the matrix first, writes to a hidden temporary file in the destination folder, verifies
 the result by opening it again, then moves it to a name that doesn't exist yet (`OutputFiles`). Documents
 are read without network access: remote images, stylesheets, frames and scripts are removed from HTML (and
 Markdown rendered to HTML) before the system HTML reader sees it (`HTMLResources`).
