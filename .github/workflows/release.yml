@@ -1,0 +1,83 @@
+# Builds the macOS beta: Release configuration only, from a clean checkout of this public repository (spec Part 6.6.7:
+# it never has access to any private repository, local adapter folder or personal settings). Run it by hand from the
+# Actions tab. The result is a workflow artifact for trusted beta testers, not a public GitHub release.
+#
+# Signing and notarization are off: the owner decided (2026-11-22) to buy nothing until the apps are polished and
+# beta-tested. When a Developer ID certificate exists, signing and notarization are added here, using GitHub secrets.
+# Windows installers follow once the Windows apps have been tested on a real PC.
+name: Release (macOS beta)
+
+on:
+  workflow_dispatch:
+    inputs:
+      label:
+        description: "Label for the file names, e.g. beta.1"
+        required: true
+        default: "beta.1"
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    name: macOS release build
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install build tools
+        run: brew install xcodegen nasm cmake
+      - name: Restore FFmpeg build
+        id: ffmpeg-cache
+        uses: actions/cache@v6
+        with:
+          path: build/ffmpeg/macos
+          key: ffmpeg-macos-${{ hashFiles('scripts/ffmpeg/versions.sh', 'scripts/ffmpeg/build-macos.sh') }}
+      - name: Build FFmpeg (LGPL, universal)
+        if: steps.ffmpeg-cache.outputs.cache-hit != 'true'
+        run: scripts/ffmpeg/build-macos.sh universal
+
+      # Release gate checks (docs/LEGAL_REVIEW.md › Release gate).
+      - name: Verify FFmpeg license
+        run: scripts/ffmpeg/verify-license.sh build/ffmpeg/macos/bin
+      - name: Versions agree
+        run: scripts/release/version.sh check
+      - name: Third-party notices are complete and current
+        run: |
+          python3 scripts/legal/notices.py check
+          python3 scripts/legal/notices.py check-ffmpeg
+      - name: Scan tracked files
+        run: scripts/forbidden-scan.sh --tree
+
+      - name: Build Potion and Potion Dropper (Release)
+        run: |
+          cd apps/potion-macos && xcodegen generate --quiet && cd ../..
+          cd apps/dropper-macos && xcodegen generate --quiet && cd ../..
+          for scheme in "Potion:apps/potion-macos/Potion.xcodeproj" "PotionDropper:apps/dropper-macos/Potion Dropper.xcodeproj"; do
+            xcodebuild -project "${scheme#*:}" -scheme "${scheme%%:*}" -configuration Release \
+              -derivedDataPath build/DerivedData CURRENT_PROJECT_VERSION=${{ github.run_number }} -quiet build
+          done
+      - name: Scan the Release apps (blocked terms and the Debug-only loader)
+        run: |
+          scripts/forbidden-scan.sh --artifact build/DerivedData/Build/Products/Release/Potion.app
+          scripts/forbidden-scan.sh --artifact "build/DerivedData/Build/Products/Release/Potion Dropper.app"
+
+      - name: Package
+        env:
+          LABEL: ${{ inputs.label }}   # passed through the environment, never pasted into the script
+        run: |
+          version="$(tr -d '[:space:]' < VERSION)"
+          label="$LABEL"
+          [[ "$label" =~ ^[A-Za-z0-9.-]+$ ]] || { echo "::error::Label may only contain letters, digits, dots and hyphens"; exit 1; }
+          scripts/release/make-dmg.sh build/DerivedData/Build/Products/Release/Potion.app "dist/Potion-$version-$label.dmg" "Potion"
+          scripts/release/make-dmg.sh "build/DerivedData/Build/Products/Release/Potion Dropper.app" "dist/Potion-Dropper-$version-$label.dmg" "Potion Dropper"
+          scripts/release/ffmpeg-sources.sh "dist/ffmpeg-sources-$version.tar"
+          cp legal/THIRD_PARTY_NOTICES.md legal/TERMS.md legal/PRIVACY.md docs/BETA.md dist/
+          (cd dist && shasum -a 256 *.dmg *.tar > SHA256SUMS.txt)
+          echo "version=$version" >> "$GITHUB_ENV"
+      - name: Upload the beta
+        uses: actions/upload-artifact@v7
+        with:
+          name: potion-macos-${{ env.version }}-${{ inputs.label }}
+          path: dist/
+          retention-days: 30
+          if-no-files-found: error

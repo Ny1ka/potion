@@ -32,6 +32,8 @@ jobs:
         run: |
           python3 scripts/legal/notices.py check
           python3 scripts/legal/notices.py check-ffmpeg
+      - name: Every project is at the version in VERSION
+        run: scripts/release/version.sh check
       - name: Swift copies of core/spec are in sync
         run: scripts/sync-spec.sh --check
 

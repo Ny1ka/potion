@@ -21,6 +21,7 @@ are completed in M8/M9.
 | 2026-11-22 | Personal experimental adapters are kept outside this repository. The public Dropper apps have only a generic external source loading point, compiled into Debug builds only. | Owner's decision and responsibility (spec Part 6.6). Release builds compile the loader out; the Release artifact scan fails if any loader symbol or the personal-build badge is found. A Debug build that loads an external source shows "PERSONAL BUILD: EXPERIMENTAL SOURCES ENABLED" in its title and asks for the acknowledgment again with an extra line. Personal builds are never published. |
 | 2026-11-22 | Third-party notices are generated from `legal/third-party.json` into `legal/THIRD_PARTY_NOTICES.md`, with every license text copied unmodified into `legal/licenses` from the component's own source archive, package or repository at the shipped version. | CI fails if the notices are out of date, if the FFmpeg component versions differ from `scripts/ffmpeg/versions.sh`, or if a Windows Release build ships a NuGet package or runtime pack the manifest doesn't list at that version. License audit result: no GPL code linked into the apps (FFmpeg and LAME are LGPL, run as separate programs); no AGPL; permissive licenses otherwise (MIT, BSD, Apache-2.0, Zlib, ZPL-2.1, OFL-1.1), plus Microsoft's redistributable license terms for the Windows App SDK, the Windows ML runtime and the Windows SDK projection. |
 | 2026-11-22 | `legal/PRIVACY.md` and `legal/TERMS.md` drafted (effective 22 November 2026); public contact for questions and copyright/takedown notices: nyikabusiness@gmail.com (owner's choice). `legal/LICENSE` is a copy of `/LICENSE`, checked in CI. | Privacy describes what the code actually does: Potion makes no network connections; Dropper contacts only the links the user enters and their `robots.txt`, with an honest User-Agent and no cookies or credentials; settings and the clearable, optional download history stay on the computer; no analytics, telemetry or crash reporting. Terms cover: user responsibility, no warranty, limitation of liability, third-party components (including protection for Microsoft as the Windows App SDK license requires), trademarks, takedown requests, changes. Not legal advice: both need a lawyer's review before public release. |
+| 2026-11-22 | Release plan (owner): buy nothing (no Apple Developer Program, no Windows signing) until the apps are polished and beta-tested; a trusted-tester beta comes before any public release; macOS first, Windows after real-PC testing; Windows ships as an EXE installer (so no package identity: no Windows 11 top-level Explorer menu or Share target). | Beta builds are unsigned and go only to trusted testers, with `docs/BETA.md`. Each beta includes the FFmpeg source bundle, the notices, Terms and Privacy. |
 | 2026-11-21 | Windows FFmpeg: same LGPL-only configuration, cross-compiled with MinGW-w64, plus zlib (zlib License) linked statically. | The MinGW-w64 runtime and libgcc are linked statically; their licenses (MinGW-w64 runtime: ZPL/public domain mix; libgcc: GPL with the GCC Runtime Library Exception) allow this for any program. List them in THIRD_PARTY_NOTICES (M8). |
 
 ## Codec and patent notes (for legal advice)
@@ -42,6 +43,26 @@ are completed in M8/M9.
 | 1 | Mac App Store and Microsoft Store distribution for Potion: does shipping an LGPL FFmpeg satisfy the LGPL "user can replace the library" requirement inside a store package? | Yes | Open (decide before M9) |
 | 3 | PDF writing on Windows (documents → PDF, merge/split): pin PDFsharp/MigraDoc 6.2.4 (last MIT release, frozen), or build on PdfPig's PDF builder (Apache-2.0, maintained) with our own layout. | No (product decision; both licenses are permissive) | Decided 2026-11-22: pin 6.2.4 (MIT). Do not upgrade past it without re-checking the license |
 | 2 | App Sandbox for Potion (macOS): needed for the Mac App Store, but it limits "save next to the original" and "move original to Trash" unless the user grants folder access. | No (product decision) | Decided 2026-11-21: off for V1 (DMG). Revisit for the Mac App Store |
+
+## Release gate (spec Part 6.5)
+
+Checked before any public release (`v1.0.0`). Status on 2026-11-22, before the macOS beta:
+
+| Check | Status |
+|---|---|
+| License audit complete | Done (M8.1): `legal/third-party.json`, checked in CI against the real Windows builds |
+| Notices generated from the real build | Done for macOS and Windows (`legal/THIRD_PARTY_NOTICES.md`, bundled in every app) |
+| No GPL/AGPL code unless approved | Done: none linked into the apps; FFmpeg and LAME are LGPL, run as separate programs |
+| No DRM bypass | Done: protected files are refused with the required message |
+| Dropper sources documented | Done: `docs/SOURCES.md` (direct media links only) |
+| Notices and clickwrap in place | Done (M8.3): About windows, first-run Terms, Dropper acknowledgment |
+| Privacy policy accurate | Drafted (M8.2) from the code; re-check if anything that touches the network changes |
+| Store plan confirmed | Decided: no stores for V1; direct downloads (Dropper must never go to the Mac App Store) |
+| Experimental-code scan passing on every public artifact | Done: CI and the release workflow scan every Release app (blocked terms and the Debug-only loader) |
+| FFmpeg LGPL source offer | Done: the release workflow attaches the exact source archives and build scripts |
+| Signed and notarized (macOS) / signed (Windows) | **Not done (owner's decision):** nothing is bought until after the beta; beta builds are unsigned |
+| Tested on real Windows PCs | **Not done:** Windows ships after the owner can test both apps on a PC |
+| Lawyer review of Terms, Privacy and the Dropper source policy | **Not done:** see "Items for lawyer review" |
 
 ## Items for lawyer review before public release
 

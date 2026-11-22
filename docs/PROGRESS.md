@@ -4,9 +4,9 @@ Read this first in any new session. Update it at every checkpoint.
 
 ## Status
 
-- **Current milestone:** M9 Packaging and V1 release (M2–M8 done)
-- **Last completed chunk:** M8.3 About windows, bundled legal files, Terms at first launch
-- **Next chunk:** M9.1 Release workflow plan (versioning, DMG and Windows installer, signing secrets setup with the owner)
+- **Current milestone:** M9 Packaging and V1 release: macOS beta first (M2–M8 done)
+- **Last completed chunk:** M9.1 Versioning, macOS beta release workflow, DMGs, FFmpeg source bundle, release gate
+- **Next chunk:** run the first macOS beta build; polish from beta feedback (Windows installer after real-PC testing)
 
 ## Milestones
 
@@ -22,7 +22,7 @@ Read this first in any new session. Update it at every checkpoint.
 | M7 Dropper Windows UI | Done (share target deferred to M9) |
 | M7.5 Personal experimental module (private repo) | Done (public part: the Debug-only loading point) |
 | M8 Legal and compliance pass | Done (lawyer review items in LEGAL_REVIEW) |
-| M9 Packaging and V1 release | Not started |
+| M9 Packaging and V1 release | In progress (macOS beta first; owner's plan in LEGAL_REVIEW) |
 
 ### M0 chunks
 
@@ -57,6 +57,20 @@ Read this first in any new session. Update it at every checkpoint.
 - Checkpoints: Claude commits and pushes, then waits for "continue".
 - Dropper app scaffolds (`apps/dropper-*`) are created at the start of M5 rather than in M0, so M0–M4 stay
   focused on Potion.
+
+### M9 chunks (owner's plan, 2026-11-22: unsigned beta first, buy nothing yet, macOS before Windows)
+
+- [x] M9.1 `VERSION` (0.9.0) as the single version, written into every project by `scripts/release/version.sh`
+      (checked in CI and the release workflow); `.github/workflows/release.yml` (run by hand): Release-only build from
+      a clean checkout, release gate checks (FFmpeg license, versions, notices, source and artifact scans), unsigned
+      DMGs for both macOS apps (`scripts/release/make-dmg.sh`), the FFmpeg LGPL source bundle
+      (`scripts/release/ffmpeg-sources.sh`: every pinned archive, checksum-verified, plus build scripts and
+      BUILDINFO), notices, Terms, Privacy, `docs/BETA.md` and SHA256SUMS, uploaded as a 30-day workflow artifact
+      (not a public release); release gate checklist in LEGAL_REVIEW
+- [ ] M9.2 Beta round on macOS: fixes and polish from testers (incl. the About splash animation)
+- [ ] M9.3 Windows: test both apps on a real PC, trim the Windows App SDK to the components the apps use, EXE
+      installer (tool to be chosen and license-checked), Windows beta
+- [ ] M9.4 When the owner decides: Developer ID signing and notarization, Windows signing, `v1.0.0`
 
 ### M8 chunks
 
