@@ -181,9 +181,10 @@ jobs:
       - name: Every shipped .NET package is in the third-party notices
         shell: bash
         run: |
-          shopt -s nullglob
-          files=(apps/potion-windows/Potion/bin/x64/Release/*/*/Potion.deps.json apps/dropper-windows/PotionDropper/bin/x64/Release/*/*/PotionDropper.deps.json)
+          mapfile -t files < <(find apps/potion-windows/Potion/bin/x64/Release apps/dropper-windows/PotionDropper/bin/x64/Release \
+            \( -name Potion.deps.json -o -name PotionDropper.deps.json \) -type f)
           echo "Checking: ${files[*]}"
+          [ ${#files[@]} -ge 2 ] || { echo "::error title=third-party notices::Release deps.json files not found"; exit 1; }
           python scripts/legal/notices.py check-packages "${files[@]}"
       # XAML compiler errors don't match the .NET problem matcher, so build errors are re-reported as annotations.
       - name: Report build errors
