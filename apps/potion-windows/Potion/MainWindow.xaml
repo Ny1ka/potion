@@ -2,39 +2,114 @@
     x:Class="Potion.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:app="using:Potion.Core.App"
+    xmlns:local="using:Potion"
     Title="Potion">
 
-    <Grid>
+    <Grid x:Name="Root" AllowDrop="True" DragOver="Root_DragOver" DragLeave="Root_DragLeave" Drop="Root_Drop">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />   <!-- title bar -->
+            <RowDefinition Height="Auto" />   <!-- commands -->
+            <RowDefinition Height="Auto" />   <!-- banner -->
+            <RowDefinition Height="*" />      <!-- drop zone or queue -->
+            <RowDefinition Height="Auto" />   <!-- footer -->
         </Grid.RowDefinitions>
 
-        <!-- Custom title bar (design-system/docs/09-platforms.md): small mark + app name. -->
+        <!-- Custom title bar (09-platforms.md): small mark + app name. -->
         <Grid x:Name="AppTitleBar" Height="48" Grid.Row="0">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="{StaticResource PotionSpace3}"
-                        Margin="16,0,0,0">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="{StaticResource PotionSpace3}" Margin="16,0,0,0">
                 <Image Source="ms-appx:///Assets/Square44x44Logo.targetsize-16.png" Width="16" Height="16"
                        AutomationProperties.AccessibilityView="Raw" />
                 <TextBlock Text="Potion" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center" />
             </StackPanel>
         </Grid>
 
-        <!-- Empty-state drop zone (design-system/docs/06-components.md). Dropping arrives in M4.1. -->
-        <Grid x:Name="ContentRoot" Grid.Row="1">
-            <Rectangle x:Name="DropZoneBorder"
-                       RadiusX="12" RadiusY="12"
-                       Stroke="{ThemeResource PotionBorderStrongBrush}"
-                       StrokeThickness="1.5"
-                       StrokeDashArray="4,2.67" />
+        <!-- Add files / Add folder (05-layout.md toolbar). -->
+        <CommandBar Grid.Row="1" DefaultLabelPosition="Right" HorizontalAlignment="Right" Background="Transparent"
+                    Margin="0,0,16,0" IsDynamicOverflowEnabled="False">
+            <AppBarButton Label="Add files" Click="AddFiles_Click" ToolTipService.ToolTip="Add files">
+                <AppBarButton.Icon><FontIcon Glyph="&#xE710;" /></AppBarButton.Icon>
+                <AppBarButton.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Control" Key="O" />
+                </AppBarButton.KeyboardAccelerators>
+            </AppBarButton>
+            <AppBarButton Label="Add folder" Click="AddFolder_Click" ToolTipService.ToolTip="Add a folder">
+                <AppBarButton.Icon><FontIcon Glyph="&#xE8B7;" /></AppBarButton.Icon>
+            </AppBarButton>
+        </CommandBar>
+
+        <!-- Batch-level messages (06-components.md, "Errors"). -->
+        <InfoBar x:Name="Banner" Grid.Row="2" Severity="Warning" IsClosable="True" Closed="Banner_Closed"
+                 Margin="24,0,24,8" IsOpen="False" />
+
+        <!-- Empty-state drop zone (06-components.md). -->
+        <Grid x:Name="DropZone" Grid.Row="3" Margin="24,0,24,24" MinHeight="{StaticResource PotionDropZoneMinHeight}">
+            <Rectangle x:Name="DropZoneBorder" RadiusX="12" RadiusY="12"
+                       Stroke="{ThemeResource PotionBorderStrongBrush}" StrokeThickness="1.5" StrokeDashArray="4,2.67" />
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
-                <TextBlock Text="Drop files or folders" HorizontalAlignment="Center"
-                           Style="{StaticResource BodyStrongTextBlockStyle}"
-                           Foreground="{ThemeResource PotionTextPrimaryBrush}" />
-                <TextBlock Text="Video, audio, images, documents and PDFs" HorizontalAlignment="Center"
-                           Style="{StaticResource CaptionTextBlockStyle}"
-                           Foreground="{ThemeResource PotionTextSecondaryBrush}" />
+                <Image Source="ms-appx:///Assets/Square44x44Logo.targetsize-48.png" Width="48" Height="48" Opacity="0.6"
+                       AutomationProperties.AccessibilityView="Raw" />
+                <TextBlock x:Name="DropZoneTitle" Text="Drop files or folders" HorizontalAlignment="Center"
+                           Style="{StaticResource BodyStrongTextBlockStyle}" Foreground="{ThemeResource PotionTextPrimaryBrush}" />
+                <TextBlock x:Name="DropZoneCaption" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
+                           Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource PotionTextSecondaryBrush}" />
+                <Button x:Name="ChooseButton" Content="Choose files" HorizontalAlignment="Center" Margin="0,4,0,0" Click="AddFiles_Click" />
+                <ProgressRing x:Name="AddingRing" IsActive="False" Width="20" Height="20" Visibility="Collapsed" />
             </StackPanel>
+        </Grid>
+
+        <!-- The queue (06-components.md, "Queue row"). -->
+        <ListView x:Name="QueueList" Grid.Row="3" Visibility="Collapsed" SelectionMode="Extended"
+                  ItemsSource="{x:Bind Queue.Items}" KeyDown="QueueList_KeyDown" RightTapped="QueueList_RightTapped"
+                  Padding="8,0,8,0">
+            <ListView.ItemContainerTransitions>
+                <TransitionCollection><AddDeleteThemeTransition /></TransitionCollection>
+            </ListView.ItemContainerTransitions>
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="app:QueueItem">
+                    <Grid MinHeight="{StaticResource PotionQueueRowHeight}" ColumnSpacing="{StaticResource PotionSpace3}" Padding="0,6,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />   <!-- tile -->
+                            <ColumnDefinition Width="*" />      <!-- name -->
+                            <ColumnDefinition Width="Auto" />   <!-- arrow -->
+                            <ColumnDefinition Width="120" />    <!-- format -->
+                            <ColumnDefinition Width="80" />     <!-- status -->
+                        </Grid.ColumnDefinitions>
+                        <Border Width="{StaticResource PotionCategoryTileSize}" Height="{StaticResource PotionCategoryTileSize}"
+                                CornerRadius="8" VerticalAlignment="Center" Background="{x:Bind local:Ui.TintBrush(Category)}"
+                                AutomationProperties.AccessibilityView="Raw">
+                            <FontIcon Glyph="{x:Bind local:Ui.Glyph(Category)}" FontSize="16" Foreground="{x:Bind local:Ui.TextBrush(Category)}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="{x:Bind Name}" TextTrimming="CharacterEllipsis" Style="{StaticResource BodyStrongTextBlockStyle}"
+                                       ToolTipService.ToolTip="{x:Bind Path}" />
+                            <TextBlock Text="{x:Bind SecondaryText, Mode=OneWay}" TextTrimming="CharacterEllipsis"
+                                       Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource PotionTextSecondaryBrush}" />
+                            <ProgressBar Value="{x:Bind Progress, Mode=OneWay}" Maximum="1" Margin="0,4,0,0"
+                                         Visibility="{x:Bind IsConverting, Mode=OneWay}" Foreground="{x:Bind local:Ui.FillBrush(Category)}" />
+                        </StackPanel>
+                        <FontIcon Grid.Column="2" Glyph="&#xE72A;" FontSize="14" Foreground="{ThemeResource PotionTextTertiaryBrush}"
+                                  AutomationProperties.AccessibilityView="Raw" />
+                        <DropDownButton Grid.Column="3" HorizontalAlignment="Stretch" Content="{x:Bind OutputName, Mode=OneWay}"
+                                        Click="FormatButton_Click" AutomationProperties.Name="Convert to"
+                                        ToolTipService.ToolTip="Convert to" />
+                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <FontIcon Glyph="{x:Bind local:Ui.StatusGlyph(Status), Mode=OneWay}" FontSize="12"
+                                      Foreground="{x:Bind local:Ui.StatusBrush(Status), Mode=OneWay}" AutomationProperties.AccessibilityView="Raw" />
+                            <TextBlock Text="{x:Bind StatusText, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{x:Bind local:Ui.StatusBrush(Status), Mode=OneWay}" />
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <!-- Footer (06-components.md, "Footer bar"). Save options and Convert all arrive with conversion (M4.2). -->
+        <Grid x:Name="Footer" Grid.Row="4" Visibility="Collapsed" Height="52" Padding="24,0,24,0"
+              BorderBrush="{ThemeResource PotionBorderBrush}" BorderThickness="0,1,0,0">
+            <TextBlock x:Name="CountText" VerticalAlignment="Center" Style="{StaticResource CaptionTextBlockStyle}"
+                       Foreground="{ThemeResource PotionTextSecondaryBrush}" />
+            <Button Content="Clear" HorizontalAlignment="Right" VerticalAlignment="Center" Click="Clear_Click" />
         </Grid>
     </Grid>
 </Window>
