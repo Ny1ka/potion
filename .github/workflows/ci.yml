@@ -75,6 +75,18 @@ jobs:
           -configuration Release -derivedDataPath build/DerivedData -quiet build
       - name: Scan Release app
         run: scripts/forbidden-scan.sh --artifact build/DerivedData/Build/Products/Release/Potion.app
+      - name: Generate Potion Dropper Xcode project
+        run: cd apps/dropper-macos && xcodegen generate --quiet
+      - name: Build Potion Dropper (Debug)
+        run: >
+          xcodebuild -project "apps/dropper-macos/Potion Dropper.xcodeproj" -scheme PotionDropper
+          -configuration Debug -derivedDataPath build/DerivedData -quiet build
+      - name: Build Potion Dropper (Release)
+        run: >
+          xcodebuild -project "apps/dropper-macos/Potion Dropper.xcodeproj" -scheme PotionDropper
+          -configuration Release -derivedDataPath build/DerivedData -quiet build
+      - name: Scan Potion Dropper Release app
+        run: scripts/forbidden-scan.sh --artifact "build/DerivedData/Build/Products/Release/Potion Dropper.app"
 
   # Cross-compiles the LGPL FFmpeg for Windows with MinGW-w64 (much faster than building on Windows) and
   # caches it for the Windows job, which runs the full license check on the real .exe files.
@@ -143,3 +155,10 @@ jobs:
       - name: Scan Release app
         shell: bash
         run: scripts/forbidden-scan.sh --artifact apps/potion-windows/Potion/bin/x64/Release
+      - name: Build Potion Dropper (Debug)
+        run: dotnet build apps/dropper-windows/PotionDropper/PotionDropper.csproj -c Debug -p:Platform=x64
+      - name: Build Potion Dropper (Release)
+        run: dotnet build apps/dropper-windows/PotionDropper/PotionDropper.csproj -c Release -p:Platform=x64
+      - name: Scan Potion Dropper Release app
+        shell: bash
+        run: scripts/forbidden-scan.sh --artifact apps/dropper-windows/PotionDropper/bin/x64/Release

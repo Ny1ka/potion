@@ -4,9 +4,9 @@ Read this first in any new session. Update it at every checkpoint.
 
 ## Status
 
-- **Current milestone:** M5 Dropper core (M2–M4 done: engines, Potion for macOS and Windows)
-- **Last completed chunk:** M5.3a Dropper jobs (pipeline, naming templates, history)
-- **Next chunk:** M5.3b Dropper app scaffolds (macOS and Windows) building in CI
+- **Current milestone:** M6 Dropper macOS UI (M2–M5 done: engines, Potion for macOS and Windows, Dropper core)
+- **Last completed chunk:** M5.3b Dropper app scaffolds (macOS and Windows)
+- **Next chunk:** M6.1 Dropper macOS: first-run acknowledgment, link bar with media card, output options
 
 ## Milestones
 
@@ -17,7 +17,7 @@ Read this first in any new session. Update it at every checkpoint.
 | M2 Core: conversion engines | Done (macOS M2.0–M2.6, Windows M2.7a–d) |
 | M3 Potion macOS UI | Done (Quick Action extension deferred to M9, see below) |
 | M4 Potion Windows UI | Done (Win11 top-level Explorer menu deferred to M9, see below) |
-| M5 Dropper core | In progress |
+| M5 Dropper core | Done |
 | M6 Dropper macOS UI | Not started |
 | M7 Dropper Windows UI | Not started |
 | M7.5 Personal experimental module (private repo) | Not started |
@@ -42,9 +42,8 @@ Read this first in any new session. Update it at every checkpoint.
 
 ## Notes for later chunks
 
-- M6: the Dropper macOS app needs `NSAppTransportSecurity` › `NSAllowsArbitraryLoads` in its Info.plist, or
-  App Transport Security blocks plain `http://` direct links (loopback is exempt, so the core tests don't show it).
-  The Downloader itself never downgrades: it only follows the link or redirect the server gives.
+- Done in M5.3b: the Dropper macOS app sets `NSAppTransportSecurity` › `NSAllowsArbitraryLoads`, so plain
+  `http://` direct links aren't blocked by App Transport Security.
 - M6/M7: conversion errors are worded for Potion ("Potion's conversion tools are missing. Reinstall Potion…",
   "…so Potion can't convert it."). Dropper must show "Potion Dropper" instead: make the product name a parameter
   of the error text in both cores before the Dropper UI shows these messages.
@@ -90,8 +89,12 @@ Read this first in any new session. Update it at every checkpoint.
       cases), `DropHistory` (JSON, newest first, 500 entries, remove and clear), `MediaConverting` /
       `IMediaConverter` with `FFmpegMediaConverter` (C#, audio/video only). 8 job tests per core incl. a real FFmpeg
       run (WAV link → MP3)
-- [ ] M5.3b Dropper app scaffolds: `apps/dropper-macos` (XcodeGen, SwiftUI) and `apps/dropper-windows` (WinUI 3)
-      that build and launch in CI, with their own identities, icons and Release scans
+- [x] M5.3b Dropper app scaffolds: `apps/dropper-macos` (XcodeGen, SwiftUI; `com.ny1ka.potion-dropper`; Dropper
+      icon and colors from the design system; FFmpeg bundled like Potion; `NSAllowsArbitraryLoads` for `http://`
+      direct links) and `apps/dropper-windows/PotionDropper` (WinUI 3, unpackaged; Potion.Core only; FFmpeg folder),
+      both with the link bar from 05-layout.md (Paste, Fetch, Return/Enter): Fetch checks the links against the
+      allowlist and shows the format and site or the error message. CI builds Debug and Release of both and scans
+      the Release apps; `Potion.slnx` and the Makefile (`make dropper-macos`, `make run-dropper-macos`) include them
 
 ### M4 chunks
 

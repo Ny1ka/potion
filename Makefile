@@ -1,8 +1,9 @@
 # Common tasks. Run `make setup` once after cloning.
-.PHONY: setup scan sync-spec test test-core test-core-dotnet potion-macos-project potion-macos run-potion-macos clean
+.PHONY: setup scan sync-spec test test-core test-core-dotnet potion-macos-project potion-macos run-potion-macos dropper-macos-project dropper-macos run-dropper-macos clean
 
 DERIVED := build/DerivedData
 POTION_MAC_APP := $(DERIVED)/Build/Products/Debug/Potion.app
+DROPPER_MAC_APP := $(DERIVED)/Build/Products/Debug/Potion Dropper.app
 DOTNET ?= $(shell command -v dotnet 2>/dev/null || echo $(HOME)/.dotnet/dotnet)
 export DOTNET_CLI_TELEMETRY_OPTOUT := 1
 export DOTNET_NOLOGO := 1
@@ -40,5 +41,15 @@ potion-macos: potion-macos-project
 run-potion-macos: potion-macos
 	open "$(POTION_MAC_APP)"
 
+dropper-macos-project:
+	cd apps/dropper-macos && xcodegen generate --quiet
+
+dropper-macos: dropper-macos-project
+	xcodebuild -project "apps/dropper-macos/Potion Dropper.xcodeproj" -scheme PotionDropper -configuration Debug \
+		-derivedDataPath $(DERIVED) -quiet build
+
+run-dropper-macos: dropper-macos
+	open "$(DROPPER_MAC_APP)"
+
 clean:
-	rm -rf build apps/potion-macos/Potion.xcodeproj core/swift/.build core/dotnet/*/bin core/dotnet/*/obj apps/potion-windows/*/bin apps/potion-windows/*/obj
+	rm -rf build apps/potion-macos/Potion.xcodeproj "apps/dropper-macos/Potion Dropper.xcodeproj" core/swift/.build core/dotnet/*/bin core/dotnet/*/obj apps/potion-windows/*/bin apps/potion-windows/*/obj apps/dropper-windows/*/bin apps/dropper-windows/*/obj

@@ -1,5 +1,8 @@
 <Solution>
   <Folder Name="/apps/" />
+  <Folder Name="/apps/dropper-windows/">
+    <Project Path="apps/dropper-windows/PotionDropper/PotionDropper.csproj" />
+  </Folder>
   <Folder Name="/apps/potion-windows/">
     <Project Path="apps/potion-windows/Potion/Potion.csproj" />
   </Folder>
