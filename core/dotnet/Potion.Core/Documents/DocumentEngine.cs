@@ -13,7 +13,7 @@ public sealed class DocumentEngine(ConversionMatrix? matrix = null)
 {
     private readonly ConversionMatrix _matrix = matrix ?? ConversionMatrix.Shared;
 
-    /// <summary>Outputs written so far (PDF follows in the next chunk).</summary>
+    /// <summary>Outputs written so far. PDF waits on the owner's choice of PDF library (docs/LEGAL_REVIEW.md).</summary>
     public static readonly IReadOnlySet<string> Writable = new HashSet<string> { "txt", "md", "html", "epub", "docx", "rtf", "odt" };
 
     public async Task<string> ConvertAsync(string input, FileFormat inputFormat, FileFormat outputFormat, string outputDirectory,
@@ -61,9 +61,21 @@ public sealed class DocumentEngine(ConversionMatrix? matrix = null)
             {
                 "txt" or "md" => !expectText || DocumentReader.DecodeText(File.ReadAllBytes(path)).Trim().Length > 0,
                 "html" => File.ReadAllText(path).Contains("<html", StringComparison.OrdinalIgnoreCase),
+                "pdf" => VerifyPdf(path, expectText),
                 _ => DocumentReader.Read(path, format) is var doc && (!expectText || doc.PlainText.Trim().Length > 0),
             };
         }
         catch (Exception e) when (e is ConversionException or IOException) { return false; }
+    }
+
+    /// <summary>The PDF opens, has pages and, when the source had text, searchable text.</summary>
+    private static bool VerifyPdf(string path, bool expectText)
+    {
+        try
+        {
+            using var pdf = UglyToad.PdfPig.PdfDocument.Open(path);
+            return pdf.NumberOfPages > 0 && (!expectText || pdf.GetPages().Any(p => p.Text.Trim().Length > 0));
+        }
+        catch (Exception e) when (e is not OutOfMemoryException) { return false; }
     }
 }

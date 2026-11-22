@@ -108,15 +108,15 @@ Read this first in any new session. Update it at every checkpoint.
           fonts, colors, Unicode/code page, lists, tables, hyperlink fields, PNG/JPEG pictures, page size). 6 tests
     - [x] M2.7d-3a writers for TXT, Markdown, HTML (XHTML-capable, images embedded) and EPUB 3 (nav from headings,
           images as files), and `DocumentEngine` (C#: matrix check, temp file, verify, unique name). PDFsharp-MigraDoc
-          6.5.0 and PdfPig 0.1.16 added (DLLs scanned clean; System.Security.Cryptography.Pkcs pinned to 11.0.0 to
-          replace PDFsharp's vulnerable 8.0.1). `make test-core-dotnet` now scans every .NET dependency. 5 tests
+          6.5.0 and PdfPig 0.1.16 added (PDFsharp later removed as AGPL, see Decisions). `make test-core-dotnet` now
+          scans every .NET dependency. 5 tests
     - [x] M2.7d-3b writers for DOCX (same structure as the macOS writer: heading styles, hyperlinks, per-list
           numbering with start values, tables, images, page setup, no author), RTF (font/color tables, list table
           with \ls/\listtext, \outlinelevel headings, tables, hyperlink fields, PNG/JPEG pictures, 7-bit output) and
           ODT (automatic styles, heading styles, list styles with start values, tables, inline images, links, page
           layout). Each round-trips through our readers (3 tests); RTF reader now reads \outlinelevel headings and
           ODT nested lists keep their own type
-    - [ ] M2.7d-3c document → PDF (MigraDoc) with a font resolver
+    - [ ] M2.7d-3c document → PDF: blocked on the PDF-library decision (a MigraDoc version is drafted and set aside)
     - [ ] M2.7d-4 PDF tools and conversions (PDFsharp, PdfPig for text, Windows.Data.Pdf for images), images → PDF
 
 ### M3 chunks
@@ -168,7 +168,9 @@ Read this first in any new session. Update it at every checkpoint.
   Finder Service (Services › Convert with Potion). Add the Action Extension in M9 with Developer ID signing,
   then switch the onboarding text to "Quick Actions › Convert with Potion" (01-brand.md wording).
 - **Windows documents (decided 2026-11-21):** permissive libraries, all bundled and offline: Open XML SDK (MIT),
-  HtmlAgilityPack (MIT), PDFsharp + MigraDoc (MIT), PdfPig (Apache-2.0); Windows.Data.Pdf for rendering. Our own
+  HtmlAgilityPack (MIT), PdfPig (Apache-2.0); Windows.Data.Pdf for rendering. PDFsharp/MigraDoc were removed on
+  2026-11-22: version 6.5.0 is AGPL-3.0-only (MIT up to 6.2.4). Which PDF writer to use is an open owner decision
+  (LEGAL_REVIEW open question #3). Always read a package's license from its nuspec before adding it. Our own
   code for Markdown, RTF, ODT, EPUB, TXT. Each goes into THIRD_PARTY_NOTICES (M8).
   Markdig was tried and dropped (2026-11-22): its media-links extension embeds the names of video sites the source
   policy blocks, and CI's release scan caught them in the Windows build. Only a package reference was ever
