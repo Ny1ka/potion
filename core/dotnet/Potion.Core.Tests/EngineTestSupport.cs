@@ -77,7 +77,8 @@ public abstract class EngineTestBase : IDisposable
 
     public void Dispose()
     {
-        try { Directory.Delete(Dir, recursive: true); } catch (IOException) { }
+        try { Directory.Delete(Dir, recursive: true); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { /* best effort */ }
         GC.SuppressFinalize(this);
     }
 }

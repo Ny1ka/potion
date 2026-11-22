@@ -108,13 +108,25 @@ jobs:
         shell: bash
         run: scripts/ffmpeg/verify-license.sh build/ffmpeg/windows/bin
       - name: Potion.Core tests (including engine tests with the FFmpeg build)
-        run: dotnet test core/dotnet/Potion.Core.Tests
+        run: dotnet test core/dotnet/Potion.Core.Tests --logger trx --results-directory TestResults
         env:
           POTION_REQUIRE_FFMPEG: "1"
       - name: Potion.Core.Windows tests (WIC imaging)
-        run: dotnet test core/dotnet/Potion.Core.Windows.Tests
+        run: dotnet test core/dotnet/Potion.Core.Windows.Tests --logger trx --results-directory TestResults
         env:
           POTION_REQUIRE_FFMPEG: "1"
+      # Failed tests become annotations, which are visible on the run page and through the public API.
+      - name: Report failed tests
+        if: failure()
+        shell: pwsh
+        run: |
+          Get-ChildItem TestResults -Recurse -Filter *.trx -ErrorAction SilentlyContinue | ForEach-Object {
+            [xml]$trx = Get-Content $_.FullName
+            $trx.TestRun.Results.UnitTestResult | Where-Object { $_.outcome -eq 'Failed' } | ForEach-Object {
+              $message = ($_.Output.ErrorInfo.Message + ' ' + $_.Output.ErrorInfo.StackTrace) -replace "`r?`n", ' '
+              Write-Output "::error title=$($_.testName)::$($message.Substring(0, [Math]::Min(900, $message.Length)))"
+            }
+          }
       - name: Build Potion (Debug)
         run: dotnet build apps/potion-windows/Potion/Potion.csproj -c Debug -p:Platform=x64
       - name: Build Potion (Release)

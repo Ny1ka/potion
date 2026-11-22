@@ -20,7 +20,8 @@ public sealed class WicImageEngineTests : IDisposable
 
     public void Dispose()
     {
-        try { Directory.Delete(_dir, recursive: true); } catch (IOException) { }
+        try { Directory.Delete(_dir, recursive: true); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { /* best effort */ }
     }
 
     private static FFmpegTools? FindTools()

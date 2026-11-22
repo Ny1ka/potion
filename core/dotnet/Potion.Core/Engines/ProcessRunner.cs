@@ -66,7 +66,13 @@ public static class ProcessRunner
         }
         catch (OperationCanceledException)
         {
-            try { if (!process.HasExited) process.Kill(entireProcessTree: true); } catch (InvalidOperationException) { }
+            try
+            {
+                if (!process.HasExited) process.Kill(entireProcessTree: true);
+                // Wait for the exit so the child's open files are released before callers clean up (Windows locks them).
+                process.WaitForExit(10_000);
+            }
+            catch (InvalidOperationException) { }
             throw;
         }
         process.WaitForExit();   // flushes the asynchronous output readers
