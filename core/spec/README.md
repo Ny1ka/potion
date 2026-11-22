@@ -11,6 +11,8 @@ cases, so macOS and Windows agree on what a file is and what it can become.
 | `tests/matrix.json` | Conformance cases for the matrix |
 | `presets.json` | Audio, video, image and PDF presets, encoders and per-format settings |
 | `tests/pages.json` | Conformance cases for page selections ("1-3, 5") used by the PDF tools |
+| `sources.json` | Potion Dropper's source allowlist, link limits, User-Agent and link error messages |
+| `tests/links.json` | Conformance cases for link parsing, normalization and source matching |
 
 The Swift package can't read files outside its own folder, so `core/swift/Sources/PotionCore/Resources/`
 holds byte-for-byte copies. Run `make sync-spec` after editing anything here. A test in both cores fails if
@@ -141,3 +143,50 @@ items are skipped. An item is a page (`5`), a range (`1-3`, also with an en dash
 `-2` (from the first). The result is 1-based pages in the order typed, without duplicates, so the same syntax
 serves "extract pages" and "reorder". An empty selection means every page. Pages outside the document,
 reversed ranges and anything else are errors.
+
+## Links and sources (sources.json, tests/links.json)
+
+Potion Dropper downloads only from allowlisted sources (`docs/SOURCES.md`). `sources.json` lists them in matching
+order; each `id` must have an adapter in both cores (in a `SourceAdapters` folder) and a section in
+`docs/SOURCES.md` with the same review date. Both cores refuse to load with an adapter that isn't listed.
+
+| Field | Meaning |
+|---|---|
+| `userAgent` | Sent with every request; `{version}` is the app version. Honest, never a browser's |
+| `limits.maxLinkLength` | Longest normalized link accepted |
+| `limits.maxLinksPerPaste` | Links kept from one paste or drop; the rest are counted as `overLimit` |
+| `playlistExtensions` | Streaming playlists and manifests, refused |
+| `sources[]` | `id`, `name`, the `categories` it provides, and the `reviewed` date |
+| `messages` | User-facing text for each link error |
+
+Both cores parse links with their own code (not the platform URL parser), so they agree byte for byte.
+
+### Parsing one link
+
+1. Trim whitespace and one pair of surrounding `< >`. Empty → `notALink`.
+2. Scheme: text before `://` if it's a valid scheme (a letter, then letters, digits, `+ - .`), lowercased.
+   Without `://`, a link that starts with an obvious host (an ASCII name with a dot and a letters-only last label,
+   or a dotted IPv4 address, optionally `:port`) gets `https`. Otherwise `scheme:` → `unsupportedScheme`, anything
+   else → `notALink`. Only `http` and `https` are accepted (`unsupportedScheme`).
+3. The authority runs to the first `/`, `?` or `#`. An `@` in it → `credentials`.
+4. Host: `[IPv6]` (hex digits, `:`, `.`; lowercased) or a name: one trailing dot removed, lowercased, NFC,
+   non-ASCII labels in Punycode (`xn--`), each label 1–63 characters of letters, digits, `-`, `_` without a leading
+   or trailing hyphen, 253 characters at most. Otherwise `invalidHost`.
+5. Port: digits, 1–65535 (`invalidPort`); empty is ignored; the scheme's default (80, 443) is dropped.
+6. The fragment is dropped. Path (at least `/`) and query keep valid `%XX` escapes and the characters
+   `A–Z a–z 0–9 - . _ ~ ! $ & ' ( ) * + , ; = : @ /` (plus `?` in the query); everything else is encoded as UTF-8
+   `%XX` with uppercase hex, including a `%` that doesn't start an escape. An empty query is dropped.
+7. A normalized link longer than `maxLinkLength` → `tooLong`.
+8. The file name is the last path segment, percent-decoded; its extension follows the detection rules (lowercase,
+   text after the last dot, none when the only dot is first). A playlist extension → `playlist`.
+9. Each source's adapter is asked in order; the first that answers decides. The direct-links adapter answers every
+   link: a video or audio extension is accepted as that format; a non-text format of another category → `notMedia`;
+   anything else is accepted with `needsCheck` (the download decides from the server's answer). No adapter answers
+   → `unsupportedSite`.
+
+### Finding links in pasted text
+
+Split on whitespace; remove leading `< ( [ { " ' “ ‘ «` and trailing `> ) ] } " ' . , ; : ! ? ” ’ »`. A word is
+a link candidate if it contains `://` or starts with an obvious host (step 2); other words are ignored. Candidates
+that fail are reported with their error; good links are kept in order without duplicates (compared after
+normalizing), up to `maxLinksPerPaste`.

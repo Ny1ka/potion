@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "userAgent": "PotionDropper/{version} (+https://github.com/Ny1ka/potion)",
+  "limits": {
+    "maxLinkLength": 2048,
+    "maxLinksPerPaste": 100
+  },
+  "playlistExtensions": [
+    "m3u8",
+    "m3u",
+    "mpd",
+    "f4m",
+    "ism",
+    "pls"
+  ],
+  "sources": [
+    {
+      "id": "direct",
+      "name": "Direct media links",
+      "categories": [
+        "video",
+        "audio"
+      ],
+      "reviewed": "2026-11-22"
+    }
+  ],
+  "messages": {
+    "notALink": "This isn't a web link. Links start with https://.",
+    "unsupportedScheme": "Potion Dropper downloads only web links (http and https).",
+    "credentials": "Links that contain a user name or password aren't supported.",
+    "tooLong": "This link is too long.",
+    "invalidHost": "This link's site address isn't valid.",
+    "invalidPort": "This link's port number isn't valid.",
+    "playlist": "Potion Dropper can't download streaming playlists.",
+    "notMedia": "This link isn't an audio or video file.",
+    "unsupportedSite": "Potion Dropper can't download from this site."
+  }
+}

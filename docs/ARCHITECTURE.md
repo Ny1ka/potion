@@ -42,6 +42,17 @@ the result by opening it again, then moves it to a name that doesn't exist yet (
 are read without network access: remote images, stylesheets, frames and scripts are removed from HTML (and
 Markdown rendered to HTML) before the system HTML reader sees it (`HTMLResources`).
 
+## Potion Dropper core (`PotionCore/Dropper`, `Potion.Core/Dropper`)
+
+- `SourceRegistry` loads the allowlist (`core/spec/sources.json`) and pairs each source with its adapter. Adapters
+  live in `Dropper/SourceAdapters` (the only folder name the source scan allows for them) and are listed in
+  `SourceAdapters.builtIn` / `SourceAdapters.BuiltIn`. Loading fails if an adapter has no allowlist entry.
+- Links are parsed by our own code (`LinkSyntax`), not the platform URL parser, so both apps normalize, refuse and
+  de-duplicate identically (`core/spec/tests/links.json`). The result is a `DropLink`: normalized link, source id,
+  format from the file name, and whether the server's answer must confirm it's media.
+- Downloads use the OS HTTP stack (URLSession, HttpClient); FFmpeg is built without network support and only
+  ever sees local files.
+
 ## Project generation
 
 - macOS apps: XcodeGen (`apps/*/project.yml`), so project files are reviewable text and the generated

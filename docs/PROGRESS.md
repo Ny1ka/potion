@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M5 Dropper core (M2–M4 done: engines, Potion for macOS and Windows)
-- **Last completed chunk:** M4.4 Windows Settings, notifications, File Explorer menu, single instance
-- **Next chunk:** M5.1 Dropper core: URL validation and the source-adapter allowlist
+- **Last completed chunk:** M5.1 Dropper links and the source allowlist
+- **Next chunk:** M5.2 Download manager (HTTP download, server checks, limits, resume, temp files)
 
 ## Milestones
 
@@ -17,7 +17,7 @@ Read this first in any new session. Update it at every checkpoint.
 | M2 Core: conversion engines | Done (macOS M2.0–M2.6, Windows M2.7a–d) |
 | M3 Potion macOS UI | Done (Quick Action extension deferred to M9, see below) |
 | M4 Potion Windows UI | Done (Win11 top-level Explorer menu deferred to M9, see below) |
-| M5 Dropper core | Not started |
+| M5 Dropper core | In progress |
 | M6 Dropper macOS UI | Not started |
 | M7 Dropper Windows UI | Not started |
 | M7.5 Personal experimental module (private repo) | Not started |
@@ -47,6 +47,23 @@ Read this first in any new session. Update it at every checkpoint.
 - Checkpoints: Claude commits and pushes, then waits for "continue".
 - Dropper app scaffolds (`apps/dropper-*`) are created at the start of M5 rather than in M0, so M0–M4 stay
   focused on Potion.
+
+### M5 chunks
+
+- [x] M5.1 Links and the source allowlist: `core/spec/sources.json` (one source: direct media links; limits, honest
+      User-Agent, error messages), `docs/SOURCES.md` (policy and the `direct` entry), `core/spec/tests/links.json`
+      (58 link + 7 paste cases). Swift and C#: our own link parser (normalizes scheme, host incl. Punycode and IPv6,
+      port, percent-encoding; refuses credentials, non-web schemes, playlists, non-media files), finding links in
+      pasted text (punctuation, duplicates, 100-link limit), `SourceRegistry` with adapters in `SourceAdapters`
+      folders (refuses to load an adapter missing from sources.json; tests check every source has a SOURCES.md
+      entry with the same review date)
+- [ ] M5.2 Download manager (Swift + C#): HTTP(S) download of a `DropLink` with the honest User-Agent, server check
+      (audio/video content type and content detection, `needsCheck` links), size limit, redirects (re-checked against
+      the allowlist), resume with Range, `Retry-After`, timeouts, robots rules, hidden temp file, cancellation; tests
+      against a local test server
+- [ ] M5.3 Dropper jobs: download → media info (duration limit, default 30 minutes) → convert with the existing
+      engines (stream copy when possible), naming templates, duplicate/overwrite protection, history the user can
+      clear; Dropper app scaffolds (`apps/dropper-macos`, `apps/dropper-windows`) that build in CI
 
 ### M4 chunks
 

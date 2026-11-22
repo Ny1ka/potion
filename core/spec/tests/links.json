@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "links": [
+    { "name": "direct mp4", "input": "https://example.com/media/clip.mp4", "url": "https://example.com/media/clip.mp4", "host": "example.com", "source": "direct", "format": "mp4", "needsCheck": false },
+    { "name": "direct mp3 over http", "input": "http://example.org/a.mp3", "url": "http://example.org/a.mp3", "host": "example.org", "source": "direct", "format": "mp3", "needsCheck": false },
+    { "name": "whitespace trimmed", "input": "  \thttps://example.com/a.webm \n", "url": "https://example.com/a.webm", "host": "example.com", "source": "direct", "format": "webm", "needsCheck": false },
+    { "name": "angle brackets", "input": "<https://example.com/a.flac>", "url": "https://example.com/a.flac", "host": "example.com", "source": "direct", "format": "flac", "needsCheck": false },
+    { "name": "scheme and host lowercased", "input": "HTTPS://Media.Example.COM/Clip.MOV", "url": "https://media.example.com/Clip.MOV", "host": "media.example.com", "source": "direct", "format": "mov", "needsCheck": false },
+    { "name": "default https port dropped", "input": "https://example.com:443/a.mp4", "url": "https://example.com/a.mp4", "host": "example.com", "source": "direct", "format": "mp4", "needsCheck": false },
+    { "name": "default http port dropped", "input": "http://example.com:80/a.mp4", "url": "http://example.com/a.mp4", "host": "example.com", "source": "direct", "format": "mp4", "needsCheck": false },
+    { "name": "other port kept", "input": "http://192.168.1.20:8080/videos/a.mkv", "url": "http://192.168.1.20:8080/videos/a.mkv", "host": "192.168.1.20", "source": "direct", "format": "mkv", "needsCheck": false },
+    { "name": "empty port ignored", "input": "https://example.com:/a.mp4", "url": "https://example.com/a.mp4", "host": "example.com", "source": "direct", "format": "mp4", "needsCheck": false },
+    { "name": "fragment dropped", "input": "https://example.com/a.mp3#t=10", "url": "https://example.com/a.mp3", "host": "example.com", "source": "direct", "format": "mp3", "needsCheck": false },
+    { "name": "query kept, extension from path", "input": "https://cdn.example.net/v/a.mp4?token=abc&x=1", "url": "https://cdn.example.net/v/a.mp4?token=abc&x=1", "host": "cdn.example.net", "source": "direct", "format": "mp4", "needsCheck": false },
+    { "name": "empty query dropped", "input": "https://example.com/a.mp4?", "url": "https://example.com/a.mp4", "host": "example.com", "source": "direct", "format": "mp4", "needsCheck": false },
+    { "name": "trailing dot on host", "input": "https://example.com./a.mp4", "url": "https://example.com/a.mp4", "host": "example.com", "source": "direct", "format": "mp4", "needsCheck": false },
+    { "name": "no path gets slash and a check", "input": "https://example.com", "url": "https://example.com/", "host": "example.com", "source": "direct", "format": null, "needsCheck": true },
+    { "name": "page needs a check", "input": "https://example.com/watch/page.html", "url": "https://example.com/watch/page.html", "host": "example.com", "source": "direct", "format": null, "needsCheck": true },
+    { "name": "download endpoint needs a check", "input": "https://example.com/download?id=42", "url": "https://example.com/download?id=42", "host": "example.com", "source": "direct", "format": null, "needsCheck": true },
+    { "name": "extension in query ignored", "input": "https://example.com/get?file=a.mp4", "url": "https://example.com/get?file=a.mp4", "host": "example.com", "source": "direct", "format": null, "needsCheck": true },
+    { "name": "second extension wins", "input": "https://example.com/a.mp4.mp3", "url": "https://example.com/a.mp4.mp3", "host": "example.com", "source": "direct", "format": "mp3", "needsCheck": false },
+    { "name": "dot file has no extension", "input": "https://example.com/.mp4", "url": "https://example.com/.mp4", "host": "example.com", "source": "direct", "format": null, "needsCheck": true },
+    { "name": "trailing slash has no extension", "input": "https://example.com/a.mp4/", "url": "https://example.com/a.mp4/", "host": "example.com", "source": "direct", "format": null, "needsCheck": true },
+    { "name": "spaces and unicode encoded", "input": "https://example.com/my clip – é.mp4", "url": "https://example.com/my%20clip%20%E2%80%93%20%C3%A9.mp4", "host": "example.com", "source": "direct", "format": "mp4", "needsCheck": false },
+    { "name": "existing escapes kept", "input": "https://example.com/a%20b%2fc.M4A", "url": "https://example.com/a%20b%2fc.M4A", "host": "example.com", "source": "direct", "format": "m4a", "needsCheck": false },
+    { "name": "encoded extension decoded", "input": "https://example.com/a%2Emp3", "url": "https://example.com/a%2Emp3", "host": "example.com", "source": "direct", "format": "mp3", "needsCheck": false },
+    { "name": "stray percent encoded", "input": "https://example.com/100%.mp3", "url": "https://example.com/100%25.mp3", "host": "example.com", "source": "direct", "format": "mp3", "needsCheck": false },
+    { "name": "unsafe characters encoded", "input": "https://example.com/a\"b<c>{d}|e^f`g\\h.wav", "url": "https://example.com/a%22b%3Cc%3E%7Bd%7D%7Ce%5Ef%60g%5Ch.wav", "host": "example.com", "source": "direct", "format": "wav", "needsCheck": false },
+    { "name": "question mark inside query kept", "input": "https://example.com/a.ogg?next=/b?c", "url": "https://example.com/a.ogg?next=/b?c", "host": "example.com", "source": "direct", "format": "ogg", "needsCheck": false },
+    { "name": "no scheme gets https", "input": "example.com/a.opus", "url": "https://example.com/a.opus", "host": "example.com", "source": "direct", "format": "opus", "needsCheck": false },
+    { "name": "www without scheme", "input": "www.example.com", "url": "https://www.example.com/", "host": "www.example.com", "source": "direct", "format": null, "needsCheck": true },
+    { "name": "no scheme with port", "input": "media.example.com:8443/a.aac", "url": "https://media.example.com:8443/a.aac", "host": "media.example.com", "source": "direct", "format": "aac", "needsCheck": false },
+    { "name": "localhost", "input": "http://localhost:8000/a.mp4", "url": "http://localhost:8000/a.mp4", "host": "localhost", "source": "direct", "format": "mp4", "needsCheck": false },
+    { "name": "ipv6 literal", "input": "http://[2001:DB8::1]:8080/a.mp4", "url": "http://[2001:db8::1]:8080/a.mp4", "host": "[2001:db8::1]", "source": "direct", "format": "mp4", "needsCheck": false },
+    { "name": "internationalized host", "input": "https://Bücher.example/hörbuch.mp3", "url": "https://xn--bcher-kva.example/h%C3%B6rbuch.mp3", "host": "xn--bcher-kva.example", "source": "direct", "format": "mp3", "needsCheck": false },
+    { "name": "internationalized host, all labels", "input": "https://例え.テスト/a.mp4", "url": "https://xn--r8jz45g.xn--zckzah/a.mp4", "host": "xn--r8jz45g.xn--zckzah", "source": "direct", "format": "mp4", "needsCheck": false },
+    { "name": "secondary extension owner", "input": "https://example.com/a.mts", "url": "https://example.com/a.mts", "host": "example.com", "source": "direct", "format": "ts", "needsCheck": false },
+
+    { "name": "image is not media", "input": "https://example.com/photo.jpg", "error": "notMedia" },
+    { "name": "pdf is not media", "input": "https://example.com/manual.pdf", "error": "notMedia" },
+    { "name": "hls playlist", "input": "https://example.com/live/index.m3u8", "error": "playlist" },
+    { "name": "dash manifest", "input": "https://example.com/v/manifest.MPD?x=1", "error": "playlist" },
+    { "name": "ftp", "input": "ftp://example.com/a.mp4", "error": "unsupportedScheme" },
+    { "name": "file", "input": "file:///Users/me/a.mp4", "error": "unsupportedScheme" },
+    { "name": "javascript", "input": "javascript:alert(1)", "error": "unsupportedScheme" },
+    { "name": "mailto", "input": "mailto:someone@example.com", "error": "unsupportedScheme" },
+    { "name": "user and password", "input": "https://user:secret@example.com/a.mp4", "error": "credentials" },
+    { "name": "user only", "input": "https://user@example.com/a.mp4", "error": "credentials" },
+    { "name": "empty", "input": "   ", "error": "notALink" },
+    { "name": "plain word", "input": "hello", "error": "notALink" },
+    { "name": "file name", "input": "clip.mp4", "error": "notALink" },
+    { "name": "no host", "input": "https:///a.mp4", "error": "invalidHost" },
+    { "name": "scheme only", "input": "https://", "error": "invalidHost" },
+    { "name": "empty label", "input": "https://example..com/a.mp4", "error": "invalidHost" },
+    { "name": "bad host character", "input": "https://exa*mple.com/a.mp4", "error": "invalidHost" },
+    { "name": "label starts with hyphen", "input": "https://-example.com/a.mp4", "error": "invalidHost" },
+    { "name": "label too long", "input": "https://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.com/a.mp4", "error": "invalidHost" },
+    { "name": "bad ipv6", "input": "http://[2001:db8::g]/a.mp4", "error": "invalidHost" },
+    { "name": "unclosed ipv6", "input": "http://[2001:db8::1/a.mp4", "error": "invalidHost" },
+    { "name": "port zero", "input": "https://example.com:0/a.mp4", "error": "invalidPort" },
+    { "name": "port too big", "input": "https://example.com:65536/a.mp4", "error": "invalidPort" },
+    { "name": "port not a number", "input": "https://example.com:80a/a.mp4", "error": "invalidPort" }
+  ],
+  "lists": [
+    {
+      "name": "one per line",
+      "input": "https://example.com/1.mp4\nhttps://example.com/2.mp4\r\nhttps://example.com/3.mp3",
+      "links": ["https://example.com/1.mp4", "https://example.com/2.mp4", "https://example.com/3.mp3"],
+      "errors": [],
+      "overLimit": 0
+    },
+    {
+      "name": "prose around links",
+      "input": "Here are the files: https://example.com/a.mp4, and (https://example.com/b.wav). Thanks!",
+      "links": ["https://example.com/a.mp4", "https://example.com/b.wav"],
+      "errors": [],
+      "overLimit": 0
+    },
+    {
+      "name": "duplicates removed after normalizing",
+      "input": "https://example.com/a.mp4 HTTPS://EXAMPLE.com/a.mp4#x https://example.com:443/a.mp4",
+      "links": ["https://example.com/a.mp4"],
+      "errors": [],
+      "overLimit": 0
+    },
+    {
+      "name": "bad links reported, good ones kept",
+      "input": "ftp://example.com/a.mp4 https://example.com/b.mp4 https://example.com/c.png www.example.org/d.mp3",
+      "links": ["https://example.com/b.mp4", "https://www.example.org/d.mp3"],
+      "errors": [{ "input": "ftp://example.com/a.mp4", "error": "unsupportedScheme" }, { "input": "https://example.com/c.png", "error": "notMedia" }],
+      "overLimit": 0
+    },
+    {
+      "name": "words that aren't links are ignored",
+      "input": "clip.mp4 hello mailto:someone@example.com",
+      "links": [],
+      "errors": [],
+      "overLimit": 0
+    },
+    {
+      "name": "quotes and brackets stripped",
+      "input": "\"https://example.com/a.mp4\" [https://example.com/b.mp4] <https://example.com/c.mp4>",
+      "links": ["https://example.com/a.mp4", "https://example.com/b.mp4", "https://example.com/c.mp4"],
+      "errors": [],
+      "overLimit": 0
+    },
+    {
+      "name": "empty text",
+      "input": " \n\t ",
+      "links": [],
+      "errors": [],
+      "overLimit": 0
+    }
+  ]
+}
