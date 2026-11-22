@@ -21,11 +21,19 @@ LICENSES = ROOT / "legal" / "licenses"
 OUTPUT = ROOT / "legal" / "THIRD_PARTY_NOTICES.md"
 
 
+# Windows consoles and CI logs may default to a legacy code page; the check marks must not crash the script.
+for stream in (sys.stdout, sys.stderr):
+    try:
+        stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
+
+
 def problem(message):
     """Prints a problem; on GitHub Actions also as an annotation, so it's visible on the run page."""
-    problem(f"{message}")
     if os.environ.get("GITHUB_ACTIONS") == "true":
-        print(f"::error title=third-party notices::{message}")
+        print(f"::error title=third-party notices::{message}", flush=True)
+    print(f"✗ {message}", file=sys.stderr)
 
 
 def load():
