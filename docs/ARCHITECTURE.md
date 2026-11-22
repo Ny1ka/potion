@@ -53,7 +53,8 @@ Markdown rendered to HTML) before the system HTML reader sees it (`HTMLResources
 - `Downloader` runs one download: robots.txt per site, redirects re-checked with `SourceRegistry.redirect`,
   retries, resume, the size limit and the content check (`DownloadRules`), into a hidden `.part` file. It talks to
   the network only through `HTTPTransport` / `IHttpTransport` (one GET, no automatic redirects, cookies or
-  credentials), so tests script the server and the apps plug in the OS HTTP stack (URLSession, HttpClient).
+  credentials), so tests script the server and the apps plug in the OS HTTP stack: `URLSessionTransport` (macOS) and
+  `HttpClientTransport` (Windows), both without cookies, credentials, caches or automatic redirects.
   FFmpeg is built without network support and only ever sees local files.
 
 ## Project generation

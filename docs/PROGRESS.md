@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M5 Dropper core (M2–M4 done: engines, Potion for macOS and Windows)
-- **Last completed chunk:** M5.2b Downloader logic (robots.txt, redirects, retries, resume, content check)
-- **Next chunk:** M5.2c Real HTTP transports (URLSession, HttpClient) and a loopback test server
+- **Last completed chunk:** M5.2c Real HTTP transports (URLSession, HttpClient) with loopback tests
+- **Next chunk:** M5.3 Dropper jobs (download → media info → convert, naming, history) and app scaffolds
 
 ## Milestones
 
@@ -40,6 +40,12 @@ Read this first in any new session. Update it at every checkpoint.
 - [x] M1.2 Conversion matrix: `core/spec/matrix.json` (20 routes, 11 notes), `core/spec/tests/matrix.json`
       (45 shared cases incl. every spec example), Swift + C#. Batches skip files already in the target format.
 
+## Notes for later chunks
+
+- M6: the Dropper macOS app needs `NSAppTransportSecurity` › `NSAllowsArbitraryLoads` in its Info.plist, or
+  App Transport Security blocks plain `http://` direct links (loopback is exempt, so the core tests don't show it).
+  The Downloader itself never downgrades: it only follows the link or redirect the server gives.
+
 ## Decisions
 
 - License: MIT (see `docs/LEGAL_REVIEW.md`).
@@ -68,8 +74,13 @@ Read this first in any new session. Update it at every checkpoint.
       size limit before and while streaming, the content check on every body, hidden `.potion-dropper-*.part` file,
       resume with Range/If-Range (strong ETag or Last-Modified; 200 or 416 start over), cancel keeps a resumable
       partial file. 14 tests per core with a scripted transport
-- [ ] M5.2c Real transports: URLSession (macOS) and HttpClient (Windows) with no cookies, no credential storage, no
-      cache, redirects not followed automatically, idle and connect timeouts; loopback test server in both cores
+- [x] M5.2c Real transports: `URLSessionTransport` (ephemeral session per request; no cookie storage or cookie
+      headers, no credential storage, no cache; redirects handed back; sign-in challenges refused so a 401 comes back
+      as is; idle timeout) and `HttpClientTransport` (SocketsHttpHandler: no auto-redirect, no cookies, no
+      credentials, no decompression; header and per-read idle timeouts). Loopback test servers (Network.framework,
+      TcpListener) with 8 tests per core: streaming, our headers, redirects not followed, cookies not stored or sent,
+      401 passed through, timeout, connection refused, Downloader end to end (robots.txt, redirect, content check)
+      and resume after a dropped connection
 - [ ] M5.3 Dropper jobs: download → media info (duration limit, default 30 minutes) → convert with the existing
       engines (stream copy when possible), naming templates, duplicate/overwrite protection, history the user can
       clear; Dropper app scaffolds (`apps/dropper-macos`, `apps/dropper-windows`) that build in CI
