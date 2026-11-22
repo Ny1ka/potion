@@ -151,6 +151,36 @@ public sealed class DocumentWriterTests : EngineTestBase
     }
 
     [Fact]
+    public void PdfIsSearchableWithLinksBookmarksAndThePageSize()
+    {
+        var path = Path.Combine(Dir, "out.pdf");
+        var doc = WithPage();
+        for (var i = 0; i < 80; i++) doc.Blocks.Add(new Paragraph([new TextRun($"Filler paragraph {i} with enough words to wrap at least once across the page width.", TextStyle.Plain)]));
+        File.WriteAllBytes(path, PdfDocumentWriter.Write(doc, "Report"));
+        using var pdf = UglyToad.PdfPig.PdfDocument.Open(path);
+        Assert.True(pdf.NumberOfPages > 1, "long documents span pages");
+        var first = pdf.GetPage(1);
+        Assert.Equal((792.0, 612.0), (Math.Round(first.Width), Math.Round(first.Height)));
+        var words = pdf.GetPages().SelectMany(p => p.GetWords()).Select(w => w.Text).ToList();
+        Assert.Contains("Quarterly", words);
+        Assert.Contains("3.", words);
+        Assert.Contains("79", words);
+        Assert.Contains(first.GetHyperlinks(), h => h.Uri == "https://example.com/page");
+        Assert.Equal("Report", pdf.Information.Title);
+        Assert.True(pdf.TryGetBookmarks(out var bookmarks) && bookmarks.GetNodes().Any(n => n.Title.Contains("Quarterly")));
+    }
+
+    [Fact]
+    public async Task EngineMakesPdfFromMarkdown()
+    {
+        var md = Path.Combine(Dir, "notes.md");
+        File.WriteAllText(md, "# Notes\n\n- one\n- two\n\n| A | B |\n|---|---|\n| 1 | 2 |");
+        var pdf = await new DocumentEngine().ConvertAsync(md, S.Format("md"), S.Format("pdf"), Dir);
+        using var doc = UglyToad.PdfPig.PdfDocument.Open(pdf);
+        Assert.Contains("Notes", doc.GetPage(1).Text);
+    }
+
+    [Fact]
     public async Task EngineConvertsAndNeverOverwrites()
     {
         var md = Path.Combine(Dir, "notes.md");

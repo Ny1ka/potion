@@ -13,8 +13,7 @@ public sealed class DocumentEngine(ConversionMatrix? matrix = null)
 {
     private readonly ConversionMatrix _matrix = matrix ?? ConversionMatrix.Shared;
 
-    /// <summary>Outputs written so far. PDF waits on the owner's choice of PDF library (docs/LEGAL_REVIEW.md).</summary>
-    public static readonly IReadOnlySet<string> Writable = new HashSet<string> { "txt", "md", "html", "epub", "docx", "rtf", "odt" };
+    public static readonly IReadOnlySet<string> Writable = new HashSet<string> { "txt", "md", "html", "epub", "docx", "rtf", "odt", "pdf" };
 
     public async Task<string> ConvertAsync(string input, FileFormat inputFormat, FileFormat outputFormat, string outputDirectory,
                                            CancellationToken token = default)
@@ -48,6 +47,7 @@ public sealed class DocumentEngine(ConversionMatrix? matrix = null)
         "docx" => DocxWriter.Write(document, title),
         "rtf" => Encoding.ASCII.GetBytes(RtfWriter.Write(document)),
         "odt" => OdtWriter.Write(document),
+        "pdf" => PdfDocumentWriter.Write(document, title),
         "epub" => EpubWriter.Write(document, title, System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName is { Length: 2 } l ? l : "en"),
         _ => throw ConversionException.Unsupported("Document", formatId.ToUpperInvariant()),
     };

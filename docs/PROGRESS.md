@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M2.7 Windows engines, then M4 Potion Windows UI (M3 Potion macOS UI is done)
-- **Last completed chunk:** M2.7d-3b Windows DOCX, RTF and ODT writers
-- **Next chunk:** M2.7d-3c document → PDF with MigraDoc (C#)
+- **Last completed chunk:** M2.7d-3c Windows document → PDF (MigraDoc 6.2.4)
+- **Next chunk:** M2.7d-4 PDF tools and PDF conversions on Windows
 
 ## Milestones
 
@@ -116,7 +116,10 @@ Read this first in any new session. Update it at every checkpoint.
           ODT (automatic styles, heading styles, list styles with start values, tables, inline images, links, page
           layout). Each round-trips through our readers (3 tests); RTF reader now reads \outlinelevel headings and
           ODT nested lists keep their own type
-    - [ ] M2.7d-3c document → PDF: blocked on the PDF-library decision (a MigraDoc version is drafted and set aside)
+    - [x] M2.7d-3c document → PDF with PDFsharp/MigraDoc **6.2.4 pinned** (last MIT release; owner's choice
+          2026-11-22): page size and margins, headings with PDF bookmarks, alignment, styled text, clickable links,
+          list markers with their own numbers, bordered tables, images scaled to fit, code, page breaks; `PdfFonts`
+          finds system TrueType fonts on Windows/macOS/Linux with fallbacks. Verified with PdfPig (2 tests)
     - [ ] M2.7d-4 PDF tools and conversions (PDFsharp, PdfPig for text, Windows.Data.Pdf for images), images → PDF
 
 ### M3 chunks
@@ -169,8 +172,9 @@ Read this first in any new session. Update it at every checkpoint.
   then switch the onboarding text to "Quick Actions › Convert with Potion" (01-brand.md wording).
 - **Windows documents (decided 2026-11-21):** permissive libraries, all bundled and offline: Open XML SDK (MIT),
   HtmlAgilityPack (MIT), PdfPig (Apache-2.0); Windows.Data.Pdf for rendering. PDFsharp/MigraDoc were removed on
-  2026-11-22: version 6.5.0 is AGPL-3.0-only (MIT up to 6.2.4). Which PDF writer to use is an open owner decision
-  (LEGAL_REVIEW open question #3). Always read a package's license from its nuspec before adding it. Our own
+  2026-11-22: version 6.5.0 is AGPL-3.0-only (MIT up to 6.2.4); the owner chose to pin **6.2.4** (frozen, MIT), with
+  System.Security.Cryptography.Pkcs pinned to 11.0.0 over its vulnerable 8.0.1. Never upgrade PDFsharp/MigraDoc past
+  6.2.4 without checking the license. Always read a package's license from its nuspec before adding it. Our own
   code for Markdown, RTF, ODT, EPUB, TXT. Each goes into THIRD_PARTY_NOTICES (M8).
   Markdig was tried and dropped (2026-11-22): its media-links extension embeds the names of video sites the source
   policy blocks, and CI's release scan caught them in the Windows build. Only a package reference was ever
@@ -198,6 +202,8 @@ Read this first in any new session. Update it at every checkpoint.
   Subtitles are dropped. Revisit after M3.
 - Copy-protection detection covers FairPlay/CENC sample entries and FFmpeg's DRM errors; protected WMA/WMV
   needs a real protected sample to confirm (none can be generated). Revisit in M8.
+- Windows documents: table column alignment from Markdown/HTML isn't carried over yet; strikethrough isn't drawn
+  in PDFs (MigraDoc has no strikethrough); CJK text in PDFs needs a CJK font, which the resolver doesn't look for yet.
 - Windows images: SVG input isn't supported yet (macOS uses AppKit; Windows needs Direct2D's SVG renderer, M2.7d or
   M4). Metadata (EXIF/GPS) isn't copied to outputs yet. Animated GIF/WebP use the first frame, as on macOS.
 - PDF: SVG output holds a picture of each page (no vector paths or selectable text). PDF → document keeps

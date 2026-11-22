@@ -34,7 +34,7 @@ are completed in M8/M9.
 | # | Question | Needs lawyer? | Status |
 |---|---|---|---|
 | 1 | Mac App Store and Microsoft Store distribution for Potion: does shipping an LGPL FFmpeg satisfy the LGPL "user can replace the library" requirement inside a store package? | Yes | Open (decide before M9) |
-| 3 | PDF writing on Windows (documents → PDF, merge/split): pin PDFsharp/MigraDoc 6.2.4 (last MIT release, frozen), or build on PdfPig's PDF builder (Apache-2.0, maintained) with our own layout. | No (product decision; both licenses are permissive) | Open (asked 2026-11-22) |
+| 3 | PDF writing on Windows (documents → PDF, merge/split): pin PDFsharp/MigraDoc 6.2.4 (last MIT release, frozen), or build on PdfPig's PDF builder (Apache-2.0, maintained) with our own layout. | No (product decision; both licenses are permissive) | Decided 2026-11-22: pin 6.2.4 (MIT). Do not upgrade past it without re-checking the license |
 | 2 | App Sandbox for Potion (macOS): needed for the Mac App Store, but it limits "save next to the original" and "move original to Trash" unless the user grants folder access. | No (product decision) | Decided 2026-11-21: off for V1 (DMG). Revisit for the Mac App Store |
 
 ## Items for lawyer review before public release
