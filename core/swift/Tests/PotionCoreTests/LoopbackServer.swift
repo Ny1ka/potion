@@ -113,7 +113,9 @@ final class LoopbackServer: @unchecked Sendable {
         out.append(reply.dropAfter.map { reply.body.prefix($0) } ?? reply.body)
         connection.send(content: out, completion: .contentProcessed { _ in
             if reply.dropAfter != nil {
-                connection.cancel()   // a dropped connection
+                // A dropped connection, after the client has had time to read what was sent (closing at once can
+                // make URLSession report the drop before handing over any of the body).
+                self.queue.asyncAfter(deadline: .now() + 0.5) { connection.cancel() }
             } else {
                 connection.send(content: nil, contentContext: .finalMessage, isComplete: true, completion: .contentProcessed { _ in connection.cancel() })
             }
