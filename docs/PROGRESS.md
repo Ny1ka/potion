@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M9 Packaging and V1 release: macOS beta first (M2–M8 done)
-- **Last completed chunk:** M9.2 Public release setup for Potion for macOS v0.9.0
-- **Next chunk:** M9.2b README visual refresh with demos (after the owner publishes v0.9.0)
+- **Last completed chunk:** M9.2b README refresh with real screenshots and design-system graphics
+- **Next chunk:** M9.2c polish from feedback (About splash animation; Windows after real-PC testing)
 
 ## Milestones
 
@@ -72,7 +72,15 @@ Read this first in any new session. Update it at every checkpoint.
       (DMG, FFmpeg source bundle, checksums, notes in `docs/release-notes/v0.9.0.md`; refuses to overwrite a
       release), test builds otherwise; README with Download, features and app status (Dropper: experimental, not
       released); `docs/BETA.md` removed
-- [ ] M9.2b README visual refresh with demos of Potion in use
+- [x] M9.2b README refresh: brand lockup (light/dark), design-system download button and category tiles
+      (`scripts/readme/assets.py`, from tokens.json and the category icons), an animated demo, real screenshots of every
+      step in light and dark (drop zone, queue, video/image/PDF options, converting, done, Settings), the owner's
+      story, install steps, formats, privacy, Dropper note, roadmap, building. Screenshots come from the real app:
+      a Debug-only scripted tour (`apps/potion-macos/Sources/ReadmeShots.swift`, `scripts/readme/capture.sh`) with
+      generated sample files and throwaway settings, snapshotting its own windows (no screen recording). Fixed along
+      the way: Settings' default-format pickers showed blank when the remembered format was from another category
+      (video → MP3); the lists now offer every format a file type can become, own category first (macOS and Windows);
+      Settings remembers its tab
 - [ ] M9.2c Polish from feedback (incl. the About splash animation)
 - [ ] M9.3 Windows: test both apps on a real PC, trim the Windows App SDK to the components the apps use, EXE
       installer (tool to be chosen and license-checked), Windows beta

@@ -3,14 +3,20 @@ import SwiftUI
 
 /// Settings window (05-layout.md, "Settings"): General, Output and Advanced tabs. Standard controls only.
 struct SettingsView: View {
+    /// The tab Settings reopens on.
+    @AppStorage("settings.tab") private var tab = "general"
+
     var body: some View {
-        TabView {
+        TabView(selection: $tab) {
             GeneralSettings()
                 .tabItem { Label("General", systemImage: "gearshape") }
+                .tag("general")
             OutputSettings()
                 .tabItem { Label("Output", systemImage: "square.and.arrow.down") }
+                .tag("output")
             AdvancedSettings()
                 .tabItem { Label("Advanced", systemImage: "slider.horizontal.3") }
+                .tag("advanced")
         }
         .frame(width: PotionSize.convertSheetWidth + PotionSpacing.x16)
     }
@@ -64,21 +70,26 @@ struct DefaultFormatPicker: View {
         let formats = Self.outputs(for: category)
         Picker(PotionCategory(rawValue: category.rawValue)?.label ?? category.rawValue, selection: $formatID) {
             Text("Automatic").tag("")
-            Divider()
-            ForEach(formats) { Text($0.name).tag($0.id) }
+            // Same-category formats first, then the others under their category (video files can default to MP3 or GIF).
+            ForEach(FormatGroups.grouped(formats), id: \.category) { group in
+                Divider()
+                if group.category.rawValue != category.rawValue { Text(group.category.label) }
+                ForEach(group.formats) { Text($0.name).tag($0.id) }
+            }
         }
     }
 
-    /// Formats in the same category that files of this category can become (union over its formats).
+    /// Every format files of this category can become (union over its formats), the same category first, so a
+    /// remembered choice like "video → MP3" always appears in the list.
     static func outputs(for category: FormatCategory) -> [FileFormat] {
         var seen = Set<String>()
         var result: [FileFormat] = []
-        for format in FormatRegistry.shared.formats where format.category == category {
-            for option in ConversionMatrix.shared.outputs(for: format.id) where option.output.category == category {
-                if seen.insert(option.output.id).inserted { result.append(option.output) }
+        for format in FormatRegistry.shared.formats where format.category == category && format.isAvailable(on: ConversionMatrix.currentPlatform) {
+            for option in ConversionMatrix.shared.outputs(for: format.id) where seen.insert(option.output.id).inserted {
+                result.append(option.output)
             }
         }
-        return result
+        return result.filter { $0.category == category } + result.filter { $0.category != category }
     }
 }
 

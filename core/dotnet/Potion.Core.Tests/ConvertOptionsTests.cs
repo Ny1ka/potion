@@ -40,12 +40,14 @@ public sealed class ConvertOptionsTests : EngineTestBase
     [Fact]
     public void DefaultFormatChoicesPerFileType()
     {
-        var video = DefaultFormats.For(FormatCategory.Video).Select(f => f.Id).ToList();
-        Assert.Contains("mp4", video);
-        Assert.DoesNotContain("mp3", video);
-        var images = DefaultFormats.For(FormatCategory.Image).Select(f => f.Id).ToList();
-        Assert.Contains("webp", images);
-        Assert.DoesNotContain("pdf", images);   // other categories aren't defaults
+        // Every format a file of that type can become, its own category first: a remembered "video → MP3" must show.
+        var video = DefaultFormats.For(FormatCategory.Video).ToList();
+        Assert.Equal(FormatCategory.Video, video[0].Category);
+        Assert.Contains(video, f => f.Id == "mp4");
+        Assert.True(video.FindIndex(f => f.Id == "mp3") > video.FindLastIndex(f => f.Category == FormatCategory.Video));
+        var images = DefaultFormats.For(FormatCategory.Image).ToList();
+        Assert.Contains(images, f => f.Id == "webp");
+        Assert.True(images.FindIndex(f => f.Id == "pdf") > images.FindLastIndex(f => f.Category == FormatCategory.Image));
     }
 
     [Fact]

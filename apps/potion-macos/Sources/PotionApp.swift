@@ -41,13 +41,21 @@ struct PotionApp: App {
 /// Owns the queue so files opened with Potion (dropped on the Dock icon, Open With, `open -a Potion`) land in it.
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
-    let queue = QueueModel()
+    let queue: QueueModel = {
+        #if DEBUG
+        if ReadmeShots.isActive { return QueueModel(defaults: ReadmeShots.defaults) }   // README screenshots: throwaway settings
+        #endif
+        return QueueModel()
+    }()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         UNUserNotificationCenter.current().delegate = self
         Notifications.registerCategory()
         NSApp.servicesProvider = self
         NSUpdateDynamicServices()
+        #if DEBUG
+        if ReadmeShots.isActive { ReadmeShots.start(queue: queue) }
+        #endif
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {

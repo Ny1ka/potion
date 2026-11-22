@@ -114,7 +114,10 @@ public static class OptionsText
 /// <summary>Settings › Output: the formats offered as a file type's default (same list as macOS).</summary>
 public static class DefaultFormats
 {
-    /// <summary>Formats in the same category that files of this category can become (union over its formats).</summary>
+    /// <summary>
+    /// Every format files of this category can become (union over its formats), the same category first, so a remembered
+    /// choice like "video → MP3" always appears in the list.
+    /// </summary>
     public static IReadOnlyList<FileFormat> For(FormatCategory category, FormatRegistry? registry = null, ConversionMatrix? matrix = null)
     {
         registry ??= FormatRegistry.Shared;
@@ -122,8 +125,8 @@ public static class DefaultFormats
         var seen = new HashSet<string>();
         var result = new List<FileFormat>();
         foreach (var format in registry.Formats.Where(f => f.Category == category && f.IsAvailableOn(ConversionMatrix.CurrentPlatform)))
-            foreach (var option in matrix.Outputs(format.Id).Where(o => o.Output.Category == category))
+            foreach (var option in matrix.Outputs(format.Id))
                 if (seen.Add(option.Output.Id)) result.Add(option.Output);
-        return result;
+        return [.. result.Where(f => f.Category == category), .. result.Where(f => f.Category != category)];
     }
 }
