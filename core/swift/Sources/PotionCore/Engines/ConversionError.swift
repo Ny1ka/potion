@@ -12,6 +12,9 @@ public enum ConversionError: Error, Equatable, Sendable, LocalizedError {
     case cannotWrite(folder: String)
     case conversionFailed(fileName: String, detail: String)
     case verificationFailed(fileName: String)
+    case invalidPages(selection: String, pageCount: Int)
+    case notSmaller(fileName: String)
+    case needsNewerSystem(feature: String, version: String)
 
     public var errorDescription: String? {
         switch self {
@@ -33,6 +36,13 @@ public enum ConversionError: Error, Equatable, Sendable, LocalizedError {
             return "Couldn't convert “\(name)”."
         case let .verificationFailed(name):
             return "The converted copy of “\(name)” didn't check out, so it wasn't saved."
+        case let .invalidPages(selection, count):
+            let range = count == 1 ? "page 1" : "pages 1–\(count)"
+            return "“\(selection)” isn't a valid page selection. Use \(range), for example “1–3, 5”."
+        case let .notSmaller(name):
+            return "“\(name)” is already as small as Potion can make it, so no compressed copy was saved."
+        case let .needsNewerSystem(feature, version):
+            return "\(feature) needs \(version) or later."
         }
     }
 

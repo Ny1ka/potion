@@ -34,6 +34,7 @@ binding layers and harder debugging, while the OS-framework engines would still 
 | `VideoEngine` | `transcodeVideo`, `videoToGif`, `gifToVideo` | Same FFmpeg; H.264/HEVC via VideoToolbox |
 | `ImageEngine` | `convertImage`, `imageToPdf` | ImageIO, AppKit (SVG), Core Graphics PDF; FFmpeg only for WebP and the AVIF fallback |
 | `DocumentEngine` | `convertDocument`, `documentToPdf` | The macOS text system (`NSAttributedString` readers; RTF/DOC/ODT/HTML writers), TextKit pagination for PDF, Foundation's Markdown parser; our own DOCX and EPUB writers and EPUB reader on a small zip implementation (`Zip.swift`, Compression framework) |
+| `PDFEngine` | `pdfToImage`, `pdfToDocument`, merge/split/extract/reorder/compress | PDFKit, Core Graphics, ImageIO; documents written through `DocumentEngine`'s writers |
 
 Every engine checks the matrix first, writes to a hidden temporary file in the destination folder, verifies
 the result by opening it again, then moves it to a name that doesn't exist yet (`OutputFiles`). Documents

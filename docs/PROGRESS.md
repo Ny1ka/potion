@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M2 Core: conversion engines
-- **Last completed chunk:** M2.5 Documents II (Swift)
-- **Next chunk:** M2.6 PDF tools (Swift)
+- **Last completed chunk:** M2.6 PDF tools (Swift)
+- **Next chunk:** M2.7 Windows: FFmpeg build + engines in Potion.Core (C#)
 
 ## Milestones
 
@@ -14,7 +14,7 @@ Read this first in any new session. Update it at every checkpoint.
 |---|---|
 | M0 Scaffold | Done |
 | M1 Core: formats | Done |
-| M2 Core: conversion engines | In progress (M2.0–M2.5 done) |
+| M2 Core: conversion engines | In progress (M2.0–M2.6 done) |
 | M3 Potion macOS UI | Not started |
 | M4 Potion Windows UI | Not started |
 | M5 Dropper core | Not started |
@@ -71,7 +71,12 @@ Read this first in any new session. Update it at every checkpoint.
       lists, tables, images, page size and margins, no author metadata), EPUB reader (spine order, linked CSS
       and images inlined) and EPUB 3 writer (nav from headings, images as files), copy-protected message for
       DRM EPUBs (Adobe/LCP; font obfuscation is fine), password-protected ODT and zip-encrypted files. 11 tests
-- [ ] M2.6 PDF tools: merge, split, extract, reorder, compress, `pdfToImage`, `pdfToDocument` (PDFKit)
+- [x] M2.6 PDF tools (Swift, PDFKit): `PDFEngine` with merge, split (every N pages), extract and reorder
+      (shared page-selection syntax, `core/spec/tests/pages.json`), compress (JPEG images; "Smallest" also
+      screen resolution; macOS 13.4+; refuses to save a copy that isn't smaller), `pdfToImage` (PNG/JPG at a
+      chosen DPI, rotation-aware, size-capped; SVG wraps the rendered page), `pdfToDocument` (DOCX/TXT/HTML
+      from PDFKit's text, page breaks in DOCX, pages without text become pictures). Password-protected PDFs
+      and permission-restricted ones get the copy-protected message where the permission is missing. 14 tests
 - [ ] M2.7 Windows: FFmpeg build for Windows + the same engines in Potion.Core (C#), tested in CI
 
 ## Decisions coming up (from the final spec)
@@ -100,6 +105,9 @@ Read this first in any new session. Update it at every checkpoint.
   Subtitles are dropped. Revisit after M3.
 - Copy-protection detection covers FairPlay/CENC sample entries and FFmpeg's DRM errors; protected WMA/WMV
   needs a real protected sample to confirm (none can be generated). Revisit in M8.
+- PDF: SVG output holds a picture of each page (no vector paths or selectable text). PDF → document keeps
+  each line as its own paragraph (no reflowing into paragraphs or columns yet) and doesn't run OCR on scans.
+  Merge/split drop the PDF outline (bookmarks) of the originals. Compression needs macOS 13.4.
 - Documents: the system ODT, RTF and DOC writers drop images. The system DOCX *reader* ignores hyperlinks,
   so links in Word files become plain text when converted to other formats. Imported HTML/Markdown lists
   show numbers without a period ("3" not "3.") and block quotes lose their indent in PDF/DOCX output.

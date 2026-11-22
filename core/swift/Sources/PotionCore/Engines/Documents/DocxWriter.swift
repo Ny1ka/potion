@@ -156,6 +156,7 @@ final class DocxWriter {
                 switch c {
                 case 0x09: flush(); xml += open + "<w:tab/></w:r>"
                 case 0x2028, 0x0B: flush(); xml += open + "<w:br/></w:r>"
+                case 0x0C: flush(); xml += "<w:r><w:br w:type=\"page\"/></w:r>"   // form feed: page break
                 case 0xFFFC:
                     flush()
                     if let attachment = attrs[.attachment] as? NSTextAttachment { xml += drawing(attachment) }

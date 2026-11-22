@@ -562,5 +562,34 @@
     ],
     "icoMaxSize": 256,
     "pdfDefaultDPI": 72
+  },
+  "pdf": {
+    "renderDPI": {
+      "default": 150,
+      "choices": [
+        72,
+        150,
+        300,
+        600
+      ]
+    },
+    "maxRenderPixels": 10000,
+    "compression": {
+      "default": "standard",
+      "levels": [
+        {
+          "id": "standard",
+          "name": "Standard",
+          "jpegImages": true,
+          "screenResolution": false
+        },
+        {
+          "id": "smallest",
+          "name": "Smallest",
+          "jpegImages": true,
+          "screenResolution": true
+        }
+      ]
+    }
   }
 }

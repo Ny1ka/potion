@@ -9,7 +9,8 @@ cases, so macOS and Windows agree on what a file is and what it can become.
 | `tests/detection.json` | Conformance cases for detection. Both cores must pass all of them |
 | `matrix.json` | Allowed conversions, the engine operation for each, and limitation notes shown before converting |
 | `tests/matrix.json` | Conformance cases for the matrix |
-| `presets.json` | Audio, video and image quality presets, encoders and per-format settings |
+| `presets.json` | Audio, video, image and PDF presets, encoders and per-format settings |
+| `tests/pages.json` | Conformance cases for page selections ("1-3, 5") used by the PDF tools |
 
 The Swift package can't read files outside its own folder, so `core/swift/Sources/PotionCore/Resources/`
 holds byte-for-byte copies. Run `make sync-spec` after editing anything here. A test in both cores fails if
@@ -122,3 +123,15 @@ stretching; copy audio whenever the container accepts it; use the display size o
 `image` describes image outputs: quality `presets` (0–1, for the `lossy` formats), which formats keep
 `transparency` (others are composited onto white), `icoMaxSize` (icons are square, use a standard size up to
 256 px, and are never enlarged), and `pdfDefaultDPI` (page size when an image has no DPI).
+
+`pdf` holds the PDF tools' settings: `renderDPI` (default and offered resolutions for PDF → image),
+`maxRenderPixels` (longest side of a rendered page; higher resolutions are scaled down to fit) and
+`compression.levels` (Standard recompresses images as JPEG; Smallest also reduces them to screen resolution).
+
+## Page selections (tests/pages.json)
+
+Users type pages as `1-3, 5`. Items are separated by commas or semicolons, spaces don't matter, and empty
+items are skipped. An item is a page (`5`), a range (`1-3`, also with an en dash), `4-` (to the last page) or
+`-2` (from the first). The result is 1-based pages in the order typed, without duplicates, so the same syntax
+serves "extract pages" and "reorder". An empty selection means every page. Pages outside the document,
+reversed ranges and anything else are errors.

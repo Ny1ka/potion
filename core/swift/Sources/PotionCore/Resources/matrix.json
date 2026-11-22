@@ -47,6 +47,6 @@
     "pdfToDocx": "The layout may not match the original exactly. Columns, fonts and images can shift, and scanned pages become images.",
     "pdfToHtml": "The page layout is approximated. Scanned pages become images.",
     "pagePerFile": "Each page becomes a separate file.",
-    "pdfToSvg": "Text may be converted to shapes and stop being selectable."
+    "pdfToSvg": "Each page is stored as a picture inside the SVG. Text can't be selected or edited."
   }
 }
