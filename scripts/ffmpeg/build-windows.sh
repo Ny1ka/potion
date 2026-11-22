@@ -116,7 +116,7 @@ unpack "$(basename "$FFMPEG_URL")" "$srcs/ffmpeg"
    --extra-cflags="$cflags -I$prefix/include" --extra-ldflags="-L$prefix/lib -static -static-libgcc" \
    --disable-gpl --disable-nonfree --disable-version3 \
    --disable-autodetect --disable-network --disable-ffplay --disable-doc --disable-debug \
-   --disable-indevs --disable-outdevs \
+   --disable-indevs --enable-indev=lavfi --disable-outdevs \
    --enable-static --disable-shared --enable-w32threads \
    --enable-mediafoundation --enable-zlib \
    --enable-libmp3lame --enable-libopus --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libsvtav1 \
