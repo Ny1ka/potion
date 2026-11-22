@@ -99,6 +99,8 @@ public sealed class QueueItem : INotifyPropertyChanged
         set { _failure = value; Changed(); Changed(nameof(SecondaryText)); }
     }
     public IReadOnlyList<string> SavedFiles { get; set; } = [];
+    /// <summary>Advanced options from the convert dialog (each engine reads its own part).</summary>
+    public Engines.ConversionSettings Settings { get; set; } = new();
 
     public bool IsConverting => _status == QueueStatus.Converting;
 
@@ -267,6 +269,14 @@ public sealed partial class QueueModel(SettingsStore settings, ConversionMatrix?
             item.Status = QueueStatus.Waiting;
             settings.Set(SettingsKeys.LastOutput(item.Category), outputId);
         }
+    }
+
+    /// <summary>Applies the convert dialog's choices to these rows.</summary>
+    public void Apply(IEnumerable<QueueItem> items, string outputId, Engines.ConversionSettings settings)
+    {
+        var list = items.ToList();
+        SetOutput(list, outputId);
+        foreach (var item in list.Where(i => i.OutputId == outputId)) item.Settings = settings;
     }
 
     /// <summary>Formats every one of these rows can become.</summary>

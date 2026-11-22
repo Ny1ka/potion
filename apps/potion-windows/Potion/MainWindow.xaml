@@ -7,6 +7,9 @@
     Title="Potion">
 
     <Grid x:Name="Root" AllowDrop="True" DragOver="Root_DragOver" DragLeave="Root_DragLeave" Drop="Root_Drop">
+        <Grid.KeyboardAccelerators>
+            <KeyboardAccelerator Modifiers="Control" Key="I" Invoked="Options_Invoked" />
+        </Grid.KeyboardAccelerators>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />   <!-- title bar -->
             <RowDefinition Height="Auto" />   <!-- commands -->
@@ -61,6 +64,7 @@
         <!-- The queue (06-components.md, "Queue row"). -->
         <ListView x:Name="QueueList" Grid.Row="3" Visibility="Collapsed" SelectionMode="Extended"
                   ItemsSource="{x:Bind Queue.Items}" KeyDown="QueueList_KeyDown" RightTapped="QueueList_RightTapped"
+                  DoubleTapped="QueueList_DoubleTapped"
                   Padding="8,0,8,0">
             <ListView.ItemContainerTransitions>
                 <TransitionCollection><AddDeleteThemeTransition /></TransitionCollection>
@@ -115,6 +119,8 @@
 
             <!-- Idle: where to save. -->
             <StackPanel x:Name="IdleOptions" Orientation="Horizontal" Spacing="{StaticResource PotionSpace3}" VerticalAlignment="Center">
+                <DropDownButton x:Name="ConvertAllToButton" Visibility="Collapsed" Click="ConvertAllTo_Click"
+                                ToolTipService.ToolTip="Set the same format for every file" />
                 <ComboBox x:Name="SaveToBox" MinWidth="200" SelectionChanged="SaveToBox_SelectionChanged"
                           AutomationProperties.Name="Save to" ToolTipService.ToolTip="Where converted files are saved" />
                 <CheckBox x:Name="RecycleBox" Content="Move originals to Recycle Bin" Click="RecycleBox_Click"

@@ -50,7 +50,7 @@ public sealed partial class MainWindow : Window
         }
 
         Queue.Converter = (item, directory, progress, token) =>
-            _service.ConvertAsync(item.Path, item.Format, item.Output!, directory, null, progress, token);
+            _service.ConvertAsync(item.Path, item.Format, item.Output!, directory, item.Settings, progress, token);
         Queue.Recycle = NativeShell.MoveToRecycleBin;
         Queue.PropertyChanged += Queue_PropertyChanged;
         AppWindow.Closing += AppWindow_Closing;
@@ -111,6 +111,14 @@ public sealed partial class MainWindow : Window
             CompletionIcon.Foreground = (Brush)Ui.Resource(Queue.CompletionHasFailures ? "PotionErrorBrush" : "PotionSuccessBrush");
         }
         RecycleBox.IsChecked = Queue.MoveOriginalsToRecycleBin;
+        var sameKind = Queue.Items.Count > 1 && Queue.Items.Select(i => i.Category).Distinct().Count() == 1
+                       && Queue.CommonOutputs(Queue.Items.ToList()).Count > 0;
+        ConvertAllToButton.Visibility = sameKind ? Visibility.Visible : Visibility.Collapsed;
+        if (sameKind)
+        {
+            var current = Queue.Items.Select(i => i.OutputName).Distinct().ToList();
+            ConvertAllToButton.Content = current.Count == 1 ? $"Convert all to: {current[0]}" : "Convert all to…";
+        }
         RefreshSaveTo();
         // Taskbar: progress while converting; the error state after a batch with failures (09-platforms.md).
         NativeShell.SetProgress(Hwnd, converting ? Queue.BatchFraction : 1,
@@ -326,6 +334,27 @@ public sealed partial class MainWindow : Window
         return items;
     }
 
+    /// <summary>Double-click a row (or Ctrl+I) to open the convert dialog for it, or for the selection.</summary>
+    private void QueueList_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+        if ((e.OriginalSource as FrameworkElement)?.DataContext is not QueueItem item || item.IsConverting) return;
+        _ = ConvertDialog.ShowAsync(Root.XamlRoot, Queue, TargetsFor(item).Where(t => !t.IsConverting).ToList());
+    }
+
+    private void Options_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        var targets = Selected.Where(t => !t.IsConverting).ToList();
+        if (targets.Count > 0) _ = ConvertDialog.ShowAsync(Root.XamlRoot, Queue, targets);
+        args.Handled = true;
+    }
+
+    /// <summary>"Convert all to: MP3" when every row is the same kind of file (05-layout.md).</summary>
+    private void ConvertAllTo_Click(object sender, RoutedEventArgs e)
+    {
+        var all = Queue.Items.ToList();
+        ConvertAllToButton.Flyout = FormatMenu(Queue.CommonOutputs(all), id => Queue.SetOutput(all, id));
+    }
+
     private void QueueList_KeyDown(object sender, KeyRoutedEventArgs e)
     {
         if (e.Key is VirtualKey.Delete && Selected.Count > 0) { Queue.Remove(Selected); e.Handled = true; }
@@ -344,6 +373,9 @@ public sealed partial class MainWindow : Window
             foreach (var entry in FormatMenuItems(formats, id => Queue.SetOutput(targets, id))) change.Items.Add(entry);
             menu.Items.Add(change);
         }
+        var options = new MenuFlyoutItem { Text = "Options…", IsEnabled = targets.All(t => !t.IsConverting) };
+        options.Click += (_, _) => _ = ConvertDialog.ShowAsync(Root.XamlRoot, Queue, targets);
+        menu.Items.Insert(0, options);
         var retryable = targets.Where(t => t.Status is QueueStatus.Failed or QueueStatus.Canceled).ToList();
         if (retryable.Count > 0)
         {
@@ -391,8 +423,8 @@ public static class Ui
     /// <summary>Status always comes with an icon plus words (CLAUDE.md, design system).</summary>
     public static string StatusGlyph(QueueStatus s) => s switch
     {
-        QueueStatus.Done => "",       // CheckMark
-        QueueStatus.Failed => "",     // Error
+        QueueStatus.Done => "\uE73E",       // CheckMark
+        QueueStatus.Failed => "\uE783",     // Error
         _ => "",
     };
 

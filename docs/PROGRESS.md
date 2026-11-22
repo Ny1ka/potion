@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M4 Potion Windows UI (M2 engines and M3 Potion macOS UI are done)
-- **Last completed chunk:** M4.2 Converting from the queue on Windows
-- **Next chunk:** M4.3 Convert dialog and Advanced options on Windows
+- **Last completed chunk:** M4.3 Convert dialog and Advanced options on Windows
+- **Next chunk:** M4.4 Windows Settings, notifications and File Explorer integration
 
 ## Milestones
 
@@ -16,7 +16,7 @@ Read this first in any new session. Update it at every checkpoint.
 | M1 Core: formats | Done |
 | M2 Core: conversion engines | Done (macOS M2.0–M2.6, Windows M2.7a–d) |
 | M3 Potion macOS UI | Done (Quick Action extension deferred to M9, see below) |
-| M4 Potion Windows UI | In progress (M4.1–M4.2 done) |
+| M4 Potion Windows UI | In progress (M4.1–M4.3 done) |
 | M5 Dropper core | Not started |
 | M6 Dropper macOS UI | Not started |
 | M7 Dropper Windows UI | Not started |
@@ -62,7 +62,10 @@ Read this first in any new session. Update it at every checkpoint.
       Release), footer with Save to (same folder / recent / Choose folder…), Move originals to Recycle Bin, Convert all
       (Ctrl+Enter), progress + Stop (Esc), "12 files converted · Show in folder", taskbar progress (error state after
       failures), Retry and Show in folder for converted files, confirmation before closing mid-batch
-- [ ] M4.3 Convert dialog and Advanced options
+- [x] M4.3 `OptionsKind`/`OptionsText` in Potion.Core.App (which controls, summary line, notes, page hints; same as
+      macOS; 3 tests) and per-row `ConversionSettings` passed to the engines. Windows `ConvertDialog` (ContentDialog:
+      header, Convert to with "Each file's current format", notes, Advanced expander remembered, Recycle Bin choice),
+      opened by double-click, Options… in the context menu or Ctrl+I; footer "Convert all to" for same-kind queues
 - [ ] M4.4 Settings, notifications, File Explorer context menu (needs MSIX/sparse package)
 
 ### M2 chunks
