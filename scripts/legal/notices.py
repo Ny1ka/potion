@@ -119,6 +119,9 @@ def cmd_check():
     data = load()
     if not check_files(data):
         return 1
+    if (ROOT / "legal" / "LICENSE").read_bytes() != (ROOT / "LICENSE").read_bytes():
+        problem("legal/LICENSE differs from LICENSE (spec Part 6.4 keeps a copy in legal/). Copy LICENSE over it.")
+        return 1
     if not OUTPUT.is_file() or OUTPUT.read_text(encoding="utf-8") != render(data):
         problem("legal/THIRD_PARTY_NOTICES.md is out of date. Run: scripts/legal/notices.py generate")
         return 1

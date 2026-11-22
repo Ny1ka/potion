@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M8 Legal and compliance pass (M2–M7.5 done)
-- **Last completed chunk:** M8.1 Third-party notices and license audit
-- **Next chunk:** M8.2 PRIVACY.md, TERMS.md (incl. the Windows App SDK end-user terms) and the takedown contact
+- **Last completed chunk:** M8.2 Privacy policy, Terms of use, legal/LICENSE
+- **Next chunk:** M8.3 About windows in all four apps (legal files bundled), Terms and Privacy at first launch
 
 ## Milestones
 
@@ -67,7 +67,12 @@ Read this first in any new session. Update it at every checkpoint.
       shipped tags; scanned clean), `scripts/legal/notices.py` generating `legal/THIRD_PARTY_NOTICES.md` and checking
       it in CI (up to date; FFmpeg versions match `versions.sh`; every package a Windows Release build ships is
       listed). License audit and new lawyer items in LEGAL_REVIEW
-- [ ] M8.2 `legal/PRIVACY.md`, `legal/TERMS.md`, `legal/LICENSE`, takedown contact
+- [x] M8.2 `legal/PRIVACY.md` (what each app does and doesn't collect, from the code: Potion makes no network
+      connections; Dropper contacts only the links you give it and their `robots.txt`, honest User-Agent, no cookies;
+      local settings and the optional, clearable history; no analytics, telemetry or crash reporting),
+      `legal/TERMS.md` (responsibility for files and downloads, no warranty, limitation of liability, third-party
+      components with protection for their licensors as the Windows App SDK license requires, trademarks, takedown
+      requests, changes), contact nyikabusiness@gmail.com, `legal/LICENSE` (copy of `/LICENSE`, checked in CI)
 - [ ] M8.3 About windows (version, copyright, privacy line, Terms, Privacy, Acknowledgements, FFmpeg/LGPL
       attribution) in all four apps, with the legal files bundled; Terms at first launch
 
