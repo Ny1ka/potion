@@ -33,6 +33,12 @@ categories here. It stays the source for visuals; this folder adds behavior.
 | `text` | `true` for text formats (TXT, Markdown, HTML, SVG, RTF). Default `false` |
 | `raw` | `true` for camera RAW formats. Default `false` |
 
+### Platforms
+
+A format may list `platforms` (e.g. `"platforms": ["macos"]` on DOC, which has no reader or writer on Windows).
+Detection still recognizes it everywhere, so the app can explain why it can't convert the file, but the matrix
+built for another platform leaves out every conversion from or to it. Formats without the field work everywhere.
+
 ### Detection algorithm
 
 Inputs: the first `headerSize` bytes of the file (fewer if the file is shorter) and the file name. The

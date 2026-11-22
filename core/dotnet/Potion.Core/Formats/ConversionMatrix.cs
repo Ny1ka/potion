@@ -40,8 +40,13 @@ public sealed class ConversionMatrix
     // input id → output id → option
     private readonly Dictionary<string, Dictionary<string, ConversionOption>> _table = new();
 
-    public ConversionMatrix(string json, FormatRegistry registry)
+    /// <summary>The platform this app runs on ("windows" or "macos").</summary>
+    public static string CurrentPlatform => OperatingSystem.IsWindows() ? "windows" : "macos";
+
+    /// <param name="platform">Formats limited to other platforms (formats.json <c>platforms</c>) are left out. Defaults to this one.</param>
+    public ConversionMatrix(string json, FormatRegistry registry, string? platform = null)
     {
+        platform ??= CurrentPlatform;
         Registry = registry;
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
@@ -114,6 +119,7 @@ public sealed class ConversionMatrix
 
         foreach (var ((from, to), operation) in operations)
         {
+            if (!registry.FormatById(from)!.IsAvailableOn(platform) || !registry.FormatById(to)!.IsAvailableOn(platform)) continue;
             var noteList = (notes.TryGetValue((from, to), out var n) ? n : []).Select(id => new ConversionNote(id, noteTexts[id])).ToList();
             if (!_table.TryGetValue(from, out var row)) _table[from] = row = new();
             row[to] = new ConversionOption(registry.FormatById(to)!, operation, noteList);

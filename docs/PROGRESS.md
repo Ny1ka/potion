@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M2.7 Windows engines, then M4 Potion Windows UI (M3 Potion macOS UI is done)
-- **Last completed chunk:** M2.7c Images on Windows (WIC)
-- **Next chunk:** M2.7d Documents and PDF on Windows
+- **Last completed chunk:** M2.7d-1 Platform availability in the shared spec
+- **Next chunk:** M2.7d-2 Windows document model and readers
 
 ## Milestones
 
@@ -93,7 +93,13 @@ Read this first in any new session. Update it at every checkpoint.
         fallback, ICO writer, and "install … from the Microsoft Store" messages when HEIF/AV1/WebP/RAW codecs are
         missing. Pixel work (resize, rotate, flip, flatten, icon canvas) is platform-neutral in Potion.Core (6 tests
         here); 6 WIC tests run in the Windows CI job. Images → PDF on Windows comes with M2.7d
-  - [ ] M2.7d Documents and PDF on Windows (Open XML SDK, Windows.Data.Pdf)
+  - M2.7d Documents and PDF on Windows (owner chose permissive libraries, 2026-11-21):
+    - [x] M2.7d-1 `platforms` in formats.json (DOC is macOS-only); both matrices are built per platform; shared
+          cases can name a platform (5 new cases)
+    - [ ] M2.7d-2 Document model + readers: TXT, Markdown (Markdig), HTML (HtmlAgilityPack), DOCX (Open XML SDK),
+          RTF, ODT, EPUB
+    - [ ] M2.7d-3 Writers for the same formats + document → PDF (PDFsharp/MigraDoc)
+    - [ ] M2.7d-4 PDF tools and conversions (PDFsharp, PdfPig for text, Windows.Data.Pdf for images), images → PDF
 
 ### M3 chunks
 
@@ -143,6 +149,11 @@ Read this first in any new session. Update it at every checkpoint.
   loads sandboxed, properly signed app extensions, and local builds are ad-hoc signed until M9, so V1-dev uses a
   Finder Service (Services › Convert with Potion). Add the Action Extension in M9 with Developer ID signing,
   then switch the onboarding text to "Quick Actions › Convert with Potion" (01-brand.md wording).
+- **Windows documents (decided 2026-11-21):** permissive libraries, all bundled and offline: Open XML SDK (MIT),
+  Markdig (BSD-2-Clause), HtmlAgilityPack (MIT), PDFsharp + MigraDoc (MIT), PdfPig (Apache-2.0); Windows.Data.Pdf
+  for rendering. Our own code for RTF, ODT, EPUB, TXT. Each goes into THIRD_PARTY_NOTICES (M8).
+- **DOC on Windows (decided 2026-11-21):** macOS only for now (no free, reliable .doc reader/writer on Windows).
+  formats.json marks it `"platforms": ["macos"]`; the Windows app never offers it. Revisit if a good library appears.
 - **macOS architectures:** Release builds are universal (Apple Silicon + Intel) unless the owner drops Intel.
 
 ## Known issues / TODO

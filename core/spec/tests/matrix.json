@@ -1,5 +1,5 @@
 {
-  "about": "Shared conformance cases for the conversion matrix. Both cores run every case. 'conversions' check one pair; 'outputs' check what is offered for one input; 'common' check what is offered for a batch of inputs.",
+  "about": "Shared conformance cases for the conversion matrix. Both cores run every case. 'conversions' check one pair; 'outputs' check what is offered for one input; 'common' check what is offered for a batch of inputs. 'platform' (default macos) builds the matrix for that platform.",
   "conversions": [
     { "name": "Spec: MP4 to MP3", "from": "mp4", "to": "mp3", "operation": "extractAudio", "notes": [] },
     { "name": "Spec: MP4 to MOV", "from": "mp4", "to": "mov", "operation": "transcodeVideo", "notes": [] },
@@ -7,6 +7,10 @@
     { "name": "Spec: PNG to JPG", "from": "png", "to": "jpg", "operation": "convertImage", "notes": ["noTransparency"] },
     { "name": "Spec: PDF to DOCX warns about layout", "from": "pdf", "to": "docx", "operation": "pdfToDocument", "notes": ["pdfToDocx"] },
     { "name": "Spec: MP3 to PNG is not offered", "from": "mp3", "to": "png", "operation": null },
+    { "name": "Windows: DOC is macOS-only (input)", "platform": "windows", "from": "doc", "to": "pdf", "operation": null },
+    { "name": "Windows: DOC is macOS-only (output)", "platform": "windows", "from": "docx", "to": "doc", "operation": null },
+    { "name": "Windows: DOCX to PDF", "platform": "windows", "from": "docx", "to": "pdf", "operation": "documentToPdf", "notes": [] },
+    { "name": "macOS: DOCX to DOC", "platform": "macos", "from": "docx", "to": "doc", "operation": "convertDocument", "notes": [] },
 
     { "name": "Re-encode video in the same format", "from": "mp4", "to": "mp4", "operation": "transcodeVideo", "notes": [] },
     { "name": "Video to animated GIF", "from": "mov", "to": "gif", "operation": "videoToGif", "notes": ["gifLimits"] },
@@ -41,6 +45,7 @@
   "outputs": [
     { "name": "MP4 offers video first", "from": "mp4", "first": "mp4", "includes": ["mov", "mkv", "webm", "gif", "mp3", "wav", "flac"], "excludes": ["png", "pdf", "svg", "docx"] },
     { "name": "MP3 offers audio only", "from": "mp3", "first": "mp3", "includes": ["wav", "flac", "opus"], "excludes": ["mp4", "png", "gif", "pdf"] },
+    { "name": "Windows: DOCX offers no DOC", "platform": "windows", "from": "docx", "first": "pdf", "includes": ["odt", "rtf", "pdf"], "excludes": ["doc"] },
     { "name": "GIF offers images first, then video", "from": "gif", "first": "png", "includes": ["mp4", "webm", "pdf", "gif"], "excludes": ["mp3", "wmv"] },
     { "name": "PDF offers documents, then images", "from": "pdf", "first": "docx", "includes": ["txt", "html", "png", "jpg", "svg"], "excludes": ["pdf", "mp4", "epub"] },
     { "name": "RAW offers images and PDF", "from": "nef", "first": "png", "includes": ["jpg", "heic", "pdf"], "excludes": ["nef", "dng", "svg"] }

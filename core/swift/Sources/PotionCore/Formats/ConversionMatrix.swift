@@ -58,7 +58,10 @@ public final class ConversionMatrix: Sendable {
         let sameFormat: Bool?
     }
 
-    public init(data: Data, registry: FormatRegistry) throws {
+    /// The platform this app runs on; formats limited to other platforms (formats.json `platforms`) are left out.
+    public static let currentPlatform = "macos"
+
+    public init(data: Data, registry: FormatRegistry, platform: String = ConversionMatrix.currentPlatform) throws {
         let spec: SpecFile
         do { spec = try JSONDecoder().decode(SpecFile.self, from: data) } catch {
             throw LoadError.invalid("matrix.json can't be decoded: \(error)")
@@ -110,8 +113,8 @@ public final class ConversionMatrix: Sendable {
         }
 
         var table: [String: [String: ConversionOption]] = [:]
-        for (from, outputs) in operations {
-            for (to, operation) in outputs {
+        for (from, outputs) in operations where registry.format(id: from)!.isAvailable(on: platform) {
+            for (to, operation) in outputs where registry.format(id: to)!.isAvailable(on: platform) {
                 let noteList = (notes[from]?[to] ?? []).map { ConversionNote(id: $0, text: spec.notes[$0]!) }
                 table[from, default: [:]][to] = ConversionOption(output: registry.format(id: to)!, operation: operation, notes: noteList)
             }

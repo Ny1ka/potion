@@ -6,7 +6,7 @@ namespace Potion.Core.Engines;
 /// <summary>Which column of presets.json's per-platform encoder tables applies ("windows" or "macos").</summary>
 public static class EnginePlatform
 {
-    public static string Current => OperatingSystem.IsWindows() ? "windows" : "macos";
+    public static string Current => Formats.ConversionMatrix.CurrentPlatform;
 
     internal static string? Pick(IReadOnlyDictionary<string, string> encoders, string platform) =>
         encoders.TryGetValue(platform, out var e) ? e : encoders.TryGetValue("default", out var d) ? d : null;

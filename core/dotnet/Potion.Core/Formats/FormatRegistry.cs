@@ -88,7 +88,8 @@ public sealed class FormatRegistry
             Strings(f, "extensions"),
             Strings(f, "mimeTypes"),
             Flag(f, "text"),
-            Flag(f, "raw"));
+            Flag(f, "raw"),
+            f.TryGetProperty("platforms", out _) ? Strings(f, "platforms") : null);
     }
 
     public FileFormat? FormatById(string id) => _byId.GetValueOrDefault(id);

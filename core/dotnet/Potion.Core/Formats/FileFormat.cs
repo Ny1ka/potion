@@ -9,6 +9,7 @@ public enum FormatCategory { Image, Audio, Video, Docs }
 /// <param name="Extensions">Lowercase extensions without the dot. The first is used for output files.</param>
 /// <param name="IsText">Text formats (TXT, Markdown, HTML, SVG, RTF) are identified mainly by extension.</param>
 /// <param name="IsRaw">Camera RAW formats.</param>
+/// <param name="Platforms">Platforms that can read and write this format ("macos", "windows"); null means every platform.</param>
 public sealed record FileFormat(
     string Id,
     string Name,
@@ -16,8 +17,12 @@ public sealed record FileFormat(
     IReadOnlyList<string> Extensions,
     IReadOnlyList<string> MimeTypes,
     bool IsText,
-    bool IsRaw)
+    bool IsRaw,
+    IReadOnlyList<string>? Platforms = null)
 {
+    /// <summary>Whether this platform's app can convert from and to this format.</summary>
+    public bool IsAvailableOn(string platform) => Platforms is null || Platforms.Contains(platform);
+
     /// <summary>Extension for files written in this format.</summary>
     public string PreferredExtension => Extensions[0];
 }

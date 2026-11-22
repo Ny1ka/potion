@@ -8,11 +8,14 @@ final class MatrixConformanceTests: XCTestCase {
         let outputs: [OutputsCase]
         let common: [CommonCase]
     }
-    struct ConversionCase: Decodable { let name: String; let from: String; let to: String; let operation: String?; let notes: [String]? }
-    struct OutputsCase: Decodable { let name: String; let from: String; let first: String; let includes: [String]; let excludes: [String] }
-    struct CommonCase: Decodable { let name: String; let from: [String]; let includes: [String]; let excludes: [String]; let empty: Bool? }
+    struct ConversionCase: Decodable { let name: String; let platform: String?; let from: String; let to: String; let operation: String?; let notes: [String]? }
+    struct OutputsCase: Decodable { let name: String; let platform: String?; let from: String; let first: String; let includes: [String]; let excludes: [String] }
+    struct CommonCase: Decodable { let name: String; let platform: String?; let from: [String]; let includes: [String]; let excludes: [String]; let empty: Bool? }
 
-    let matrix = ConversionMatrix.shared
+    /// The matrix as built for a platform (cases default to macOS).
+    func matrix(_ platform: String?) throws -> ConversionMatrix {
+        try ConversionMatrix(data: RepoFiles.data("core/spec/matrix.json"), registry: .shared, platform: platform ?? "macos")
+    }
 
     func cases() throws -> CaseFile {
         try JSONDecoder().decode(CaseFile.self, from: RepoFiles.data("core/spec/tests/matrix.json"))
@@ -20,7 +23,7 @@ final class MatrixConformanceTests: XCTestCase {
 
     func testConversions() throws {
         for c in try cases().conversions {
-            let option = matrix.conversion(from: c.from, to: c.to)
+            let option = try matrix(c.platform).conversion(from: c.from, to: c.to)
             XCTAssertEqual(option?.operation.rawValue, c.operation, c.name)
             if let notes = c.notes { XCTAssertEqual(option?.notes.map(\.id), notes, c.name) }
         }
@@ -28,7 +31,7 @@ final class MatrixConformanceTests: XCTestCase {
 
     func testOutputs() throws {
         for c in try cases().outputs {
-            let ids = matrix.outputs(for: c.from).map(\.output.id)
+            let ids = try matrix(c.platform).outputs(for: c.from).map(\.output.id)
             XCTAssertEqual(ids.first, c.first, "\(c.name): first")
             for id in c.includes { XCTAssertTrue(ids.contains(id), "\(c.name): should include \(id)") }
             for id in c.excludes { XCTAssertFalse(ids.contains(id), "\(c.name): should exclude \(id)") }
@@ -37,7 +40,7 @@ final class MatrixConformanceTests: XCTestCase {
 
     func testCommonOutputs() throws {
         for c in try cases().common {
-            let ids = matrix.commonOutputs(for: c.from).map(\.id)
+            let ids = try matrix(c.platform).commonOutputs(for: c.from).map(\.id)
             for id in c.includes { XCTAssertTrue(ids.contains(id), "\(c.name): should include \(id)") }
             for id in c.excludes { XCTAssertFalse(ids.contains(id), "\(c.name): should exclude \(id)") }
             if c.empty == true { XCTAssertTrue(ids.isEmpty, c.name) }
@@ -52,7 +55,7 @@ final class ConversionMatrixTests: XCTestCase {
     }
 
     func testEveryFormatCanBecomeSomething() {
-        for format in FormatRegistry.shared.formats {
+        for format in FormatRegistry.shared.formats where format.isAvailable(on: ConversionMatrix.currentPlatform) {
             XCTAssertFalse(ConversionMatrix.shared.outputs(for: format.id).isEmpty, "\(format.id) has no outputs")
         }
     }

@@ -6,7 +6,15 @@ using Xunit;
 public class MatrixConformanceTests
 {
     private static readonly JsonElement Cases = JsonDocument.Parse(RepoFiles.Text("core/spec/tests/matrix.json")).RootElement;
-    private static readonly ConversionMatrix Matrix = ConversionMatrix.Shared;
+    private static readonly Dictionary<string, ConversionMatrix> Matrices = new()
+    {
+        ["macos"] = new(RepoFiles.Text("core/spec/matrix.json"), FormatRegistry.Shared, "macos"),
+        ["windows"] = new(RepoFiles.Text("core/spec/matrix.json"), FormatRegistry.Shared, "windows"),
+    };
+
+    /// <summary>The matrix as built for the case's platform (cases default to macOS, whatever OS runs the tests).</summary>
+    private static ConversionMatrix Matrix(JsonElement c) =>
+        Matrices[c.TryGetProperty("platform", out var p) ? p.GetString()! : "macos"];
 
     private static TheoryData<string> Names(string section)
     {
@@ -26,7 +34,7 @@ public class MatrixConformanceTests
     public void Conversion(string name)
     {
         var c = Case("conversions", name);
-        var option = Matrix.Conversion(c.GetProperty("from").GetString()!, c.GetProperty("to").GetString()!);
+        var option = Matrix(c).Conversion(c.GetProperty("from").GetString()!, c.GetProperty("to").GetString()!);
         var expected = c.GetProperty("operation").ValueKind == JsonValueKind.Null ? null : c.GetProperty("operation").GetString();
         Assert.Equal(expected, option is null ? null : JsonNamingPolicy.CamelCase.ConvertName(option.Operation.ToString()));
         if (c.TryGetProperty("notes", out _)) Assert.Equal(Strings(c, "notes"), option?.Notes.Select(n => n.Id).ToList());
@@ -36,7 +44,7 @@ public class MatrixConformanceTests
     public void Outputs(string name)
     {
         var c = Case("outputs", name);
-        var ids = Matrix.Outputs(c.GetProperty("from").GetString()!).Select(o => o.Output.Id).ToList();
+        var ids = Matrix(c).Outputs(c.GetProperty("from").GetString()!).Select(o => o.Output.Id).ToList();
         Assert.Equal(c.GetProperty("first").GetString(), ids.FirstOrDefault());
         Assert.Empty(Strings(c, "includes").Except(ids));
         Assert.Empty(Strings(c, "excludes").Intersect(ids));
@@ -46,7 +54,7 @@ public class MatrixConformanceTests
     public void CommonOutputs(string name)
     {
         var c = Case("common", name);
-        var ids = Matrix.CommonOutputs(Strings(c, "from")).Select(f => f.Id).ToList();
+        var ids = Matrix(c).CommonOutputs(Strings(c, "from")).Select(f => f.Id).ToList();
         Assert.Empty(Strings(c, "includes").Except(ids));
         Assert.Empty(Strings(c, "excludes").Intersect(ids));
         if (c.TryGetProperty("empty", out var empty) && empty.GetBoolean()) Assert.Empty(ids);
@@ -58,7 +66,7 @@ public class ConversionMatrixTests
     [Fact]
     public void EveryFormatCanBecomeSomething()
     {
-        foreach (var format in FormatRegistry.Shared.Formats)
+        foreach (var format in FormatRegistry.Shared.Formats.Where(f => f.IsAvailableOn(ConversionMatrix.CurrentPlatform)))
             Assert.True(ConversionMatrix.Shared.Outputs(format.Id).Count > 0, $"{format.Id} has no outputs");
     }
 

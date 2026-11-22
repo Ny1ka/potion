@@ -23,8 +23,14 @@ public struct FileFormat: Codable, Hashable, Identifiable, Sendable {
     /// Extension for files written in this format.
     public var preferredExtension: String { extensions[0] }
 
+    /// Platforms that can read and write this format ("macos", "windows"). Nil means every platform.
+    public let platforms: [String]?
+
+    /// Whether this platform's app can convert from and to this format.
+    public func isAvailable(on platform: String) -> Bool { platforms?.contains(platform) ?? true }
+
     enum CodingKeys: String, CodingKey {
-        case id, name, category, extensions, mimeTypes
+        case id, name, category, extensions, mimeTypes, platforms
         case isText = "text"
         case isRaw = "raw"
     }
@@ -38,6 +44,7 @@ public struct FileFormat: Codable, Hashable, Identifiable, Sendable {
         mimeTypes = try c.decodeIfPresent([String].self, forKey: .mimeTypes) ?? []
         isText = try c.decodeIfPresent(Bool.self, forKey: .isText) ?? false
         isRaw = try c.decodeIfPresent(Bool.self, forKey: .isRaw) ?? false
+        platforms = try c.decodeIfPresent([String].self, forKey: .platforms)
     }
 }
 

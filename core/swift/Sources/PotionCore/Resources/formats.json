@@ -46,7 +46,7 @@
 
     { "id": "pdf",  "name": "PDF",  "category": "docs",  "extensions": ["pdf"],               "mimeTypes": ["application/pdf"] },
     { "id": "docx", "name": "DOCX", "category": "docs",  "extensions": ["docx"],              "mimeTypes": ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"] },
-    { "id": "doc",  "name": "DOC",  "category": "docs",  "extensions": ["doc"],               "mimeTypes": ["application/msword"] },
+    { "id": "doc",  "name": "DOC",  "category": "docs",  "extensions": ["doc"],               "mimeTypes": ["application/msword"], "platforms": ["macos"] },
     { "id": "odt",  "name": "ODT",  "category": "docs",  "extensions": ["odt"],               "mimeTypes": ["application/vnd.oasis.opendocument.text"] },
     { "id": "rtf",  "name": "RTF",  "category": "docs",  "extensions": ["rtf"],               "mimeTypes": ["application/rtf"], "text": true },
     { "id": "txt",  "name": "TXT",  "category": "docs",  "extensions": ["txt", "text"],       "mimeTypes": ["text/plain"], "text": true },
