@@ -22,6 +22,12 @@ enum HTMLResources {
         return out
     }
 
+    /// Escapes text for XML (XHTML, DOCX) and drops the control characters XML 1.0 doesn't allow.
+    static func escapeXML(_ text: String) -> String {
+        let allowed = text.unicodeScalars.filter { $0.value >= 0x20 || $0 == "\t" || $0 == "\n" || $0 == "\r" }
+        return escape(String(String.UnicodeScalarView(allowed)))
+    }
+
     private static let remote = #"^\s*(?:https?:|ftp:|//)"#
 
     /// Removes everything that would load a resource from the network, plus scripts and refresh redirects.
@@ -71,7 +77,7 @@ enum HTMLResources {
 
     /// The system HTML writer refers to images by file name (`file:///photo.png`) without saving them.
     /// This swaps those references for `data:` URIs made from the document's attachments.
-    static func embeddingAttachments(_ html: String, images: [String: (data: Data, mimeType: String)]) -> String {
+    static func embeddingAttachments(_ html: String, images: [String: DocumentImages.Image]) -> String {
         guard !images.isEmpty else { return html }
         return replace(#"(<img\b[^>]*\ssrc\s*=\s*)"file:///([^"]*)""#, in: html) { match in
             let name = match.group(2).removingPercentEncoding ?? match.group(2)

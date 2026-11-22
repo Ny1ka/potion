@@ -6,14 +6,16 @@ struct DocumentStructure {
     enum Block {
         /// `heading` is 1–6, or 0 for body text.
         case paragraph(NSRange, heading: Int)
-        case listItem(NSRange, depth: Int, ordered: Bool, number: Int)
+        /// `list` identifies the list the item belongs to (items of one list share it).
+        case listItem(NSRange, depth: Int, ordered: Bool, number: Int, list: Int)
         /// Rows → cells → the paragraphs in each cell.
         case table([[[NSRange]]])
     }
 
     let text: NSAttributedString
     private let string: NSString
-    private let bodySize: CGFloat
+    /// The most common font size: the body text.
+    let bodySize: CGFloat
 
     init(_ text: NSAttributedString) {
         self.text = text
@@ -32,6 +34,9 @@ struct DocumentStructure {
 
         var blocks: [Block] = []
         var listCounts: [ObjectIdentifier: Int] = [:]
+        var listIDs: [ObjectIdentifier: Int] = [:]
+        var typedListID: Int?   // typed bullets in a row form one list
+        var nextListID = 0
         var index = 0
         while index < paragraphs.count {
             let range = paragraphs[index]
@@ -51,11 +56,21 @@ struct DocumentStructure {
                 let key = ObjectIdentifier(list)
                 let number = listCounts[key] ?? list.startingItemNumber
                 listCounts[key] = number + 1
+                let id: Int
+                if let known = listIDs[ObjectIdentifier(style!.textLists[0])] { id = known } else {
+                    id = nextListID; nextListID += 1
+                    listIDs[ObjectIdentifier(style!.textLists[0])] = id
+                }
+                typedListID = nil
                 blocks.append(.listItem(withoutListMarker(range), depth: max(style!.textLists.count - 1, 0),
-                                        ordered: !Self.unorderedMarkers.contains(list.markerFormat), number: number))
+                                        ordered: !Self.unorderedMarkers.contains(list.markerFormat), number: number, list: id))
             } else if let typed = typedListItem(range) {
-                blocks.append(typed)
+                if typedListID == nil { typedListID = nextListID; nextListID += 1 }
+                if case let .listItem(r, depth, ordered, number, _) = typed {
+                    blocks.append(.listItem(r, depth: depth, ordered: ordered, number: number, list: typedListID!))
+                }
             } else {
+                typedListID = nil
                 blocks.append(.paragraph(range, heading: headingLevel(range, style: style)))
             }
             index += 1
@@ -95,7 +110,7 @@ struct DocumentStructure {
         let number = Int(symbol.dropLast())
         let length = (marker as NSString).length
         return .listItem(NSRange(location: range.location + length, length: range.length - length),
-                         depth: max(tabs - 1, 0), ordered: number != nil, number: number ?? 1)
+                         depth: max(tabs - 1, 0), ordered: number != nil, number: number ?? 1, list: 0)
     }
 
     /// The paragraph's heading level: from the document when it says so (HTML, Markdown), otherwise guessed
@@ -137,7 +152,7 @@ struct DocumentStructure {
             switch block {
             case let .paragraph(range, _):
                 lines.append(plain(range))
-            case let .listItem(range, depth, ordered, number):
+            case let .listItem(range, depth, ordered, number, _):
                 lines.append(String(repeating: "    ", count: depth) + (ordered ? "\(number)." : "•") + " " + plain(range))
             case let .table(rows):
                 for row in rows {
@@ -167,7 +182,7 @@ struct DocumentStructure {
                 let body = inlineMarkdown(range, atLineStart: heading == 0, boldImplied: heading > 0)
                 guard !body.trimmingCharacters(in: .whitespaces).isEmpty else { continue }
                 chunk = heading > 0 ? String(repeating: "#", count: heading) + " " + body : body
-            case let .listItem(range, depth, ordered, number):
+            case let .listItem(range, depth, ordered, number, _):
                 chunk = String(repeating: "    ", count: depth) + (ordered ? "\(number)." : "-") + " " + inlineMarkdown(range, atLineStart: false)
                 isList = true
             case let .table(rows):

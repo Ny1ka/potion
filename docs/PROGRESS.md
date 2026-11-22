@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M2 Core: conversion engines
-- **Last completed chunk:** M2.4 Documents I (Swift)
-- **Next chunk:** M2.5 Documents II: EPUB and a full DOCX writer (Swift)
+- **Last completed chunk:** M2.5 Documents II (Swift)
+- **Next chunk:** M2.6 PDF tools (Swift)
 
 ## Milestones
 
@@ -14,7 +14,7 @@ Read this first in any new session. Update it at every checkpoint.
 |---|---|
 | M0 Scaffold | Done |
 | M1 Core: formats | Done |
-| M2 Core: conversion engines | In progress (M2.0–M2.4 done) |
+| M2 Core: conversion engines | In progress (M2.0–M2.5 done) |
 | M3 Potion macOS UI | Not started |
 | M4 Potion Windows UI | Not started |
 | M5 Dropper core | Not started |
@@ -66,9 +66,11 @@ Read this first in any new session. Update it at every checkpoint.
       writer for now), self-contained HTML (images embedded), Markdown and TXT (headings, lists, tables kept)
       and PDF (TextKit pages, the document's page size or Letter/A4 by region, searchable text, clickable
       links, oversized images scaled to fit). Encrypted Word files → copy-protected message. 20 tests
-- [ ] M2.5 Documents II (Swift): small zip reader/writer, EPUB read + write, own DOCX writer (heading styles,
-      real hyperlinks, numbered/bulleted lists, tables, images, page setup), encrypted ODT and DRM-protected
-      EPUB detection
+- [x] M2.5 Documents II (Swift): zip reader/writer (stored + deflate via the Compression framework, CRC
+      checked, 512 MB per-entry cap), our own DOCX writer (heading styles, real hyperlinks, numbered/bulleted
+      lists, tables, images, page size and margins, no author metadata), EPUB reader (spine order, linked CSS
+      and images inlined) and EPUB 3 writer (nav from headings, images as files), copy-protected message for
+      DRM EPUBs (Adobe/LCP; font obfuscation is fine), password-protected ODT and zip-encrypted files. 11 tests
 - [ ] M2.6 PDF tools: merge, split, extract, reorder, compress, `pdfToImage`, `pdfToDocument` (PDFKit)
 - [ ] M2.7 Windows: FFmpeg build for Windows + the same engines in Potion.Core (C#), tested in CI
 
@@ -98,11 +100,12 @@ Read this first in any new session. Update it at every checkpoint.
   Subtitles are dropped. Revisit after M3.
 - Copy-protection detection covers FairPlay/CENC sample entries and FFmpeg's DRM errors; protected WMA/WMV
   needs a real protected sample to confirm (none can be generated). Revisit in M8.
-- Documents: the system DOCX writer drops images, real hyperlinks (kept as blue underlined text), list
-  numbering and tables (replaced by our own DOCX writer in M2.5). The system ODT, RTF and DOC writers also
-  drop images. Imported HTML/Markdown lists show numbers without a period ("3" not "3.") and block quotes
-  lose their indent in PDF/DOCX output. EPUB in/out arrives in M2.5 (the engine reports it as unsupported
-  until then). Headings in Word/ODT files without heading styles are guessed from big bold text.
+- Documents: the system ODT, RTF and DOC writers drop images. The system DOCX *reader* ignores hyperlinks,
+  so links in Word files become plain text when converted to other formats. Imported HTML/Markdown lists
+  show numbers without a period ("3" not "3.") and block quotes lose their indent in PDF/DOCX output.
+  Headings in Word/ODT files without heading styles are guessed from big bold text. EPUB output is one
+  chapter. Our DOCX and EPUB files pass our structure tests but haven't been opened in Microsoft Word,
+  Apple Books or an EPUB validator yet: owner check after M3 (or add epubcheck to CI if it's worth it).
 - Open product decision for M3: App Sandbox on or off (see `docs/LEGAL_REVIEW.md` #2).
 - Design-system conflict (needs owner decision before M3.1): dark `borderStrong` (#3A3547) is tuned for the
   brand background (#0E0C14), but `09-platforms.md` puts the drop zone on the system window background

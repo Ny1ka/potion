@@ -6,10 +6,10 @@ import UniformTypeIdentifiers
 /// `documentToPdf`.
 ///
 /// Reading: RTF, DOC, DOCX and ODT use the system readers; HTML uses the system HTML reader after removing
-/// anything that would load from the network; Markdown is rendered to HTML first; TXT is decoded (UTF-8,
-/// UTF-16 or Windows Latin 1). Writing: RTF, DOC, DOCX, ODT and HTML use the system writers (HTML with its
-/// images embedded); Markdown and TXT keep headings, lists and tables; PDF is laid out on pages with
-/// searchable text and working links.
+/// anything that would load from the network; Markdown is rendered to HTML first; EPUB chapters are joined
+/// into one HTML document; TXT is decoded (UTF-8, UTF-16 or Windows Latin 1). Writing: DOCX and EPUB use our
+/// own writers; RTF, DOC, ODT and HTML use the system writers (HTML with its images embedded); Markdown and
+/// TXT keep headings, lists and tables; PDF is laid out on pages with searchable text and working links.
 public final class DocumentEngine: Sendable {
     let matrix: ConversionMatrix
 
@@ -17,8 +17,7 @@ public final class DocumentEngine: Sendable {
         self.matrix = matrix
     }
 
-    /// Formats this engine reads and writes today. EPUB is handled in the next chunk (M2.5).
-    static let supported: Set<String> = ["docx", "doc", "odt", "rtf", "txt", "html", "md", "pdf"]
+    static let supported: Set<String> = ["docx", "doc", "odt", "rtf", "txt", "html", "md", "epub", "pdf"]
 
     static let systemTypes: [String: NSAttributedString.DocumentType] = [
         "docx": .officeOpenXML, "doc": .docFormat, "odt": .openDocument, "rtf": .rtf, "html": .html,
@@ -32,7 +31,7 @@ public final class DocumentEngine: Sendable {
             throw ConversionError.unsupported(from: inputFormat.name, to: outputFormat.name)
         }
         try OutputFiles.checkWritable(outputDirectory)
-        if Self.isEncryptedOfficeFile(input) { throw ConversionError.copyProtected }
+        if Self.isProtected(input, formatID: inputFormat.id) { throw ConversionError.copyProtected }
 
         let inputName = input.lastPathComponent
         let baseName = input.deletingPathExtension().lastPathComponent
@@ -81,6 +80,12 @@ public final class DocumentEngine: Sendable {
             return try await Self.readHTML(html, directory: input.deletingLastPathComponent(), inputName: name)
         case "html":
             return try await Self.readHTML(try Self.readText(input), directory: input.deletingLastPathComponent(), inputName: name)
+        case "epub":
+            let book: EPUB.Book
+            do { book = try EPUB.read(ZipArchive(contentsOf: input)) } catch {
+                throw ConversionError.unreadable(fileName: name)
+            }
+            return try await Self.readHTML(book.html, directory: input.deletingLastPathComponent(), inputName: name)
         default:
             guard let type = Self.systemTypes[format.id] else {
                 throw ConversionError.unsupported(from: format.name, to: "")
@@ -146,13 +151,22 @@ public final class DocumentEngine: Sendable {
         return String(data: data, encoding: .utf8) ?? String(data: data, encoding: .windowsCP1252)
     }
 
-    /// Password-protected (encrypted) Word files are stored as an OLE container with an `EncryptedPackage`
-    /// stream instead of the usual zip. Those can't be opened without the password.
-    static func isEncryptedOfficeFile(_ url: URL) -> Bool {
-        guard let data = try? Data(contentsOf: url, options: .alwaysMapped),
-              data.starts(with: [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]) else { return false }
-        let marker = Data("EncryptedPackage".utf16.flatMap { [UInt8($0 & 0xFF), UInt8($0 >> 8)] })
-        return data.range(of: marker) != nil
+    /// Files that can't be opened without a password or a DRM licence:
+    /// - Word files saved with a password: an OLE container with an `EncryptedPackage` stream instead of a zip.
+    /// - Zip-based files (DOCX, ODT, EPUB) with password-protected entries.
+    /// - ODT files saved with a password (encryption data in the manifest).
+    /// - EPUBs with DRM (see `EPUB.isProtected`).
+    static func isProtected(_ url: URL, formatID: String) -> Bool {
+        guard let data = try? Data(contentsOf: url, options: .alwaysMapped) else { return false }
+        if data.starts(with: [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]) {
+            let marker = Data("EncryptedPackage".utf16.flatMap { [UInt8($0 & 0xFF), UInt8($0 >> 8)] })
+            return data.range(of: marker) != nil
+        }
+        guard ["docx", "odt", "epub"].contains(formatID), let zip = try? ZipArchive(data: data) else { return false }
+        if zip.entries.contains(where: \.isEncrypted) { return true }
+        if formatID == "odt", let manifest = try? zip.read("META-INF/manifest.xml"),
+           String(decoding: manifest, as: UTF8.self).contains("encryption-data") { return true }
+        return formatID == "epub" && EPUB.isProtected(zip)
     }
 
     // MARK: - Writing
@@ -163,7 +177,7 @@ public final class DocumentEngine: Sendable {
     ]
 
     func write(_ document: Document, as formatID: String, title: String, to url: URL, outputDirectory: URL) throws {
-        let text = document.text
+        let text = formatID == "html" || formatID == "epub" ? DocumentImages.uniquelyNamed(document.text) : document.text
         let full = NSRange(location: 0, length: text.length)
         let data: Data
         switch formatID {
@@ -171,6 +185,17 @@ public final class DocumentEngine: Sendable {
             data = Data(DocumentStructure(text).plainText.utf8)
         case "md":
             data = Data(DocumentStructure(text).markdown.utf8)
+        case "docx":
+            data = DocxWriter(text, layout: .from(document.attributes), title: title).data()
+        case "epub":
+            do {
+                let html = try text.data(from: full, documentAttributes: [.documentType: NSAttributedString.DocumentType.html, .title: title])
+                data = try EPUB.write(html: String(decoding: html, as: UTF8.self), title: title,
+                                      language: Locale.current.language.languageCode?.identifier ?? "en",
+                                      images: DocumentImages.byName(text))
+            } catch {
+                throw ConversionError.conversionFailed(fileName: title, detail: "\(error)")
+            }
         case "pdf":
             do {
                 try DocumentPDFRenderer.render(text, layout: .from(document.attributes), title: title, to: url)
@@ -191,7 +216,7 @@ public final class DocumentEngine: Sendable {
             }
             if formatID == "html" {
                 let html = String(decoding: data, as: UTF8.self)
-                try Self.write(Data(HTMLResources.embeddingAttachments(html, images: Self.images(in: text)).utf8),
+                try Self.write(Data(HTMLResources.embeddingAttachments(html, images: DocumentImages.byName(text)).utf8),
                                to: url, outputDirectory: outputDirectory)
                 return
             }
@@ -204,18 +229,6 @@ public final class DocumentEngine: Sendable {
         do { try data.write(to: url, options: .withoutOverwriting) } catch {
             throw ConversionError.cannotWrite(folder: outputDirectory.lastPathComponent)
         }
-    }
-
-    /// The document's images by file name, for embedding into HTML.
-    static func images(in text: NSAttributedString) -> [String: (data: Data, mimeType: String)] {
-        var images: [String: (data: Data, mimeType: String)] = [:]
-        text.enumerateAttribute(.attachment, in: NSRange(location: 0, length: text.length)) { value, _, _ in
-            guard let attachment = value as? NSTextAttachment, let wrapper = attachment.fileWrapper,
-                  let name = wrapper.preferredFilename ?? wrapper.filename, let data = wrapper.regularFileContents else { return }
-            let mime = UTType(filenameExtension: (name as NSString).pathExtension)?.preferredMIMEType ?? "application/octet-stream"
-            images[name] = (data, mime)
-        }
-        return images
     }
 
     // MARK: - Verifying
@@ -232,6 +245,11 @@ public final class DocumentEngine: Sendable {
         case "html":
             guard let data = FileManager.default.contents(atPath: url.path), let text = String(data: data, encoding: .utf8) else { return false }
             return text.range(of: "<html", options: .caseInsensitive) != nil
+        case "epub":
+            guard let book = try? EPUB.read(ZipArchive(contentsOf: url)) else { return false }
+            let withoutStyles = HTMLResources.replace(#"<(style|title)\b.*?</\1\s*>"#, in: book.html) { _ in "" }
+            let visible = HTMLResources.replace("<[^>]*>", in: withoutStyles) { _ in "" }
+            return !expectText || !visible.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         default:
             guard let type = systemTypes[formatID],
                   let text = try? NSAttributedString(url: url, options: [.documentType: type], documentAttributes: nil) else { return false }
