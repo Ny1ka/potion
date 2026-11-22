@@ -36,10 +36,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     func applicationDidFinishLaunching(_ notification: Notification) {
         UNUserNotificationCenter.current().delegate = self
         Notifications.registerCategory()
+        NSApp.servicesProvider = self
+        NSUpdateDynamicServices()
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
         queue.add(urls.filter(\.isFileURL))
+    }
+
+    /// One window: closing it quits, like other single-window utilities. The queue isn't a document.
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+
+    /// Asks before quitting in the middle of a batch.
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard queue.isConverting else { return .terminateNow }
+        let remaining = queue.batch.total - queue.batch.finished
+        let alert = NSAlert()
+        alert.messageText = remaining == 1 ? "Potion is still converting 1 file." : "Potion is still converting \(remaining) files."
+        alert.informativeText = "If you quit now, files that haven't finished won't be saved."
+        alert.addButton(withTitle: "Keep Converting")
+        alert.addButton(withTitle: "Quit")
+        guard alert.runModal() == .alertSecondButtonReturn else { return .terminateCancel }
+        queue.stop()
+        return .terminateNow
+    }
+
+    /// Finder › Services › Convert with Potion (Info.plist NSServices). Adds the files and opens the convert sheet.
+    @objc func convertWithPotion(_ pasteboard: NSPasteboard, userData: String?, error: AutoreleasingUnsafeMutablePointer<NSString?>) {
+        let urls = pasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? []
+        guard !urls.isEmpty else { error.pointee = "No files were selected." as NSString; return }
+        NSApp.activate(ignoringOtherApps: true)
+        queue.add(urls, openOptions: true)
     }
 
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,

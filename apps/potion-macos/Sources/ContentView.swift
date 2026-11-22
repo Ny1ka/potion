@@ -7,6 +7,7 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var queue: QueueModel
     @State private var drop: DropState = .idle
+    @State private var showOnboarding = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -39,6 +40,8 @@ struct ContentView: View {
                       allowsMultipleSelection: true) { result in
             if case let .success(urls) = result { queue.add(urls) }
         }
+        .sheet(isPresented: $showOnboarding) { OnboardingView() }
+        .onAppear { if !UserDefaults.standard.bool(forKey: SettingsKey.onboarded) { showOnboarding = true } }
         .sheet(item: $queue.sheet) { request in
             let chosen = queue.items.filter { request.ids.contains($0.id) }
             if !chosen.isEmpty { ConvertSheet(items: chosen) }

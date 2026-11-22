@@ -4,9 +4,9 @@ Read this first in any new session. Update it at every checkpoint.
 
 ## Status
 
-- **Current milestone:** M3 Potion macOS UI (M2.7 Windows engines moved to just before M4, owner's call)
-- **Last completed chunk:** M3.4 Settings, menus, Dock badge, notifications (macOS)
-- **Next chunk:** M3.5 Finder Quick Action and first-launch onboarding (macOS)
+- **Current milestone:** M2.7 Windows engines, then M4 Potion Windows UI (M3 Potion macOS UI is done)
+- **Last completed chunk:** M3.5 Finder service and first-launch onboarding (macOS)
+- **Next chunk:** M2.7 Windows: FFmpeg build + engines in Potion.Core (C#)
 
 ## Milestones
 
@@ -15,7 +15,7 @@ Read this first in any new session. Update it at every checkpoint.
 | M0 Scaffold | Done |
 | M1 Core: formats | Done |
 | M2 Core: conversion engines | macOS done (M2.0–M2.6); M2.7 Windows runs before M4 |
-| M3 Potion macOS UI | In progress (M3.1–M3.4 done) |
+| M3 Potion macOS UI | Done (Quick Action extension deferred to M9, see below) |
 | M4 Potion Windows UI | Not started |
 | M5 Dropper core | Not started |
 | M6 Dropper macOS UI | Not started |
@@ -106,7 +106,10 @@ Read this first in any new session. Update it at every checkpoint.
       tools present). File menu: Add Files… ⌘O, Options… ⌘I, Convert All ⌘↩, Stop ⌘., Show in Finder ⌘⇧R.
       Dock badge with files left; a notification with Show when a batch ends in the background (permission is
       asked when the first batch starts, not at launch)
-- [ ] M3.5 Finder Quick Action ("Convert with Potion") and first-launch onboarding
+- [x] M3.5 Finder › Services › Convert with Potion (adds the files and opens the convert sheet; "Each File's
+      Current Format" for mixed selections), first-launch onboarding sheet (build-up animation with Reduce
+      Motion fallback, category tiles, privacy line), quitting when the window closes, and a confirmation
+      before quitting mid-batch
 
 ## Decisions coming up (from the final spec)
 
@@ -121,6 +124,10 @@ Read this first in any new session. Update it at every checkpoint.
   the macOS window background) in `design-system/tokens/tokens.json` and regenerated. Regenerating with a
   different librsvg/ImageMagick re-renders logo PNGs with tiny pixel differences; only text outputs were
   committed because the images don't use this token.
+- **Finder integration (2026-11-21):** the design asks for an Action Extension under Quick Actions. macOS only
+  loads sandboxed, properly signed app extensions, and local builds are ad-hoc signed until M9, so V1-dev uses a
+  Finder Service (Services › Convert with Potion). Add the Action Extension in M9 with Developer ID signing,
+  then switch the onboarding text to "Quick Actions › Convert with Potion" (01-brand.md wording).
 - **macOS architectures:** Release builds are universal (Apple Silicon + Intel) unless the owner drops Intel.
 
 ## Known issues / TODO

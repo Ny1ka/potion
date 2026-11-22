@@ -78,6 +78,16 @@ targets:
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
         NSHumanReadableCopyright: "Copyright © 2026 Nyika. MIT License."
         ATSApplicationFontsPath: "."
+        # Finder › Services › Convert with Potion (an Action Extension for Quick Actions needs real signing, M9).
+        NSServices:
+          - NSMenuItem:
+              default: Convert with Potion
+            NSMessage: convertWithPotion
+            NSPortName: Potion
+            NSSendFileTypes:
+              - public.item
+            NSRequiredContext:
+              NSApplicationIdentifier: com.apple.finder
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ny1ka.potion

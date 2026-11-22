@@ -22,12 +22,18 @@ struct ConvertSheet: View {
         let first = items[0]
         let common = first.outputs.filter { output in items.allSatisfy { $0.outputs.contains { $0.id == output.id } } }
         outputs = common
-        _outputID = State(initialValue: common.contains { $0.id == first.outputID } ? first.outputID : (common.first?.id ?? first.outputID))
+        // Several files that differ (or share no format) start on "Each File's Current Format".
+        let mixed = items.count > 1 && (Set(items.map(\.outputID)).count > 1 || common.isEmpty)
+        _outputID = State(initialValue: mixed ? Self.keepEach
+                          : common.contains { $0.id == first.outputID } ? first.outputID : (common.first?.id ?? first.outputID))
         _settings = State(initialValue: first.settings)
         _pagesText = State(initialValue: first.settings.pdf.pages.map(PageSelection.describe) ?? "")
         // Page ranges only make sense for one PDF.
         pageCount = items.count == 1 && first.format.id == "pdf" ? PDFDocument(url: first.url)?.pageCount : nil
     }
+
+    /// Tag for "Each File's Current Format": convert every row to the format it already shows.
+    private static let keepEach = ""
 
     private var output: FileFormat? { outputs.first { $0.id == outputID } }
 
@@ -64,6 +70,10 @@ struct ConvertSheet: View {
                     HStack(spacing: PotionSpacing.x2) {
                         Text("Convert to")
                         Picker("Convert to", selection: $outputID) {
+                            if items.count > 1 {
+                                Text("Each File's Current Format").tag(Self.keepEach)
+                                if !outputs.isEmpty { Divider() }
+                            }
                             ForEach(FormatGroups.grouped(outputs), id: \.category) { group in
                                 Section(group.category.label) {
                                     ForEach(group.formats) { Text($0.name).tag($0.id) }
@@ -71,7 +81,8 @@ struct ConvertSheet: View {
                             }
                         }
                         .labelsHidden()
-                        .frame(width: QueueRowView.formatColumnWidth + PotionSpacing.x8)
+                        .frame(minWidth: QueueRowView.formatColumnWidth + PotionSpacing.x8)
+                        .fixedSize()
                     }
                     ForEach(notes, id: \.self) { note in
                         Text(note)
@@ -106,7 +117,7 @@ struct ConvertSheet: View {
                     .keyboardShortcut(.cancelAction)
                 Button("Convert") { convert() }
                     .keyboardShortcut(.defaultAction)
-                    .disabled(output == nil || pages == nil)
+                    .disabled((output == nil && outputID != Self.keepEach) || pages == nil)
             }
             .padding(PotionSpacing.x4)
         }
@@ -152,10 +163,15 @@ struct ConvertSheet: View {
     }
 
     private func convert() {
+        let ids = Set(items.map(\.id))
+        if outputID == Self.keepEach {
+            dismiss()
+            queue.convert(ids)
+            return
+        }
         guard let output, let chosenPages = pages else { return }
         var final = settings
         final.pdf.pages = chosenPages
-        let ids = Set(items.map(\.id))
         queue.apply(outputID: output.id, settings: final, to: ids)
         dismiss()
         queue.convert(ids)

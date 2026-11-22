@@ -75,7 +75,8 @@ final class QueueModel: ObservableObject {
 
     var includeSubfolders: Bool { defaults.object(forKey: SettingsKey.includeSubfolders) as? Bool ?? true }
 
-    func add(_ urls: [URL]) {
+    /// Adds files and folders. `openOptions` opens the convert sheet for the new rows (Finder service).
+    func add(_ urls: [URL], openOptions: Bool = false) {
         guard !urls.isEmpty else { return }
         let existing = Set(items.map(\.url))
         let subfolders = includeSubfolders
@@ -84,7 +85,12 @@ final class QueueModel: ObservableObject {
             let result = await Task.detached(priority: .userInitiated) {
                 FileCollector().collect(urls, includeSubfolders: subfolders, excluding: existing)
             }.value
+            let before = Set(items.map(\.id))
             append(result)
+            if openOptions {
+                let added = Set(items.map(\.id)).subtracting(before)
+                if !added.isEmpty { selection = added; showOptions(for: added) }
+            }
         }
     }
 
@@ -161,6 +167,7 @@ enum SettingsKey {
     static let moveToTrash = "moveOriginalsToTrash"
     static let notifications = "notifyWhenDone"
     static let maxParallel = "maxParallelConversions"
+    static let onboarded = "onboardingDone"
     static func lastOutput(_ category: FormatCategory) -> String { "lastOutput.\(category.rawValue)" }
 }
 
