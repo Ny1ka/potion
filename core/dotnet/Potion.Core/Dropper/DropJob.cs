@@ -122,7 +122,7 @@ public sealed class DropException : Exception
     public static DropException FromDownload(DownloadError error, ResumeState? resume, SourceRegistry registry) =>
         new(registry.Message(error), download: error, resume: resume);
 
-    public static DropException FromConversion(ConversionException error) => new(error.Message, conversion: error);
+    public static DropException FromConversion(ConversionException error) => new(error.MessageFor("Potion Dropper"), conversion: error);
 
     public static DropException DurationLimit(int minutes, int limit, SourceRegistry registry) =>
         new(registry.Message("tooLong").Replace("{minutes}", minutes.ToString(CultureInfo.InvariantCulture)).Replace("{limit}", limit.ToString(CultureInfo.InvariantCulture)),
@@ -295,5 +295,43 @@ public sealed class DropHistory
         var temp = _path + ".tmp";
         File.WriteAllText(temp, JsonSerializer.Serialize(new FileContents(1, _entries), Json));
         File.Move(temp, _path, overwrite: true);
+    }
+}
+
+/// <summary>Video or audio output (the segmented control on the media card).</summary>
+public enum DropMode { Video, Audio }
+
+/// <summary>What the media card offers for a downloaded format (core/spec/README.md, "Output choices").</summary>
+public static class DropChoices
+{
+    private static FormatCategory CategoryOf(DropMode mode) => mode == DropMode.Video ? FormatCategory.Video : FormatCategory.Audio;
+
+    /// <summary>Video sources can be saved as video or audio; audio sources only as audio.</summary>
+    public static IReadOnlyList<DropMode> Modes(FileFormat source) => source.Category switch
+    {
+        FormatCategory.Video => [DropMode.Video, DropMode.Audio],
+        FormatCategory.Audio => [DropMode.Audio],
+        _ => [],
+    };
+
+    /// <summary>
+    /// Formats offered in a mode: the source's own format first when it fits the mode ("keep as downloaded"), then every
+    /// format of that kind the matrix can convert it to, in formats.json order.
+    /// </summary>
+    public static IReadOnlyList<FileFormat> Formats(FileFormat source, DropMode mode, ConversionMatrix? matrix = null)
+    {
+        if (!Modes(source).Contains(mode)) return [];
+        var category = CategoryOf(mode);
+        var converted = (matrix ?? ConversionMatrix.Shared).Outputs(source.Id).Select(o => o.Output).Where(f => f.Category == category && f.Id != source.Id);
+        return [.. (source.Category == category ? new[] { source } : []), .. converted];
+    }
+
+    /// <summary>The preselected format: the source's own when it fits, otherwise MP4 (video) or MP3 (audio) when offered, otherwise the first.</summary>
+    public static FileFormat? DefaultFormat(FileFormat source, DropMode mode, ConversionMatrix? matrix = null)
+    {
+        var offered = Formats(source, mode, matrix);
+        if (offered.Count > 0 && offered[0].Id == source.Id) return offered[0];
+        var preferred = mode == DropMode.Video ? "mp4" : "mp3";
+        return offered.FirstOrDefault(f => f.Id == preferred) ?? offered.FirstOrDefault();
     }
 }

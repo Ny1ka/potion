@@ -43,6 +43,27 @@ final class DropNamingConformanceTests: XCTestCase {
     }
 }
 
+final class DropChoicesConformanceTests: XCTestCase {
+    struct CaseFile: Decodable { let choices: [ChoiceCase] }
+    struct ChoiceCase: Decodable {
+        let name: String; let source: String; let mode: String; let modes: [String]
+        let first: String?; let `default`: String?; let includes: [String]; let excludes: [String]
+    }
+
+    func testChoices() throws {
+        for c in try JSONDecoder().decode(CaseFile.self, from: RepoFiles.data("core/spec/tests/downloads.json")).choices {
+            let source = try XCTUnwrap(FormatRegistry.shared.format(id: c.source))
+            let mode = try XCTUnwrap(DropMode(rawValue: c.mode))
+            XCTAssertEqual(DropChoices.modes(for: source).map(\.rawValue), c.modes, c.name)
+            let ids = DropChoices.formats(for: source, mode: mode).map(\.id)
+            XCTAssertEqual(ids.first, c.first, c.name)
+            XCTAssertEqual(DropChoices.defaultFormat(for: source, mode: mode)?.id, c.default, c.name)
+            for id in c.includes { XCTAssertTrue(ids.contains(id), "\(c.name): should include \(id)") }
+            for id in c.excludes { XCTAssertFalse(ids.contains(id), "\(c.name): should exclude \(id)") }
+        }
+    }
+}
+
 final class DropJobTests: XCTestCase {
     var folder: URL!
     var transport: ScriptedTransport!
@@ -152,6 +173,31 @@ final class DropJobTests: XCTestCase {
         do { _ = try await runner.run(link("https://example.com/404.mp4"), into: folder, options: DropOptions()) } catch {}
         XCTAssertEqual(try visibleFiles().filter { !$0.hasPrefix(".") }, [])
         XCTAssertEqual(try visibleFiles().count, 1, "only the resumable work folder")
+    }
+
+    func testInspectReadsOnlyTheStart() async throws {
+        let body = DownloaderTests.mp4(200_000)
+        transport.on("https://example.com/v/talk.mp4", .init(headers: ["Content-Type": "video/mp4", "Content-Length": "200000", "ETag": "\"t\""],
+                                                              chunks: DownloaderTests.chunks(body, size: 10_000)))
+        let preview = try await Downloader(transport: transport, appVersion: "1.0.0").inspect(link("https://example.com/v/talk.mp4"), maxBytes: 1 << 30)
+        XCTAssertEqual(preview.fileName, "talk.mp4")
+        XCTAssertEqual(preview.formatID, "mp4")
+        XCTAssertEqual(preview.size, 200_000)
+        XCTAssertTrue(preview.resumable)
+        XCTAssertEqual(try visibleFiles(), [], "nothing is written")
+
+        transport.on("https://example.com/page", .init(headers: ["Content-Type": "text/html"], chunks: [Data("<html>".utf8)]))
+        do {
+            _ = try await Downloader(transport: transport, appVersion: "1.0.0").inspect(link("https://example.com/page"), maxBytes: 1 << 30)
+            XCTFail("a page")
+        } catch let failure as DownloadFailure {
+            XCTAssertEqual(failure.error, .link(.unsupportedSite))
+        }
+    }
+
+    func testErrorsNamePotionDropper() {
+        XCTAssertEqual(DropError.conversion(.copyProtected).message(), "This file is copy-protected, so Potion Dropper can't convert it.")
+        XCTAssertEqual(ConversionError.copyProtected.localizedDescription, "This file is copy-protected, so Potion can't convert it.")
     }
 
     func testEndToEndWithFFmpeg() async throws {

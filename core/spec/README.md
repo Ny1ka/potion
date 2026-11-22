@@ -13,7 +13,7 @@ cases, so macOS and Windows agree on what a file is and what it can become.
 | `tests/pages.json` | Conformance cases for page selections ("1-3, 5") used by the PDF tools |
 | `sources.json` | Potion Dropper's source allowlist, link limits, User-Agent and link error messages |
 | `tests/links.json` | Conformance cases for link parsing, normalization, source matching, pasted text and redirect targets |
-| `tests/downloads.json` | Conformance cases for server answers, content checks, download file names, robots.txt and naming templates |
+| `tests/downloads.json` | Conformance cases for server answers, content checks, download file names, robots.txt, naming templates and output choices |
 
 The Swift package can't read files outside its own folder, so `core/swift/Sources/PotionCore/Resources/`
 holds byte-for-byte copies. Run `make sync-spec` after editing anything here. A test in both cores fails if
@@ -258,3 +258,14 @@ when the user asks. The work folder is removed, unless a failed download can be 
 
 Duration is checked after downloading: FFmpeg has no network access, and direct links carry no duration. The size
 limit protects against large downloads before and during the transfer.
+
+## Output choices (tests/downloads.json `choices`)
+
+What the media card offers once Fetch has found the format. A video source can be saved as video or audio; an audio
+source only as audio. In a mode, the offered formats are the source's own format first when it fits the mode (saved
+as downloaded, no quality choice), then every format of that kind the matrix converts it to, in formats.json order.
+The preselected format is the source's own when it fits, otherwise MP4 (video) or MP3 (audio) when offered,
+otherwise the first offered.
+
+Fetch (`Downloader.inspect`) makes the same checks as a download (robots.txt, redirects, server answer, size limit,
+content check) but reads only the first `headerSize` bytes, then closes the connection.

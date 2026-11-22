@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M6 Dropper macOS UI (M2–M5 done: engines, Potion for macOS and Windows, Dropper core)
-- **Last completed chunk:** M5.3b Dropper app scaffolds (macOS and Windows)
-- **Next chunk:** M6.1 Dropper macOS: first-run acknowledgment, link bar with media card, output options
+- **Last completed chunk:** M6.1 Dropper macOS: acknowledgment, Fetch with media card, output options, download
+- **Next chunk:** M6.2 Dropper macOS: download queue (several links, progress, stop, retry/resume), history, notifications, Dock progress
 
 ## Milestones
 
@@ -18,7 +18,7 @@ Read this first in any new session. Update it at every checkpoint.
 | M3 Potion macOS UI | Done (Quick Action extension deferred to M9, see below) |
 | M4 Potion Windows UI | Done (Win11 top-level Explorer menu deferred to M9, see below) |
 | M5 Dropper core | Done |
-| M6 Dropper macOS UI | Not started |
+| M6 Dropper macOS UI | In progress |
 | M7 Dropper Windows UI | Not started |
 | M7.5 Personal experimental module (private repo) | Not started |
 | M8 Legal and compliance pass | Not started |
@@ -44,9 +44,11 @@ Read this first in any new session. Update it at every checkpoint.
 
 - Done in M5.3b: the Dropper macOS app sets `NSAppTransportSecurity` › `NSAllowsArbitraryLoads`, so plain
   `http://` direct links aren't blocked by App Transport Security.
-- M6/M7: conversion errors are worded for Potion ("Potion's conversion tools are missing. Reinstall Potion…",
-  "…so Potion can't convert it."). Dropper must show "Potion Dropper" instead: make the product name a parameter
-  of the error text in both cores before the Dropper UI shows these messages.
+- Done in M6.1: conversion errors take the product name, so Dropper says "Potion Dropper".
+- M6/M7: direct links carry no thumbnail or duration, so the media card shows the category tile and the duration
+  limit is applied after downloading (core/spec/README.md, "Jobs"). Sources that publish metadata can fill both.
+- M6/M7: the design system's segmented control puts a 20-pt category tile in each segment; macOS segmented pickers
+  only take images, so the segments use the category's SF Symbol with the label.
 
 ## Decisions
 
@@ -55,6 +57,22 @@ Read this first in any new session. Update it at every checkpoint.
 - Checkpoints: Claude commits and pushes, then waits for "continue".
 - Dropper app scaffolds (`apps/dropper-*`) are created at the start of M5 rather than in M0, so M0–M4 stay
   focused on Potion.
+
+### M6 chunks
+
+- [x] M6.1 Core: error messages take the product name (`ConversionError.message(product:)`,
+      `ConversionException.MessageFor`), `Downloader.inspect` / `InspectAsync` (same checks as a download, reads only
+      the first bytes), `DropChoices` (modes, offered formats, default; 6 shared cases). macOS app: first-run
+      acknowledgment sheet (spec Part 6.3.5 text, "I understand" checkbox, Continue / Quit), link bar per
+      06-components.md (sunken well, Fetch inside, "Paste Link" chip when the clipboard holds a link, error caption
+      and border), media card (16:9 well with the category tile, name, format · size · "Direct link from <site>"),
+      loading skeleton, Video/Audio segmented control, Format (with "as downloaded"), Quality / Bitrate, Download with
+      progress, speed and time left, Stop, "Saved …" with Show in Finder; saves to Downloads
+- [ ] M6.2 Download queue: several links (paste or drop many), per-row progress, Stop, Retry (resumes when possible),
+      parallel limit, overall progress, history window with Clear, notifications, Dock progress
+- [ ] M6.3 Settings (output folder, naming template, size and duration limits, downloads at once, keep original,
+      history on/off), drag a link onto the window or Dock icon, Services / share-menu link hand-off, About with
+      Terms and Privacy placeholders filled in M8
 
 ### M5 chunks
 

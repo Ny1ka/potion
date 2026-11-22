@@ -16,16 +16,19 @@ public enum ConversionError: Error, Equatable, Sendable, LocalizedError {
     case notSmaller(fileName: String)
     case needsNewerSystem(feature: String, version: String)
 
-    public var errorDescription: String? {
+    public var errorDescription: String? { message(product: "Potion") }
+
+    /// The message with the app's name ("Potion" or "Potion Dropper") where the text names the product.
+    public func message(product: String) -> String {
         switch self {
         case .toolsMissing:
-            return "Potion's conversion tools are missing. Reinstall Potion to restore them."
+            return "\(product)'s conversion tools are missing. Reinstall \(product) to restore them."
         case let .unsupported(from, to):
             return "\(from) can't be converted to \(to)."
         case let .unreadable(name):
             return "Can't read “\(name)”. The file may be damaged."
         case .copyProtected:
-            return "This file is copy-protected, so Potion can't convert it."
+            return "This file is copy-protected, so \(product) can't convert it."
         case let .noAudio(name):
             return "“\(name)” has no audio to convert."
         case let .noVideo(name):
@@ -40,7 +43,7 @@ public enum ConversionError: Error, Equatable, Sendable, LocalizedError {
             let range = count == 1 ? "page 1" : "pages 1–\(count)"
             return "“\(selection)” isn't a valid page selection. Use \(range), for example “1–3, 5”."
         case let .notSmaller(name):
-            return "“\(name)” is already as small as Potion can make it, so no compressed copy was saved."
+            return "“\(name)” is already as small as \(product) can make it, so no compressed copy was saved."
         case let .needsNewerSystem(feature, version):
             return "\(feature) needs \(version) or later."
         }

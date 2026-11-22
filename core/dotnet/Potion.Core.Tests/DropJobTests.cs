@@ -49,6 +49,34 @@ public class DropNamingConformanceTests
     }
 }
 
+public class DropChoicesConformanceTests
+{
+    private static readonly JsonElement Cases = JsonDocument.Parse(RepoFiles.Text("core/spec/tests/downloads.json")).RootElement;
+
+    public static TheoryData<string> Names()
+    {
+        var data = new TheoryData<string>();
+        foreach (var c in Cases.GetProperty("choices").EnumerateArray()) data.Add(c.GetProperty("name").GetString()!);
+        return data;
+    }
+
+    [Theory, MemberData(nameof(Names))]
+    public void Choice(string name)
+    {
+        var c = Cases.GetProperty("choices").EnumerateArray().Single(x => x.GetProperty("name").GetString() == name);
+        string? S(string p) => c.GetProperty(p).ValueKind == JsonValueKind.Null ? null : c.GetProperty(p).GetString();
+        List<string> L(string p) => c.GetProperty(p).EnumerateArray().Select(x => x.GetString()!).ToList();
+        var source = FormatRegistry.Shared.FormatById(S("source")!)!;
+        var mode = Enum.Parse<DropMode>(S("mode")!, ignoreCase: true);
+        Assert.Equal(L("modes"), DropChoices.Modes(source).Select(m => m.ToString().ToLowerInvariant()));
+        var ids = DropChoices.Formats(source, mode).Select(f => f.Id).ToList();
+        Assert.Equal(S("first"), ids.FirstOrDefault());
+        Assert.Equal(S("default"), DropChoices.DefaultFormat(source, mode)?.Id);
+        Assert.Empty(L("includes").Except(ids));
+        Assert.Empty(L("excludes").Intersect(ids));
+    }
+}
+
 public sealed class DropJobTests : IDisposable
 {
     private readonly string _folder = Path.Combine(Path.GetTempPath(), $"potion-job-{Guid.NewGuid():N}");
@@ -160,6 +188,31 @@ public sealed class DropJobTests : IDisposable
         await Assert.ThrowsAsync<DropException>(() => Runner().RunAsync(Link("https://example.com/404.mp4"), _folder, new DropOptions()));
         Assert.Single(Visible());
         Assert.StartsWith(".potion-dropper-", Visible()[0]);
+    }
+
+    [Fact]
+    public async Task InspectReadsOnlyTheStart()
+    {
+        var body = Mp4(200_000);
+        _transport.On("https://example.com/v/talk.mp4", new(Headers: new() { ["Content-Type"] = "video/mp4", ["Content-Length"] = "200000", ["ETag"] = "\"t\"" },
+            Chunks: body.Chunk(10_000).ToArray()));
+        var preview = await new Downloader(_transport, "1.0.0").InspectAsync(Link("https://example.com/v/talk.mp4"), 1L << 30);
+        Assert.Equal("talk.mp4", preview.FileName);
+        Assert.Equal("mp4", preview.FormatId);
+        Assert.Equal(200_000, preview.Size);
+        Assert.True(preview.Resumable);
+        Assert.Empty(Visible());
+
+        _transport.On("https://example.com/page", new(Headers: new() { ["Content-Type"] = "text/html" }, Chunks: ["<html>"u8.ToArray()]));
+        var e = await Assert.ThrowsAsync<DownloadFailureException>(() => new Downloader(_transport, "1.0.0").InspectAsync(Link("https://example.com/page"), 1L << 30));
+        Assert.Equal(DownloadError.From(LinkError.UnsupportedSite), e.Error);
+    }
+
+    [Fact]
+    public void ErrorsNamePotionDropper()
+    {
+        Assert.Equal("This file is copy-protected, so Potion Dropper can't convert it.", DropException.FromConversion(ConversionException.CopyProtected()).Message);
+        Assert.Equal("This file is copy-protected, so Potion can't convert it.", ConversionException.CopyProtected().Message);
     }
 
     [Fact]

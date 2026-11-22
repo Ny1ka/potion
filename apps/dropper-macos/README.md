@@ -8,8 +8,8 @@ make dropper-macos           # command-line Debug build
 make run-dropper-macos       # build and launch
 ```
 
-Status (M5): the window has the link bar; Fetch checks links against the source allowlist (`docs/SOURCES.md`).
-The media card, output options, download queue and Settings come in M6.
+Status (M6.1): first-run acknowledgment, link bar, Fetch with the media card, Video/Audio output options and one
+download at a time into Downloads. The queue, history, notifications and Settings follow in M6.2–M6.3.
 
 ## What comes from where
 

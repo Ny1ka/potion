@@ -1090,5 +1090,116 @@
       "format": "MP3",
       "expect": "download"
     }
+  ],
+  "choices": [
+    {
+      "name": "video source, video mode",
+      "source": "mp4",
+      "mode": "video",
+      "modes": [
+        "video",
+        "audio"
+      ],
+      "first": "mp4",
+      "default": "mp4",
+      "includes": [
+        "mov",
+        "mkv",
+        "webm",
+        "avi"
+      ],
+      "excludes": [
+        "mp3",
+        "gif",
+        "png"
+      ]
+    },
+    {
+      "name": "video source, audio mode",
+      "source": "mp4",
+      "mode": "audio",
+      "modes": [
+        "video",
+        "audio"
+      ],
+      "first": "mp3",
+      "default": "mp3",
+      "includes": [
+        "m4a",
+        "wav",
+        "flac",
+        "opus"
+      ],
+      "excludes": [
+        "mp4",
+        "gif"
+      ]
+    },
+    {
+      "name": "audio source, audio mode",
+      "source": "mp3",
+      "mode": "audio",
+      "modes": [
+        "audio"
+      ],
+      "first": "mp3",
+      "default": "mp3",
+      "includes": [
+        "wav",
+        "flac",
+        "m4a"
+      ],
+      "excludes": [
+        "mp4"
+      ]
+    },
+    {
+      "name": "audio source, video mode",
+      "source": "mp3",
+      "mode": "video",
+      "modes": [
+        "audio"
+      ],
+      "first": null,
+      "default": null,
+      "includes": [],
+      "excludes": [
+        "mp4",
+        "mov"
+      ]
+    },
+    {
+      "name": "webm audio mode",
+      "source": "webm",
+      "mode": "audio",
+      "modes": [
+        "video",
+        "audio"
+      ],
+      "first": "mp3",
+      "default": "mp3",
+      "includes": [
+        "opus",
+        "ogg"
+      ],
+      "excludes": [
+        "webm"
+      ]
+    },
+    {
+      "name": "flac keeps its format first",
+      "source": "flac",
+      "mode": "audio",
+      "modes": [
+        "audio"
+      ],
+      "first": "flac",
+      "default": "flac",
+      "includes": [
+        "mp3",
+        "wav"
+      ],
+      "excludes": []
+    }
   ]
 }

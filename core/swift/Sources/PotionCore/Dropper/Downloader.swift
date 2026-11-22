@@ -61,6 +61,20 @@ public struct DownloadFailure: Error, Sendable {
     public let resume: ResumeState?
 }
 
+/// What the media card shows before downloading.
+public struct LinkPreview: Sendable {
+    /// Suggested name from the server or the link.
+    public let fileName: String
+    /// The audio or video format found in the first bytes.
+    public let formatID: String
+    /// Bytes, when the server says.
+    public let size: Int64?
+    /// The link that answered, after redirects.
+    public let finalLink: DropLink
+    /// Whether an interrupted download could continue (the server sends a validator).
+    public let resumable: Bool
+}
+
 /// A finished, checked download in a hidden file. The caller converts it or moves it to a unique name.
 public struct DownloadResult: Sendable {
     public let file: URL
@@ -103,6 +117,49 @@ public final class Downloader: Sendable {
     /// partial file for resuming when the server allows it.
     public func download(_ link: DropLink, into folder: URL, maxBytes: Int64, resume: ResumeState? = nil,
                          progress: @escaping @Sendable (DownloadProgress) -> Void = { _ in }) async throws -> DownloadResult {
+        let opened = try await open(link, maxBytes: maxBytes, resume: resume)
+        return try await receive(opened.response, link: link, current: opened.current, folder: folder, maxBytes: maxBytes,
+                                 length: opened.length, resumeFrom: opened.resumed ? opened.partial : nil, discard: opened.partial,
+                                 progress: progress)
+    }
+
+    /// Fetches what the media card shows without downloading the file: the same checks as `download` (robots.txt,
+    /// redirects, server answer, size limit, content check on the first bytes), then the connection is closed.
+    public func inspect(_ link: DropLink, maxBytes: Int64) async throws -> LinkPreview {
+        let opened = try await open(link, maxBytes: maxBytes, resume: nil)
+        let response = opened.response
+        let fileName = DownloadRules.fileName(contentDisposition: response.header("Content-Disposition"), link: opened.current.parts,
+                                              maxLength: settings.maxFileNameLength)
+        let headerSize = registry.formatsHeaderSize
+        var header = Data()
+        do {
+            for try await chunk in response.body {
+                header.append(chunk.prefix(headerSize - header.count))
+                if header.count >= headerSize { break }   // stops the transfer
+            }
+        } catch {
+            if Task.isCancelled || error is CancellationError { throw DownloadFailure(error: .interrupted, resume: nil) }
+            if header.isEmpty { throw DownloadFailure(error: Self.map(error), resume: nil) }
+        }
+        switch DownloadRules.sniff(header: header, fileName: fileName, formats: registry.formats) {
+        case .failure(let error): throw DownloadFailure(error: error, resume: nil)
+        case .success(let formatID):
+            return LinkPreview(fileName: fileName, formatID: formatID, size: opened.length, finalLink: opened.current,
+                               resumable: Self.validator(response) != nil)
+        }
+    }
+
+    private struct Opened {
+        let response: HTTPResponse
+        let current: DropLink
+        let length: Int64?
+        let resumed: Bool
+        let partial: ResumeState?
+    }
+
+    /// Follows the link to an accepted answer: robots.txt, redirects re-checked against the allowlist, retries,
+    /// and resume restarts.
+    private func open(_ link: DropLink, maxBytes: Int64, resume: ResumeState?) async throws -> Opened {
         var current = link
         var partial = resume
         var redirects = 0
@@ -151,8 +208,7 @@ public final class Downloader: Sendable {
             case .fail(let error):
                 throw fail(error)
             case .accept(_, let length, let resumed):
-                return try await receive(response, link: link, current: current, folder: folder, maxBytes: maxBytes,
-                                         length: length, resumeFrom: resumed ? partial : nil, discard: partial, progress: progress)
+                return Opened(response: response, current: current, length: length, resumed: resumed, partial: partial)
             }
         }
     }

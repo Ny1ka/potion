@@ -22,6 +22,14 @@ public sealed class ConversionException : Exception
         LogDetail = logDetail;
     }
 
+    /// <summary>The message with the app's name ("Potion" or "Potion Dropper") where the text names the product.</summary>
+    public string MessageFor(string product) => Kind switch
+    {
+        ConversionErrorKind.ToolsMissing => $"{product}'s conversion tools are missing. Reinstall {product} to restore them.",
+        ConversionErrorKind.CopyProtected => $"This file is copy-protected, so {product} can't convert it.",
+        _ => Message,
+    };
+
     public static ConversionException ToolsMissing() =>
         new(ConversionErrorKind.ToolsMissing, "Potion's conversion tools are missing. Reinstall Potion to restore them.");
     public static ConversionException Unsupported(string from, string to) =>

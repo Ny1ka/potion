@@ -56,6 +56,13 @@ public sealed class DownloadFailureException(DownloadError error, ResumeState? r
     public ResumeState? Resume { get; } = resume;
 }
 
+/// <summary>What the media card shows before downloading.</summary>
+/// <param name="FormatId">The audio or video format found in the first bytes.</param>
+/// <param name="Size">Bytes, when the server says.</param>
+/// <param name="FinalLink">The link that answered, after redirects.</param>
+/// <param name="Resumable">Whether an interrupted download could continue (the server sends a validator).</param>
+public sealed record LinkPreview(string FileName, string FormatId, long? Size, DropLink FinalLink, bool Resumable);
+
 /// <summary>A finished, checked download in a hidden file. The caller converts it or moves it to a unique name.</summary>
 /// <param name="FormatId">The audio or video format found in the file's content.</param>
 /// <param name="FileName">Suggested name from the server or the link (sanitized; its extension may not match FormatId).</param>
@@ -99,6 +106,47 @@ public sealed class Downloader
     public async Task<DownloadResult> DownloadAsync(DropLink link, string folder, long maxBytes, ResumeState? resume = null,
         Action<DownloadProgress>? progress = null, CancellationToken cancellationToken = default)
     {
+        var opened = await OpenAsync(link, maxBytes, resume, cancellationToken).ConfigureAwait(false);
+        using (opened.Response)
+        {
+            return await ReceiveAsync(opened.Response, link, opened.Current, folder, maxBytes, opened.Length,
+                opened.Resumed ? opened.Partial : null, opened.Partial, progress, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Fetches what the media card shows without downloading the file: the same checks as DownloadAsync (robots.txt,
+    /// redirects, server answer, size limit, content check on the first bytes), then the connection is closed.
+    /// </summary>
+    public async Task<LinkPreview> InspectAsync(DropLink link, long maxBytes, CancellationToken cancellationToken = default)
+    {
+        var opened = await OpenAsync(link, maxBytes, null, cancellationToken).ConfigureAwait(false);
+        using var response = opened.Response;
+        var fileName = DownloadRules.FileName(response.Header("Content-Disposition"), opened.Current.Parts, Settings.MaxFileNameLength);
+        var header = new byte[_registry.Formats.HeaderSize];
+        var read = 0;
+        try
+        {
+            while (read < header.Length)
+            {
+                var n = await response.Body.ReadAsync(header.AsMemory(read), cancellationToken).ConfigureAwait(false);
+                if (n == 0) break;
+                read += n;
+            }
+        }
+        catch (OperationCanceledException) { throw new DownloadFailureException(DownloadError.Interrupted, null); }
+        catch (Exception e) when (read == 0) { throw new DownloadFailureException(Map(e), null); }
+        catch (Exception) { /* a short start is still enough to check */ }
+        var (formatId, error) = DownloadRules.Sniff(header.AsSpan(0, read), fileName, _registry.Formats);
+        if (formatId is null) throw new DownloadFailureException(error!, null);
+        return new LinkPreview(fileName, formatId, opened.Length, opened.Current, Validator(response) is not null);
+    }
+
+    private sealed record Opened(TransportResponse Response, DropLink Current, long? Length, bool Resumed, ResumeState? Partial);
+
+    /// <summary>Follows the link to an accepted answer: robots.txt, redirects re-checked against the allowlist, retries, and resume restarts.</summary>
+    private async Task<Opened> OpenAsync(DropLink link, long maxBytes, ResumeState? resume, CancellationToken cancellationToken)
+    {
         var current = link;
         var partial = resume;
         var redirects = 0;
@@ -127,9 +175,10 @@ public sealed class Downloader
             catch (OperationCanceledException) { throw new DownloadFailureException(DownloadError.Interrupted, partial); }
             catch (Exception e) { throw new DownloadFailureException(Map(e), partial); }
 
+            var verdict = DownloadRules.Classify(response.Status, response.Headers, headers.ContainsKey("Range"), maxBytes, Settings);
+            if (verdict.Kind == VerdictKind.Accept) return new Opened(response, current, verdict.Length, verdict.Resumed, partial);
             using (response)
             {
-                var verdict = DownloadRules.Classify(response.Status, response.Headers, headers.ContainsKey("Range"), maxBytes, Settings);
                 switch (verdict.Kind)
                 {
                     case VerdictKind.Redirect:
@@ -147,11 +196,8 @@ public sealed class Downloader
                         partial = null;
                         if (++retries > Settings.Retries) throw Fail(DownloadError.Refused);
                         break;
-                    case VerdictKind.Fail:
-                        throw Fail(verdict.Error!);
                     default:
-                        return await ReceiveAsync(response, link, current, folder, maxBytes, verdict.Length,
-                            verdict.Resumed ? partial : null, partial, progress, cancellationToken).ConfigureAwait(false);
+                        throw Fail(verdict.Error!);
                 }
             }
         }

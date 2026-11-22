@@ -92,7 +92,7 @@ public enum DropError: Error, Sendable {
         case .tooLong(let minutes, let limit):
             registry.message(id: "tooLong").replacingOccurrences(of: "{minutes}", with: "\(minutes)")
                 .replacingOccurrences(of: "{limit}", with: "\(limit)")
-        case .conversion(let error): error.localizedDescription
+        case .conversion(let error): error.message(product: "Potion Dropper")
         }
     }
 }
@@ -259,5 +259,37 @@ public final class DropHistory: @unchecked Sendable {
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         try encoder.encode(FileContents(entries: _entries)).write(to: url, options: .atomic)
+    }
+}
+
+/// Video or audio output (the segmented control on the media card).
+public enum DropMode: String, CaseIterable, Sendable {
+    case video, audio
+
+    var category: FormatCategory { self == .video ? .video : .audio }
+}
+
+/// What the media card offers for a downloaded format (core/spec/README.md, "Output choices").
+public enum DropChoices {
+    /// Video sources can be saved as video or audio; audio sources only as audio.
+    public static func modes(for source: FileFormat) -> [DropMode] {
+        source.category == .video ? [.video, .audio] : source.category == .audio ? [.audio] : []
+    }
+
+    /// Formats offered in a mode: the source's own format first when it fits the mode ("keep as downloaded"), then
+    /// every format of that kind the matrix can convert it to, in formats.json order.
+    public static func formats(for source: FileFormat, mode: DropMode, matrix: ConversionMatrix = .shared) -> [FileFormat] {
+        guard modes(for: source).contains(mode) else { return [] }
+        let converted = matrix.outputs(for: source.id).map(\.output).filter { $0.category == mode.category && $0.id != source.id }
+        return (source.category == mode.category ? [source] : []) + converted
+    }
+
+    /// The preselected format: the source's own when it fits, otherwise MP4 (video) or MP3 (audio) when offered,
+    /// otherwise the first one offered.
+    public static func defaultFormat(for source: FileFormat, mode: DropMode, matrix: ConversionMatrix = .shared) -> FileFormat? {
+        let offered = formats(for: source, mode: mode, matrix: matrix)
+        if offered.first?.id == source.id { return offered.first }
+        let preferred = mode == .video ? "mp4" : "mp3"
+        return offered.first { $0.id == preferred } ?? offered.first
     }
 }
