@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M2.7 Windows engines, then M4 Potion Windows UI (M3 Potion macOS UI is done)
-- **Last completed chunk:** M2.7d-2b DOCX, ODT and RTF readers (C#)
-- **Next chunk:** M2.7d-3 Windows document writers + document → PDF (MigraDoc)
+- **Last completed chunk:** M2.7d-3a Windows TXT/Markdown/HTML/EPUB writers + document engine
+- **Next chunk:** M2.7d-3b DOCX, RTF and ODT writers (C#)
 
 ## Milestones
 
@@ -106,7 +106,12 @@ Read this first in any new session. Update it at every checkpoint.
           copy-protected), ODT (content/styles XML: headings, lists with start values, tables, links, images,
           automatic styles, page layout; password-protected → copy-protected) and RTF (own parser: formatting,
           fonts, colors, Unicode/code page, lists, tables, hyperlink fields, PNG/JPEG pictures, page size). 6 tests
-    - [ ] M2.7d-3 Writers for the same formats + document → PDF (PDFsharp/MigraDoc)
+    - [x] M2.7d-3a writers for TXT, Markdown, HTML (XHTML-capable, images embedded) and EPUB 3 (nav from headings,
+          images as files), and `DocumentEngine` (C#: matrix check, temp file, verify, unique name). PDFsharp-MigraDoc
+          6.5.0 and PdfPig 0.1.16 added (DLLs scanned clean; System.Security.Cryptography.Pkcs pinned to 11.0.0 to
+          replace PDFsharp's vulnerable 8.0.1). `make test-core-dotnet` now scans every .NET dependency. 5 tests
+    - [ ] M2.7d-3b DOCX (Open XML SDK), RTF and ODT writers
+    - [ ] M2.7d-3c document → PDF (MigraDoc) with a font resolver
     - [ ] M2.7d-4 PDF tools and conversions (PDFsharp, PdfPig for text, Windows.Data.Pdf for images), images → PDF
 
 ### M3 chunks
