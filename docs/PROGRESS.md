@@ -5,8 +5,8 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M5 Dropper core (M2–M4 done: engines, Potion for macOS and Windows)
-- **Last completed chunk:** M5.2a Download rules (server answers, content check, file names, robots.txt)
-- **Next chunk:** M5.2b Downloader (transport, redirects, robots.txt, resume, progress)
+- **Last completed chunk:** M5.2b Downloader logic (robots.txt, redirects, retries, resume, content check)
+- **Next chunk:** M5.2c Real HTTP transports (URLSession, HttpClient) and a loopback test server
 
 ## Milestones
 
@@ -62,10 +62,14 @@ Read this first in any new session. Update it at every checkpoint.
       `Retry-After`, resume restarts, access errors), content-type groups and the size limit, the content check that
       every body passes before conversion, safe file names from `Content-Disposition` or the link, robots.txt
       parsing and matching (RFC 9309) for the `PotionDropper` token, download error messages
-- [ ] M5.2b Downloader (Swift + C#): HTTP transport over URLSession / HttpClient with the honest User-Agent and no
-      cookies or credentials, redirects re-checked against the allowlist, robots.txt per site, retries, resume with
-      Range/If-Range, progress and speed, timeouts, size limit while streaming, hidden temp file, cancellation; tests
-      with a scripted transport and a local test server
+- [x] M5.2b Downloader logic (Swift + C#) behind an `HTTPTransport` / `IHttpTransport` seam: honest User-Agent,
+      `Accept-Encoding: identity`, robots.txt once per site (redirects followed, 5xx blocks), redirects resolved per
+      RFC 3986 and re-checked against the allowlist (15 shared cases in `links.json`), retries with Retry-After,
+      size limit before and while streaming, the content check on every body, hidden `.potion-dropper-*.part` file,
+      resume with Range/If-Range (strong ETag or Last-Modified; 200 or 416 start over), cancel keeps a resumable
+      partial file. 14 tests per core with a scripted transport
+- [ ] M5.2c Real transports: URLSession (macOS) and HttpClient (Windows) with no cookies, no credential storage, no
+      cache, redirects not followed automatically, idle and connect timeouts; loopback test server in both cores
 - [ ] M5.3 Dropper jobs: download → media info (duration limit, default 30 minutes) → convert with the existing
       engines (stream copy when possible), naming templates, duplicate/overwrite protection, history the user can
       clear; Dropper app scaffolds (`apps/dropper-macos`, `apps/dropper-windows`) that build in CI

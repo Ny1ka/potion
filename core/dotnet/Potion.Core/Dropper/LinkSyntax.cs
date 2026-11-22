@@ -128,6 +128,57 @@ internal static class LinkSyntax
     /// </summary>
     public static bool IsCandidate(string token) => token.Contains("://", StringComparison.Ordinal) || HostInferable(token);
 
+    /// <summary>
+    /// Resolves a redirect's Location against the link that answered (RFC 3986, section 5.2). The result is parsed
+    /// again like a typed link, so it's normalized and checked against the allowlist.
+    /// </summary>
+    public static string Resolve(string reference, LinkParts baseLink)
+    {
+        var reference2 = reference.Trim(' ', '\t');
+        var colon = reference2.IndexOf(':');
+        if (colon >= 0 && IsScheme(reference2[..colon])) return reference2;
+        if (reference2.StartsWith("//", StringComparison.Ordinal)) return $"{baseLink.Scheme}:{reference2}";
+        var hash = reference2.IndexOf('#');
+        if (hash >= 0) reference2 = reference2[..hash];
+        var origin = $"{baseLink.Scheme}://{baseLink.Host}{(baseLink.Port is { } p ? $":{p}" : "")}";
+        if (reference2.Length == 0) return baseLink.ToString();
+        if (reference2[0] == '?') return origin + baseLink.Path + reference2;
+        var mark = reference2.IndexOf('?');
+        var path = mark >= 0 ? reference2[..mark] : reference2;
+        var query = mark >= 0 ? reference2[mark..] : "";
+        if (path.StartsWith('/')) return origin + RemoveDotSegments(path) + query;
+        var folder = baseLink.Path[..(baseLink.Path.LastIndexOf('/') + 1)];
+        return origin + RemoveDotSegments(folder + path) + query;
+    }
+
+    /// <summary>
+    /// RFC 3986 dot-segment removal for an absolute path: "." disappears, ".." removes the previous segment (never
+    /// above the root), and a final "." or ".." leaves the path ending in "/".
+    /// </summary>
+    public static string RemoveDotSegments(string path)
+    {
+        var segments = path.Split('/').Skip(1).ToList();
+        var output = new List<string>();
+        for (var i = 0; i < segments.Count; i++)
+        {
+            var last = i == segments.Count - 1;
+            switch (segments[i])
+            {
+                case ".":
+                    if (last) output.Add("");
+                    break;
+                case "..":
+                    if (output.Count > 0) output.RemoveAt(output.Count - 1);
+                    if (last) output.Add("");
+                    break;
+                default:
+                    output.Add(segments[i]);
+                    break;
+            }
+        }
+        return "/" + string.Join('/', output);
+    }
+
     private static bool IsScheme(string text) =>
         text.Length > 0 && char.IsAsciiLetter(text[0]) && text.All(c => char.IsAsciiLetterOrDigit(c) || c is '+' or '-' or '.');
 

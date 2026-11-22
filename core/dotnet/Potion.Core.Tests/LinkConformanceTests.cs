@@ -57,6 +57,28 @@ public class LinkConformanceTests
     }
 }
 
+public class RedirectConformanceTests
+{
+    private static readonly JsonElement Cases = JsonDocument.Parse(RepoFiles.Text("core/spec/tests/links.json")).RootElement;
+
+    public static TheoryData<string> Names()
+    {
+        var data = new TheoryData<string>();
+        foreach (var c in Cases.GetProperty("redirects").EnumerateArray()) data.Add(c.GetProperty("name").GetString()!);
+        return data;
+    }
+
+    [Theory, MemberData(nameof(Names))]
+    public void Redirect(string name)
+    {
+        var c = Cases.GetProperty("redirects").EnumerateArray().Single(x => x.GetProperty("name").GetString() == name);
+        var (baseLink, _) = SourceRegistry.Shared.Parse(c.GetProperty("base").GetString()!);
+        var (link, error) = SourceRegistry.Shared.Redirect(baseLink!, c.GetProperty("location").GetString()!);
+        if (c.TryGetProperty("url", out var url)) Assert.Equal(url.GetString(), link?.Text);
+        else Assert.Equal(c.GetProperty("error").GetString(), SourceRegistry.Id(error!.Value));
+    }
+}
+
 public class SourceRegistryTests
 {
     /// <summary>No adapter without an allowlist entry, and no allowlist entry without docs/SOURCES.md (spec Part 6.3.2).</summary>

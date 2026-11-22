@@ -111,5 +111,22 @@
       "errors": [],
       "overLimit": 0
     }
+  ],
+  "redirects": [
+    {"name": "absolute", "base": "https://example.com/a/b/c.mp4", "location": "https://cdn.example.net/x.mp4", "url": "https://cdn.example.net/x.mp4"},
+    {"name": "root relative", "base": "https://example.com/a/b/c.mp4", "location": "/files/a.mp4", "url": "https://example.com/files/a.mp4"},
+    {"name": "same folder", "base": "https://example.com/a/b/c.mp4", "location": "d.mp4", "url": "https://example.com/a/b/d.mp4"},
+    {"name": "parent folder", "base": "https://example.com/a/b/c.mp4", "location": "../d.mp4", "url": "https://example.com/a/d.mp4"},
+    {"name": "too many parents", "base": "https://example.com/a/b/c.mp4", "location": "../../../../d.mp4", "url": "https://example.com/d.mp4"},
+    {"name": "dot segment with query", "base": "https://example.com/a/b/c.mp4", "location": "./d.mp4?x=1", "url": "https://example.com/a/b/d.mp4?x=1"},
+    {"name": "query only", "base": "https://example.com/a/b/c.mp4?v=1", "location": "?v=2", "url": "https://example.com/a/b/c.mp4?v=2"},
+    {"name": "scheme relative", "base": "https://example.com/a/b/c.mp4", "location": "//other.example.org/e.mp3", "url": "https://other.example.org/e.mp3"},
+    {"name": "unsafe characters and fragment", "base": "https://example.com/a/b/c.mp4", "location": "/a b.mp4#frag", "url": "https://example.com/a%20b.mp4"},
+    {"name": "dots in the middle", "base": "https://example.com/a/b/c.mp4", "location": "/x/./y/../z.mp4", "url": "https://example.com/x/z.mp4"},
+    {"name": "keeps the port", "base": "http://example.com:8080/a/b.mp4", "location": "/c.mp4", "url": "http://example.com:8080/c.mp4"},
+    {"name": "trailing parent keeps folder", "base": "https://example.com/a/b/c.mp4", "location": "x/..", "url": "https://example.com/a/b/"},
+    {"name": "to another scheme", "base": "https://example.com/a.mp4", "location": "ftp://example.com/a.mp4", "error": "unsupportedScheme"},
+    {"name": "to credentials", "base": "https://example.com/a.mp4", "location": "https://user:pw@example.com/a.mp4", "error": "credentials"},
+    {"name": "to a playlist", "base": "https://example.com/a.mp4", "location": "/live/index.m3u8", "error": "playlist"}
   ]
 }

@@ -81,7 +81,7 @@ public final class SourceRegistry: Sendable {
     private let userAgentTemplate: String
     private let messages: [String: String]
     private let adapters: [(SourceInfo, any SourceAdapter)]
-    private let formats: FormatRegistry
+    let formats: FormatRegistry
 
     private struct SpecFile: Decodable {
         struct Limits: Decodable { let maxLinkLength: Int; let maxLinksPerPaste: Int }
@@ -140,6 +140,9 @@ public final class SourceRegistry: Sendable {
         userAgentTemplate.replacingOccurrences(of: "{version}", with: version)
     }
 
+    /// How many leading bytes the content check reads.
+    var formatsHeaderSize: Int { formats.headerSize }
+
     /// The product token robots.txt groups are matched against ("PotionDropper").
     public var robotsAgent: String { String(userAgentTemplate.prefix { $0 != "/" && $0 != " " }) }
 
@@ -166,6 +169,12 @@ public final class SourceRegistry: Sendable {
             }
         }
         return .failure(.unsupportedSite)
+    }
+
+    /// The link a redirect points to: `location` resolved against the link that answered, then parsed and matched
+    /// like a typed link (so a redirect can't lead outside the allowlist).
+    public func redirect(from link: DropLink, to location: String) -> Result<DropLink, LinkError> {
+        self.link(from: LinkSyntax.resolve(location, against: link.parts))
     }
 
     /// Finds the links in pasted or dropped text: words separated by whitespace, with surrounding quotes, brackets

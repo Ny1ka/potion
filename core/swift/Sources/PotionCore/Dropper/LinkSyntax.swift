@@ -125,6 +125,44 @@ enum LinkSyntax {
         token.contains("://") || hostInferable(token)
     }
 
+    /// Resolves a redirect's `Location` against the link that answered (RFC 3986, section 5.2). The result is parsed
+    /// again like a typed link, so it's normalized and checked against the allowlist.
+    static func resolve(_ reference: String, against base: LinkParts) -> String {
+        var ref = reference.trimmingCharacters(in: .whitespaces)
+        if let colon = ref.firstIndex(of: ":"), isScheme(ref[..<colon]) { return ref }
+        if ref.hasPrefix("//") { return "\(base.scheme):\(ref)" }
+        if let hash = ref.firstIndex(of: "#") { ref = String(ref[..<hash]) }
+        let origin = "\(base.scheme)://\(base.host)\(base.port.map { ":\($0)" } ?? "")"
+        if ref.isEmpty { return base.string }
+        if ref.hasPrefix("?") { return origin + base.path + ref }
+        let mark = ref.firstIndex(of: "?") ?? ref.endIndex
+        let path = String(ref[..<mark])
+        let query = String(ref[mark...])
+        if path.hasPrefix("/") { return origin + removeDotSegments(path) + query }
+        let folder = base.path[...(base.path.lastIndex(of: "/") ?? base.path.startIndex)]
+        return origin + removeDotSegments(folder + path) + query
+    }
+
+    /// RFC 3986 dot-segment removal for an absolute path: "." disappears, ".." removes the previous segment (never
+    /// above the root), and a final "." or ".." leaves the path ending in "/".
+    static func removeDotSegments(_ path: String) -> String {
+        let segments = path.split(separator: "/", omittingEmptySubsequences: false).dropFirst()
+        var output: [Substring] = []
+        for (index, segment) in segments.enumerated() {
+            let last = index == segments.count - 1
+            switch segment {
+            case ".":
+                if last { output.append("") }
+            case "..":
+                if !output.isEmpty { output.removeLast() }
+                if last { output.append("") }
+            default:
+                output.append(segment)
+            }
+        }
+        return "/" + output.joined(separator: "/")
+    }
+
     // MARK: - Parts
 
     private static func isScheme(_ text: Substring) -> Bool {

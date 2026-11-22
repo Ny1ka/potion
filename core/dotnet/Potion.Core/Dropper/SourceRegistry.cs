@@ -160,6 +160,14 @@ public sealed class SourceRegistry
     }
 
     /// <summary>
+    /// The link a redirect points to: location resolved against the link that answered, then parsed and matched like
+    /// a typed link (so a redirect can't lead outside the allowlist).
+    /// </summary>
+    public (DropLink? Link, LinkError? Error) Redirect(DropLink from, string location) => Parse(LinkSyntax.Resolve(location, from.Parts));
+
+    internal FormatRegistry Formats => _formats;
+
+    /// <summary>
     /// Finds the links in pasted or dropped text: words separated by whitespace, with surrounding quotes, brackets and
     /// sentence punctuation removed. Words that don't look like links are ignored.
     /// </summary>

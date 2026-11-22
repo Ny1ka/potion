@@ -6,7 +6,9 @@ final class LinkConformanceTests: XCTestCase {
     struct CaseFile: Decodable {
         let links: [LinkCase]
         let lists: [ListCase]
+        let redirects: [RedirectCase]
     }
+    struct RedirectCase: Decodable { let name: String; let base: String; let location: String; let url: String?; let error: String? }
     struct LinkCase: Decodable {
         let name: String
         let input: String
@@ -54,6 +56,18 @@ final class LinkConformanceTests: XCTestCase {
             XCTAssertEqual(list.problems.map(\.input), c.errors.map(\.input), c.name)
             XCTAssertEqual(list.problems.map(\.error.rawValue), c.errors.map(\.error), c.name)
             XCTAssertEqual(list.overLimit, c.overLimit, c.name)
+        }
+    }
+}
+
+extension LinkConformanceTests {
+    func testRedirects() throws {
+        for c in try cases().redirects {
+            let base = try XCTUnwrap(try? SourceRegistry.shared.link(from: c.base).get(), c.name)
+            switch SourceRegistry.shared.redirect(from: base, to: c.location) {
+            case .success(let link): XCTAssertEqual(link.string, c.url, c.name)
+            case .failure(let error): XCTAssertEqual(error.rawValue, c.error, c.name)
+            }
         }
     }
 }

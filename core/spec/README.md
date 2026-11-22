@@ -12,7 +12,7 @@ cases, so macOS and Windows agree on what a file is and what it can become.
 | `presets.json` | Audio, video, image and PDF presets, encoders and per-format settings |
 | `tests/pages.json` | Conformance cases for page selections ("1-3, 5") used by the PDF tools |
 | `sources.json` | Potion Dropper's source allowlist, link limits, User-Agent and link error messages |
-| `tests/links.json` | Conformance cases for link parsing, normalization and source matching |
+| `tests/links.json` | Conformance cases for link parsing, normalization, source matching, pasted text and redirect targets |
 | `tests/downloads.json` | Conformance cases for server answers, content checks, download file names and robots.txt |
 
 The Swift package can't read files outside its own folder, so `core/swift/Sources/PotionCore/Resources/`
@@ -201,7 +201,7 @@ normalizing), up to `maxLinksPerPaste`.
 |---|---|
 | 200, or 206 when a range was asked for | Check the content type (below), then the size: `Content-Length` over the size limit → `tooLarge` |
 | 206 without a range request, 204, other 1xx–4xx not listed | `refused` |
-| 301, 302, 303, 307, 308 | Follow `Location` (relative ones resolve against the current link), at most `maxRedirects` times (`tooManyRedirects`). Each target is parsed and matched like a typed link. No `Location` → `refused` |
+| 301, 302, 303, 307, 308 | Follow `Location` (relative ones resolve against the current link per RFC 3986 §5.2, fragment dropped, dot segments removed; `links.json` `redirects`), at most `maxRedirects` times (`tooManyRedirects`). Each target is parsed and matched like a typed link. No `Location` → `refused` |
 | 401, 403, 407 | `accessDenied` (never retried with credentials) |
 | 404, 410 | `notFound` |
 | 416 | With a range request: restart from the beginning. Otherwise `refused` |

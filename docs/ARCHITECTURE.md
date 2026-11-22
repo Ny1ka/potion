@@ -50,8 +50,11 @@ Markdown rendered to HTML) before the system HTML reader sees it (`HTMLResources
 - Links are parsed by our own code (`LinkSyntax`), not the platform URL parser, so both apps normalize, refuse and
   de-duplicate identically (`core/spec/tests/links.json`). The result is a `DropLink`: normalized link, source id,
   format from the file name, and whether the server's answer must confirm it's media.
-- Downloads use the OS HTTP stack (URLSession, HttpClient); FFmpeg is built without network support and only
-  ever sees local files.
+- `Downloader` runs one download: robots.txt per site, redirects re-checked with `SourceRegistry.redirect`,
+  retries, resume, the size limit and the content check (`DownloadRules`), into a hidden `.part` file. It talks to
+  the network only through `HTTPTransport` / `IHttpTransport` (one GET, no automatic redirects, cookies or
+  credentials), so tests script the server and the apps plug in the OS HTTP stack (URLSession, HttpClient).
+  FFmpeg is built without network support and only ever sees local files.
 
 ## Project generation
 
