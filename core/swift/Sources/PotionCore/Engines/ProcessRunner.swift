@@ -24,15 +24,7 @@ enum ProcessRunner {
         process.standardOutput = outPipe
         process.standardError = errPipe
         let collector = OutputCollector(onLine: onStdoutLine)
-
-        outPipe.fileHandleForReading.readabilityHandler = { handle in
-            let data = handle.availableData
-            if !data.isEmpty { collector.appendStdout(data) }
-        }
-        errPipe.fileHandleForReading.readabilityHandler = { handle in
-            let data = handle.availableData
-            if !data.isEmpty { collector.appendStderr(data) }
-        }
+        let readers = DispatchGroup()
 
         let status: Int32 = try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Int32, Error>) in
@@ -40,21 +32,37 @@ enum ProcessRunner {
                 do { try process.run() } catch {
                     process.terminationHandler = nil
                     continuation.resume(throwing: error)
+                    return
                 }
+                // Each pipe is read on its own until end of file (the child closing it), so no output is lost or
+                // reordered. (Removing a readabilityHandler while a callback was in flight could drop the last chunk.)
+                pump(outPipe.fileHandleForReading, readers) { collector.appendStdout($0) }
+                pump(errPipe.fileHandleForReading, readers) { collector.appendStderr($0) }
             }
         } onCancel: {
             if process.isRunning { process.terminate() }
         }
 
-        // Drain anything still buffered after exit.
-        outPipe.fileHandleForReading.readabilityHandler = nil
-        errPipe.fileHandleForReading.readabilityHandler = nil
-        collector.appendStdout(outPipe.fileHandleForReading.readDataToEndOfFile())
-        collector.appendStderr(errPipe.fileHandleForReading.readDataToEndOfFile())
+        await withCheckedContinuation { (done: CheckedContinuation<Void, Never>) in
+            readers.notify(queue: .global()) { done.resume() }
+        }
         collector.finish()
 
         try Task.checkCancellation()
         return ProcessResult(status: status, stdout: collector.stdout, stderr: collector.stderrText)
+    }
+}
+
+/// Reads a pipe until end of file on a background thread.
+private func pump(_ handle: FileHandle, _ group: DispatchGroup, _ append: @escaping @Sendable (Data) -> Void) {
+    group.enter()
+    DispatchQueue.global(qos: .utility).async {
+        while true {
+            let data = handle.availableData   // blocks until data arrives; empty at end of file
+            if data.isEmpty { break }
+            append(data)
+        }
+        group.leave()
     }
 }
 
