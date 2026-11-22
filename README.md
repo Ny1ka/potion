@@ -58,9 +58,22 @@ After that it opens like any other app.
   <img src="docs/images/readme/drop-zone-light.png" alt="Potion's empty window with the drop zone" width="720">
 </picture>
 
-Drop files or whole folders on the window, or click **Choose Files…**. Folders bring their subfolders along. In
-Finder you can also select files, Control-click and choose **Services › Convert with Potion**. Potion identifies each
-file by its contents, not just its extension, and tells you plainly about anything it can't convert.
+Drop files or whole folders on the window, or click **Choose Files…**. Folders bring their subfolders along. Potion
+identifies each file by its contents, not just its extension, and tells you plainly about anything it can't convert.
+
+### Convert right from Finder
+
+Already looking at the file you need in a different format? You don't have to open Potion first:
+
+1. In Finder, select one or more files.
+2. Control-click (or right-click) them and choose **Convert with Potion**. Depending on your macOS version and how
+   many services you have, it's at the bottom of the menu or under **Services** (or **Quick Actions › Services**).
+3. Potion opens with just those files and their convert options, ready for you to pick a format and click
+   **Convert**.
+
+Tip: to give it a keyboard shortcut, open **System Settings › Keyboard › Keyboard Shortcuts › Services**, find
+**Convert with Potion** under Files and Folders, and add one. If the item doesn't show up right after you install
+Potion, open Potion once, or log out and back in, so macOS picks it up.
 
 ### Every file gets the right format
 
