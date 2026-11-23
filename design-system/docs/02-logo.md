@@ -2,14 +2,17 @@
 
 ## Construction (100 × 100 grid)
 
-**Potion mark**
+**Potion mark: Erlenmeyer flask** (v1.1, replaces the round-bulb mark from v1.0)
 
 | Part | Geometry |
 |---|---|
-| Neck | rect x 43, y 12, w 14, h 18, corner radius 3 |
-| Bulb (clip) | circle center (50, 60), r 28 |
-| Bands | four horizontal bands inside the bulb, each 12.5 tall, separated by 2-unit gaps: y = 32, 46.5, 61, 75.5 |
+| Flask silhouette (clip) | path `M41 14 H59 V38 L81 80 Q84 88 75 88 H25 Q16 88 19 80 L41 38 Z`: a straight neck (x 41–59) opening into a cone with softly rounded bottom corners |
+| Rim | rect x 37, y 9, w 26, h 7, corner radius 3.5 |
+| Neck fill | everything inside the silhouette above y 38 (the neck and the top of the shoulder) is the neck color |
+| Bands | four horizontal bands inside the silhouette with 2-unit gaps: y 40–50 (Image), 52–62 (Audio), 64–74 (Video), 76–88 (Docs) |
 | Band order | Image, Audio, Video, Docs (top → bottom). Fixed. |
+
+The triangle silhouette is what makes the mark read as a lab flask. Never round the cone into a bulb: the round-bottom version read as a grenade and is retired.
 
 **Potion Dropper mark**
 
@@ -20,9 +23,9 @@
 | Lower band + tip (video) | path `M42 55 H58 V64 L50 75 L42 64 Z` |
 | Drop (video) | circle (50, 85), r 6 |
 
-Both marks are flat: no outlines, gradients, shadows or highlights. The neck / dropper bulb takes the "neck" color, which is white on dark, ink on light, or the neutral `#8F88A2` when the background is unknown.
+Both marks are flat: no outlines, gradients, shadows or highlights. The neck and rim (Potion) and the rubber bulb (Dropper) take the "neck" color, which is white on dark, ink on light, or the neutral `#8F88A2` when the background is unknown.
 
-**Small variants** (`*-mark-small*.svg`) exist for rendering at **32 px and below**. They use a bigger neck, a bigger bulb and no gaps between colored bands. The mono small variants widen the gaps so the stripes don't blur together. Pick the variant by final pixel size, not point size: 16 pt @2x = 32 px, so use small.
+**Small variants** (`*-mark-small*.svg`) exist for rendering at **32 px and below**. They use a wider neck, a taller rim, a slightly wider cone and no gaps between the colored bands. Silhouette: `M39 13 H61 V36 L84 79 Q87 89 77 89 H23 Q13 89 16 79 L39 36 Z`. The mono small variants widen the gaps so the stripes don't blur together. Pick the variant by final pixel size, not point size: 16 pt @2x = 32 px, so use small.
 
 ## Files (`logos/svg/`)
 
@@ -51,14 +54,16 @@ PNG exports are in `logos/png/`.
 
 ## Clear space and minimum size
 
-- **Clear space:** keep a margin equal to the neck width (14 units, 14% of the mark's box) on every side. For the lockup, measure it at lockup scale.
+- **Clear space:** keep a margin equal to the neck width (18 units, 18% of the mark's box) on every side. For the lockup, measure it at lockup scale.
 - **Minimum size:** mark 16 px (use the small variant), lockup 96 px wide.
 
 ## Misuse
 
 Don't:
 - reorder, recolor or add bands, or use a gradient between bands
-- draw an outline around the bulb, add a cork, bubbles, sparkles or highlights (that was the old detailed version, now retired)
+- draw an outline around the flask, or add a cork, bubbles, sparkles or highlights
+- round the cone into a sphere or bulb (the retired v1.0 shape, which read as a grenade)
+- tilt the flask, or add liquid splashes or pouring
 - rotate, skew or squash the mark, or place it on a busy photo
 - use a category color for the neck
 - put the white-neck mark on a light background, or the ink-neck mark on a dark one

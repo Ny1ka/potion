@@ -45,7 +45,7 @@ Reference: `splash/splash.html`. Used in **onboarding panel 1** and the **About 
 | 600 → 900 | Neck | translateY −12 → 0, opacity 0 → 1, emphasized |
 | 750 → 1150 | Wordmark / tagline | translateY 10 → 0, opacity 0 → 1, standard |
 
-Bands are clipped by the bulb circle, so they appear to fill the flask from below. Total ≈ 1.3 s, plays once.
+Bands are clipped by the flask silhouette, so they appear to fill the flask from below. The neck fill and rim drop on together. Total ≈ 1.3 s, plays once.
 
 Implementation:
 - **SwiftUI:** draw with `PotionMark`-style shapes; animate each band's offset/opacity with `.animation(PotionMotion.standard(0.42).delay(…))`, triggered `onAppear`.

@@ -1,4 +1,4 @@
-# Potion Design System · v1.0.0
+# Potion Design System · v1.1.0
 
 The visual system for **Potion** (file converter) and **Potion Dropper** (media downloader + converter) on macOS and Windows.
 
@@ -6,13 +6,14 @@ The visual system for **Potion** (file converter) and **Potion Dropper** (media 
 
 ## The idea in one paragraph
 
-The mark is a flask: a circle cut into four flat bands under a plain neck. Each band is one file category: **Image** (teal), **Audio** (orange), **Video** (pink), **Docs** (violet). Those four colors run through the product and always mean the same thing: what kind of file this is. Everything else stays quiet and native. The apps use the system font, the system accent color, system materials and stock controls, so Potion feels like it came with the OS. Potion Dropper is the sibling app. Its mark is a dropper holding only the two colors it outputs, video and audio.
+The mark is an Erlenmeyer flask: a cone filled with four flat bands under a plain neck and rim. Each band is one file category: **Image** (teal), **Audio** (orange), **Video** (pink), **Docs** (violet). Those four colors run through the product and always mean the same thing: what kind of file this is. Everything else stays quiet and native. The apps use the system font, the system accent color, system materials and stock controls, so Potion feels like it came with the OS. Potion Dropper is the sibling app. Its mark is a dropper holding only the two colors it outputs, video and audio.
 
 ## What's inside
 
 ```
 CLAUDE.md                     Instructions for Claude Code (rules, integration, checklist)
 README.md                     This file
+CHANGELOG.md                  What changed between versions (1.1.0: new flask logo)
 tokens/
   tokens.json                 SOURCE OF TRUTH: colors, type, spacing, radius, sizes, motion, elevation
   tokens.css                  Generated CSS custom properties (light/dark/[data-theme])

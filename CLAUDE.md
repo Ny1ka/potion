@@ -14,7 +14,7 @@ Use the names exactly: "Potion", "Potion Dropper" (short form "Dropper" only aft
 ## Layout
 
 ```
-design-system/   Potion design system v1.0.0. Read design-system/CLAUDE.md before any UI work.
+design-system/   Potion design system v1.1.0. Read design-system/CLAUDE.md before any UI work.
 core/spec/       Shared data for both platforms: format signatures, conversion matrix, presets,
                  and conformance test cases that both cores must pass.
 core/swift/      PotionCore Swift package (macOS apps). `make test-core`

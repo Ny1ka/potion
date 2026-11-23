@@ -103,21 +103,28 @@ def svg_doc(inner, view_box="0 0 100 100", title=None, extra=""):
 
 
 # ---------------------------------------------------------------- mark geometry (100 x 100 box)
+FLASK = "M41 14 H59 V38 L81 80 Q84 88 75 88 H25 Q16 88 19 80 L41 38 Z"
+FLASK_SMALL = "M39 13 H61 V36 L84 79 Q87 89 77 89 H23 Q13 89 16 79 L39 36 Z"
+
+
 def potion_inner(neck, bands, small=False, uid="p"):
-    """bands: 4 colors top->bottom, or 1 color for a one-color (mono) mark."""
+    """Erlenmeyer flask. bands: 4 colors top->bottom, or 1 color for a one-color (mono) mark."""
     mono = len(set(bands)) == 1
     if len(bands) == 1:
         bands = bands * 4
     if not small:
-        nx, ny, nw, nh, cy, r = 43, 12, 14, 18, 60, 28
-        ys, bh = [32, 46.5, 61, 75.5], 12.5
+        path, (rx, ry, rw, rh, rr) = FLASK, (37, 9, 26, 7, 3.5)
+        level, ys, bh, bottom = 38, [40, 52, 64, 76], 10, 90
     else:
-        nx, ny, nw, nh, cy, r = 40, 6, 20, 20, 60, 30
-        ys, bh = ([30, 47, 64, 81], 12) if mono else ([30, 45, 60, 75], 15)
-    rects = "".join(f'<rect x="{50 - r - 2}" y="{y}" width="{2 * r + 4}" height="{bh}" fill="{c}"/>' for y, c in zip(ys, bands))
-    return (f'<defs><clipPath id="{uid}"><circle cx="50" cy="{cy}" r="{r}"/></clipPath></defs>'
-            f'<rect x="{nx}" y="{ny}" width="{nw}" height="{nh}" rx="3" fill="{neck}"/>'
-            f'<g clip-path="url(#{uid})">{rects}</g>')
+        path, (rx, ry, rw, rh, rr) = FLASK_SMALL, (34, 7, 32, 9, 4)
+        level, ys, bh = (35, [39, 52, 65, 78], 9) if mono else (36, [36, 49, 62, 75], 13)
+        bottom = 92
+    rects = "".join(
+        f'<rect x="10" y="{y}" width="80" height="{bottom - y if i == 3 else bh}" fill="{c}"/>'
+        for i, (y, c) in enumerate(zip(ys, bands)))
+    return (f'<defs><clipPath id="{uid}"><path d="{path}"/></clipPath></defs>'
+            f'<g clip-path="url(#{uid})"><rect x="10" y="0" width="80" height="{level}" fill="{neck}"/>{rects}</g>'
+            f'<rect x="{rx}" y="{ry}" width="{rw}" height="{rh}" rx="{rr}" fill="{neck}"/>')
 
 
 def dropper_inner(neck, band, lower, small=False, mono=False):
@@ -151,7 +158,7 @@ def mark(product, neck, small=False, mono_color=None, uid="m"):
 
 
 # visible bounds of each mark inside the 100 box (x, y, w, h) — used for lockups
-TRIM = {"potion": (22, 12, 56, 76), "dropper": (38, 12, 24, 79)}
+TRIM = {"potion": (18.25, 9, 63.5, 79), "dropper": (38, 12, 24, 79)}
 
 
 # ---------------------------------------------------------------- wordmark outlines
@@ -627,12 +634,26 @@ public struct PotionMark: View {{
             func r(_ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat) -> CGRect {{
                 CGRect(x: ox + x * s, y: oy + y * s, width: w * s, height: h * s)
             }}
-            context.fill(Path(roundedRect: r(43, 12, 14, 18), cornerRadius: 3 * s), with: .color(neck))
-            let bulb = Path(ellipseIn: r(22, 32, 56, 56))
-            context.clip(to: bulb)
-            let bands: [(CGFloat, PotionCategory)] = [(32, .image), (46.5, .audio), (61, .video), (75.5, .docs)]
-            for (y, category) in bands {{
-                context.fill(Path(r(20, y, 60, 12.5)), with: .color(category.fill))
+            func p(_ x: CGFloat, _ y: CGFloat) -> CGPoint {{ CGPoint(x: ox + x * s, y: oy + y * s) }}
+            // Erlenmeyer flask silhouette (same path as logos/svg/potion-mark.svg)
+            var flask = Path()
+            flask.move(to: p(41, 14))
+            flask.addLine(to: p(59, 14))
+            flask.addLine(to: p(59, 38))
+            flask.addLine(to: p(81, 80))
+            flask.addQuadCurve(to: p(75, 88), control: p(84, 88))
+            flask.addLine(to: p(25, 88))
+            flask.addQuadCurve(to: p(19, 80), control: p(16, 88))
+            flask.addLine(to: p(41, 38))
+            flask.closeSubpath()
+            // Rim
+            context.fill(Path(roundedRect: r(37, 9, 26, 7), cornerRadius: 3.5 * s), with: .color(neck))
+            context.clip(to: flask)
+            // Neck and shoulder above the liquid line
+            context.fill(Path(r(10, 0, 80, 38)), with: .color(neck))
+            let bands: [(CGFloat, CGFloat, PotionCategory)] = [(40, 10, .image), (52, 10, .audio), (64, 10, .video), (76, 14, .docs)]
+            for (y, height, category) in bands {{
+                context.fill(Path(r(10, y, 80, height)), with: .color(category.fill))
             }}
         }}
         .aspectRatio(1, contentMode: .fit)
@@ -888,14 +909,15 @@ button{{margin-top:24px;font:inherit;font-size:13px;color:#B6B0C4;background:tra
 <body>
 <main class="stage" id="stage">
 <svg viewBox="0 0 100 100" width="220" height="220" role="img" aria-label="Potion">
-<defs><clipPath id="bulb"><circle cx="50" cy="60" r="28"/></clipPath></defs>
-<rect class="neck" x="43" y="12" width="14" height="18" rx="3" fill="#FFFFFF"/>
-<g clip-path="url(#bulb)">
-<rect class="band b-image" x="20" y="32" width="60" height="12.5" fill="{c['image']}"/>
-<rect class="band b-audio" x="20" y="46.5" width="60" height="12.5" fill="{c['audio']}"/>
-<rect class="band b-video" x="20" y="61" width="60" height="12.5" fill="{c['video']}"/>
-<rect class="band b-docs" x="20" y="75.5" width="60" height="12.5" fill="{c['docs']}"/>
+<defs><clipPath id="flask"><path d="{FLASK}"/></clipPath></defs>
+<g clip-path="url(#flask)">
+<rect class="neck" x="10" y="0" width="80" height="38" fill="#FFFFFF"/>
+<rect class="band b-image" x="10" y="40" width="80" height="10" fill="{c['image']}"/>
+<rect class="band b-audio" x="10" y="52" width="80" height="10" fill="{c['audio']}"/>
+<rect class="band b-video" x="10" y="64" width="80" height="10" fill="{c['video']}"/>
+<rect class="band b-docs" x="10" y="76" width="80" height="14" fill="{c['docs']}"/>
 </g>
+<rect class="neck" x="37" y="9" width="26" height="7" rx="3.5" fill="#FFFFFF"/>
 </svg>
 <h1 class="word">potion</h1>
 <p class="word">Any file in. The format you need out.</p>
@@ -1072,7 +1094,7 @@ iframe{{width:100%;height:520px;border:1px solid #2E2939;border-radius:12px}}
 <header><img src="../logos/svg/potion-lockup-on-dark.svg" alt="Potion"><p>Design system {T["meta"]["version"]} · {T["meta"]["updated"]} · macOS + Windows</p></header>
 
 <h2>Logo</h2>
-<p>A circle cut into four bands (image, audio, video, docs) under a plain neck. Use the small variant at 32 px and below, mono where the OS tints icons.</p>
+<p>An Erlenmeyer flask filled with four bands (image, audio, video, docs) under a plain neck and rim. Use the small variant at 32 px and below, mono where the OS tints icons.</p>
 <div class="grid">
 <div class="card-l d"><img src="../logos/svg/potion-mark.svg" alt="">potion-mark.svg</div>
 <div class="card-l l"><img src="../logos/svg/potion-mark-on-light.svg" alt="">potion-mark-on-light.svg</div>

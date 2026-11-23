@@ -201,12 +201,26 @@ public struct PotionMark: View {
             func r(_ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat) -> CGRect {
                 CGRect(x: ox + x * s, y: oy + y * s, width: w * s, height: h * s)
             }
-            context.fill(Path(roundedRect: r(43, 12, 14, 18), cornerRadius: 3 * s), with: .color(neck))
-            let bulb = Path(ellipseIn: r(22, 32, 56, 56))
-            context.clip(to: bulb)
-            let bands: [(CGFloat, PotionCategory)] = [(32, .image), (46.5, .audio), (61, .video), (75.5, .docs)]
-            for (y, category) in bands {
-                context.fill(Path(r(20, y, 60, 12.5)), with: .color(category.fill))
+            func p(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: ox + x * s, y: oy + y * s) }
+            // Erlenmeyer flask silhouette (same path as logos/svg/potion-mark.svg)
+            var flask = Path()
+            flask.move(to: p(41, 14))
+            flask.addLine(to: p(59, 14))
+            flask.addLine(to: p(59, 38))
+            flask.addLine(to: p(81, 80))
+            flask.addQuadCurve(to: p(75, 88), control: p(84, 88))
+            flask.addLine(to: p(25, 88))
+            flask.addQuadCurve(to: p(19, 80), control: p(16, 88))
+            flask.addLine(to: p(41, 38))
+            flask.closeSubpath()
+            // Rim
+            context.fill(Path(roundedRect: r(37, 9, 26, 7), cornerRadius: 3.5 * s), with: .color(neck))
+            context.clip(to: flask)
+            // Neck and shoulder above the liquid line
+            context.fill(Path(r(10, 0, 80, 38)), with: .color(neck))
+            let bands: [(CGFloat, CGFloat, PotionCategory)] = [(40, 10, .image), (52, 10, .audio), (64, 10, .video), (76, 14, .docs)]
+            for (y, height, category) in bands {
+                context.fill(Path(r(10, y, 80, height)), with: .color(category.fill))
             }
         }
         .aspectRatio(1, contentMode: .fit)
