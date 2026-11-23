@@ -5,7 +5,7 @@ Read this first in any new session. Update it at every checkpoint.
 ## Status
 
 - **Current milestone:** M9 Packaging and V1 release: macOS beta first (M2–M8 done)
-- **Last completed chunk:** M9.2d v0.9.1 prepared (Settings fix)
+- **Last completed chunk:** M9.2e New flask logo (design system 1.1.0), v0.9.2 prepared
 - **Next chunk:** M9.2c polish from feedback (About splash animation; Windows after real-PC testing)
 
 ## Milestones
@@ -83,6 +83,12 @@ Read this first in any new session. Update it at every checkpoint.
       Settings remembers its tab
 - [x] M9.2d v0.9.1 prepared: version bumped everywhere, `docs/release-notes/v0.9.1.md` (the Settings fix); the owner
       publishes it from the release workflow
+- [x] M9.2e New Potion logo (Erlenmeyer flask; the round-bottom mark read as a grenade): design system 1.1.0 merged
+      from the owner's update, keeping the repo's dark `borderStrong` fix (`#8A849C`, which the update's tokens.json
+      predated) and regenerated with `build.py` (Potion assets match the owner's files pixel for pixel; Dropper's
+      unchanged). Apps: `SplashMark` (onboarding build-up) redrawn with the flask silhouette, mono mark copy in
+      `Brand.xcassets` refreshed; Windows picks up the regenerated icons. README screenshots and demo GIFs recaptured.
+      Version 0.9.2, `docs/release-notes/v0.9.2.md`; the owner publishes it from the release workflow
 - [ ] M9.2c Polish from feedback (incl. the About splash animation)
 - [ ] M9.3 Windows: test both apps on a real PC, trim the Windows App SDK to the components the apps use, EXE
       installer (tool to be chosen and license-checked), Windows beta

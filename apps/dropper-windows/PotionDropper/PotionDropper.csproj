@@ -17,7 +17,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>..\..\..\design-system\windows\PotionDropper\Assets\PotionDropper.ico</ApplicationIcon>
     <Product>Potion Dropper</Product>
-    <Version>0.9.1</Version>
+    <Version>0.9.2</Version>
     <Copyright>Copyright © 2026 Nyika. MIT License.</Copyright>
   </PropertyGroup>
 
